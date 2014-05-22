@@ -1,0 +1,6 @@
+# UUID                                  	Group Name
+#
+406c94e1e75c8faeae36377d08bc0306894d87a6	Non-Interactive snbi users
+global:Anonymous-Users                  	Anonymous Users
+global:Registered-Users                 	Registered Users
+ldap:cn=gerrit-snbi-committers,ou=Groups,dc=opendaylight,dc=org	ldap/gerrit-snbi-committers
