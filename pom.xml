@@ -52,11 +52,9 @@
         <url>https://wiki.opendaylight.org/view/SecureNetworkBootstrapping:Main</url>
         <tag>HEAD</tag>
     </scm>
-    <!--
     <modules>
-        <module></module>
+        <module>certmgmt/implementation</module>
     </modules>
-    -->
 
     <pluginRepositories>
         <!-- OpenDayLight Repo Mirror -->
