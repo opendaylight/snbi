@@ -22,28 +22,30 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.Certificate;
-import org.bouncycastle.cert.CertException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public enum SNBICAInterfaces {
     INSTANCE;
+    protected static final Logger logger = LoggerFactory
+            .getLogger(SNBICAInterfaces.class);
 
     /*   API's called / requested by other modules */
 
@@ -52,7 +54,7 @@ public enum SNBICAInterfaces {
     public PKCS10CertificationRequest generateCSRRequest(String... arguments) {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
         builder.addRDN(BCStyle.CN, arguments[0]); // common name
-        builder.addRDN(BCStyle.OU, CertificateMgmt.defaults.get(arguments[1])); //  organisational unit
+        builder.addRDN(BCStyle.OU, arguments[1]); //  organisational unit
         builder.addRDN(BCStyle.SN, arguments[2]); // serial number
         // other defaults
         builder.addRDN(BCStyle.C, CertificateMgmt.defaults.get("COUNTRY"));
@@ -84,9 +86,12 @@ public enum SNBICAInterfaces {
     public X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer) {
         X509Certificate rootCert = CertificateMgmt
                 .getSavedCertificate(CertManagerConstants.BC,CertManagerConstants.SELF_SIGNED_CERT_FILE);
-        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
+        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,CertManagerConstants.KEY_STORE_CERT_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
 
-        BigInteger serial = BigInteger.valueOf(new Long(request.getAttributes(BCStyle.SN)[0].toString()).longValue());
+        X500Name x500Name = request.getSubject();
+        RDN cn = x500Name.getRDNs(BCStyle.SN)[0];
+        AttributeTypeAndValue[] values = cn.getTypesAndValues();
+        BigInteger serial = BigInteger.valueOf(new Long(values[0].getValue().toString()).longValue());
         Calendar now = Calendar.getInstance();
         Date notBefore = now.getTime();
         now.add(Calendar.YEAR, 3);
@@ -148,7 +153,7 @@ public enum SNBICAInterfaces {
         KeyStore keystore = null;
         String certAlias = CertManagerConstants.KEY_STORE_CERT_ALIAS+SNBIRegistrar.ID++;
         try {
-            keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keystore = KeyStore.getInstance(CertManagerConstants.STORE_TYPE.JCEKS.toString());
         } catch (KeyStoreException e) {
             e.printStackTrace();
             return null;
@@ -184,7 +189,7 @@ public enum SNBICAInterfaces {
     public X509Certificate getSavedCertificate(String alias) {
         KeyStore keystore = null;
         try {
-            keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keystore = KeyStore.getInstance(CertManagerConstants.STORE_TYPE.JCEKS.toString());
         } catch (KeyStoreException e) {
             e.printStackTrace();
             return null;
@@ -223,25 +228,8 @@ public enum SNBICAInterfaces {
     }
 
     // verify the signature on certificate
-    public  boolean verifySignature(Certificate cert) {
-        X509CertificateHolder  certHolder = new X509CertificateHolder (cert);
-        ContentVerifierProvider contentVerifierProvider;
-        try {
-            contentVerifierProvider = new JcaContentVerifierProviderBuilder()
-            .setProvider(CertManagerConstants.BC).build(certHolder);
-        } catch (OperatorCreationException e) {
-            e.printStackTrace();
-            return false;
-        } catch (CertificateException e) {
-            e.printStackTrace();
-            return false;
-        }
-        try {
-            return certHolder.isSignatureValid(contentVerifierProvider);
-        } catch (CertException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public  boolean verifySignature(byte[] data,byte[] hash,Certificate cert,String algorithm) {
+        return CertificateMgmt.verifySignature(data, hash, cert, algorithm);
     }
 
 }

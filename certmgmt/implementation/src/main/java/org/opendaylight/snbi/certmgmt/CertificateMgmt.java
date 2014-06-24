@@ -24,6 +24,7 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -226,7 +227,7 @@ public class CertificateMgmt {
     public static X509Certificate[] buildChain(String provider, KeyPair pair) throws Exception {
         X509Certificate rootCert = CertificateMgmt
                 .getSavedCertificate(CertManagerConstants.BC,CertManagerConstants.SELF_SIGNED_CERT_FILE);
-        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
+        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,CertManagerConstants.KEY_STORE_CERT_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
         KeyPair keyPair = KeyPairMgmt
                 .generateKeyPair(CertManagerConstants.ALGORITHM.RSA);
         PKCS10CertificationRequest request = generateCSRRequest("Node",pair);
@@ -313,7 +314,7 @@ public class CertificateMgmt {
     // create signature with the root ca private key
     public static byte[] generateSignature(byte[] data, Certificate cert,String algorithm) {
         Signature signer = null;
-        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
+        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS, CertManagerConstants.KEY_STORE_CERT_ALIAS, CertManagerConstants.STORE_TYPE.JKS);
         try {
             signer = Signature.getInstance(algorithm, CertManagerConstants.BC);
         } catch (NoSuchAlgorithmException e) {
@@ -342,6 +343,14 @@ public class CertificateMgmt {
             return null;
         }
     }
+
+    //verify the signature . first generate the signature and compare with both hash
+    public static boolean verifySignature(byte[] data,byte[] hash,Certificate cert,String algorithm) {
+        byte[] newhash = generateSignature(data,cert,algorithm);
+        return Arrays.equals(hash, newhash);
+    }
+
+    /* Misc Methods not used */
 
     // create signature by passing the certificate
     public static byte[] sign(Certificate cert,KeyPair pair) {

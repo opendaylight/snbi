@@ -48,18 +48,19 @@ public enum CertManager implements ICertManager, CommandProvider {
         help.append("\t\n---SNBI Certificate Manager---\n");
         help.append("\t printProviders \n");
         help.append("\t printWhiteList\n");
+        help.append("\t printCertificateLocation\n");
         help.append("\t API , used by other bundles \n");
         help.append("\t-----------------------------------------------------------------------------------\n");
-        help.append("\t PKCS10CertificationRequest generateCSRRequest(String... arguments\n");
-        help.append("\t X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer\n");
-        help.append("\t boolean compareCertificates(Certificate cert1, Certificate cert2\n");
-        help.append("\t HashMap<String,String> getCertificateInfo(X509Certificate cert\n");
+        help.append("\t PKCS10CertificationRequest generateCSRRequest(String... arguments)\n");
+        help.append("\t X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer)\n");
+        help.append("\t boolean compareCertificates(Certificate cert1, Certificate cert2)\n");
+        help.append("\t HashMap<String,String> getCertificateInfo(X509Certificate cert)\n");
         help.append("\t X509Certificate getRootCACertificate()\n");
-        help.append("\t String saveCertificate(X509Certificate cert\n");
-        help.append("\t X509Certificate getSavedCertificate(String alias\n");
-        help.append("\t String verifyCertificate(X509Certificate cert, Date date, PublicKey pub_key\n");
-        help.append("\t byte[] generateSignature(byte[] data, Certificate cert,String algorithm\n");
-        help.append("\t boolean verifySignature(Certificate cert\n");
+        help.append("\t String saveCertificate(X509Certificate cert)\n");
+        help.append("\t X509Certificate getSavedCertificate(String alias)\n");
+        help.append("\t String verifyCertificate(X509Certificate cert, Date date, PublicKey pub_key)\n");
+        help.append("\t byte[] generateSignature(byte[] data, Certificate cert,String algorithm) \n");
+        help.append("\t boolean verifySignature(byte[] data,byte[] hash,Certificate cert,String algorithm) \n");
         help.append("\t-----------------------------------------------------------------------------------\n");
         return help.toString();
     }
@@ -120,8 +121,8 @@ public enum CertManager implements ICertManager, CommandProvider {
     }
 
     @Override
-    public  boolean verifySignature(Certificate cert) {
-        return SNBICAInterfaces.INSTANCE.verifySignature(cert);
+    public  boolean verifySignature(byte[] data,byte[] hash,Certificate cert,String algorithm) {
+        return SNBICAInterfaces.INSTANCE.verifySignature(data, hash, cert, algorithm);
     }
 
     /*  For OSGI Console */
@@ -133,18 +134,19 @@ public enum CertManager implements ICertManager, CommandProvider {
             help.append("\t\n---SNBI Certificate Manager---\n");
             help.append("\t printProviders \n");
             help.append("\t printWhiteList\n");
+            help.append("\t printCertificateLocation\n");
             help.append("\t API , used by other bundles \n");
             help.append("\t-----------------------------------------------------------------------------------\n");
-            help.append("\t PKCS10CertificationRequest generateCSRRequest(String... arguments\n");
-            help.append("\t X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer\n");
-            help.append("\t boolean compareCertificates(Certificate cert1, Certificate cert2\n");
-            help.append("\t HashMap<String,String> getCertificateInfo(X509Certificate cert\n");
+            help.append("\t PKCS10CertificationRequest generateCSRRequest(String... arguments)\n");
+            help.append("\t X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer)\n");
+            help.append("\t boolean compareCertificates(Certificate cert1, Certificate cert2)\n");
+            help.append("\t HashMap<String,String> getCertificateInfo(X509Certificate cert)\n");
             help.append("\t X509Certificate getRootCACertificate()\n");
-            help.append("\t String saveCertificate(X509Certificate cert\n");
-            help.append("\t X509Certificate getSavedCertificate(String alias\n");
-            help.append("\t String verifyCertificate(X509Certificate cert, Date date, PublicKey pub_key\n");
-            help.append("\t byte[] generateSignature(byte[] data, Certificate cert,String algorithm\n");
-            help.append("\t  boolean verifySignature(Certificate cert\n");
+            help.append("\t String saveCertificate(X509Certificate cert)\n");
+            help.append("\t X509Certificate getSavedCertificate(String alias)\n");
+            help.append("\t String verifyCertificate(X509Certificate cert, Date date, PublicKey pub_key)\n");
+            help.append("\t byte[] generateSignature(byte[] data, Certificate cert,String algorithm) \n");
+            help.append("\t boolean verifySignature(byte[] data,byte[] hash,Certificate cert,String algorithm) \n");
             help.append("\t-----------------------------------------------------------------------------------\n");
             logger.info(help.toString());
         }
@@ -156,5 +158,9 @@ public enum CertManager implements ICertManager, CommandProvider {
 
     public void _printWhiteList(CommandInterpreter ci) {
         SNBIRegistrar.INSTANCE.printWhiteList();
+    }
+
+    public void _printCertificateLocation(CommandInterpreter ci) {
+        logger.info("\n"+CertManagerConstants.KEY_CERT_PATH+"\n");
     }
 }

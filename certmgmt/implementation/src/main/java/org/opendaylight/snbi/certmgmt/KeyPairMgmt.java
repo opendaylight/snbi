@@ -86,16 +86,16 @@ public class KeyPairMgmt {
     }
 
     // Generate the keypair from the keystore
-    public static KeyPair getKeyPairFromStore(String alias,
+    public static KeyPair getKeyPairFromStore(String keyalias,String certalias,
             CertManagerConstants.STORE_TYPE storeType) {
         logger.info("KeyPairMgmt::getKeyPairFromStore");
         KeyStore keystore = getKeyStoreInstance(storeType);
         if (keystore == null)
             return null;
-        Key key = getKeyFromStore(alias, keystore, storeType);
+        Key key = getKeyFromStore(keyalias, keystore, storeType);
         if (key == null)
             return null;
-        Certificate cert = getCertificateFromKey(alias, keystore, key);
+        Certificate cert = getCertificateFromKey(certalias, keystore, key);
         if (cert == null)
             return null;
         PublicKey publicKey = cert.getPublicKey();
@@ -221,7 +221,7 @@ public class KeyPairMgmt {
         Key key = null;
         try {
             key = keyStore.getKey(alias,
-                    CertManagerConstants.CERT_PASSWORD.toCharArray());
+                    CertManagerConstants.KEY_STORE_PASSWORD.toCharArray());
         } catch (UnrecoverableKeyException | KeyStoreException
                 | NoSuchAlgorithmException e) {
             e.printStackTrace();

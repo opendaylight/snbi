@@ -25,5 +25,5 @@ public interface ICertManager {
     public X509Certificate getSavedCertificate(String alias);
     public String verifyCertificate(X509Certificate cert, Date date, PublicKey pub_key);
     public byte[] generateSignature(byte[] data, Certificate cert,String algorithm);
-    public  boolean verifySignature(Certificate cert);
+    public  boolean verifySignature(byte[] data,byte[] hash,Certificate cert,String algorithm);
 }

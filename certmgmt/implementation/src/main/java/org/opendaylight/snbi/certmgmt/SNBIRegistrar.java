@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -99,7 +100,7 @@ public enum SNBIRegistrar {
     /* Private Methods */
     private void createKeyStore() {
         logger.info("KeyStore file path is "+CertManagerConstants.KEY_CERT_PATH);
-        KeyPairMgmt.createKeyStore(CertManagerConstants.STORE_TYPE.JKS);
+        KeyPairMgmt.createKeyStore(CertManagerConstants.STORE_TYPE.JCEKS);
     }
 
     // create and self sign the certificate.
@@ -119,7 +120,7 @@ public enum SNBIRegistrar {
                 CertManagerConstants.SELF_SIGNED_CERT_FILE);
         logger.info("Saving Key and Certificate to Key store ");
         KeyPairMgmt.addKeyAndCertToStore(keyPair,
-                CertManagerConstants.STORE_TYPE.JKS, cert);
+                CertManagerConstants.STORE_TYPE.JCEKS, cert);
         logger.info("Retreiving Self signed certificate ");
         X509Certificate certSaved = CertificateMgmt.getSavedCertificate(
                 CertManagerConstants.BC,
@@ -132,8 +133,41 @@ public enum SNBIRegistrar {
 
     // for testing
     public static void main(String args[]) {
-        System.out.println(" Start ..");
+        System.out.println("Init Start ..");
         SNBIRegistrar.INSTANCE.init();
-        System.out.println(" END ..");
+        System.out.println("Init END ..");
+        System.out.println("Testing the API's . START");
+        org.bouncycastle.pkcs.PKCS10CertificationRequest certRequest =
+                SNBICAInterfaces.INSTANCE.generateCSRRequest(new String[]{"My Name","Ericsson","101"});
+        System.out.println("Created the CSR "+certRequest.toString());
+        X509Certificate certificate = SNBICAInterfaces.INSTANCE.generateX509Certificate(certRequest,null);
+        System.out.println("Created the Certificate "+certificate.toString());
+        HashMap<String,String> certInfo = SNBICAInterfaces.INSTANCE.getCertificateInfo(certificate);
+        System.out.println("Certificate Values ");
+        for (Map.Entry<String,String> entry : certInfo.entrySet()) {
+            System.out.println(entry.getKey()+ "  =  "+entry.getValue());
+        }
+        String alias = SNBICAInterfaces.INSTANCE.saveCertificate(certificate);
+        System.out.println("Saved the certificate with alias = "+alias);
+
+        X509Certificate savedCert = SNBICAInterfaces.INSTANCE.getSavedCertificate(alias);
+        System.out.println("Retreived the Certificate "+savedCert.toString());
+        HashMap<String,String> savedCertInfo = SNBICAInterfaces.INSTANCE.getCertificateInfo(certificate);
+        System.out.println("Saved Certificate Values ");
+        for (Map.Entry<String,String> entry : savedCertInfo.entrySet()) {
+            System.out.println(entry.getKey()+ "  =  "+entry.getValue());
+        }
+        byte[] data = {10,20,30};
+        byte[] hashData = SNBICAInterfaces.INSTANCE.generateSignature(data, null,CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        System.out.println("Hash code for data is "+data.toString());
+        byte[] data1 = {10,20,30};
+        byte[] data2= {10,20,30,40};
+        boolean dataSame1 = SNBICAInterfaces.INSTANCE.verifySignature(data1, hashData, null,CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        System.out.println(" Data Same = "+dataSame1);
+        boolean dataSame2 = SNBICAInterfaces.INSTANCE.verifySignature(data2, hashData, null,CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        System.out.println(" Data Same = "+dataSame2);
+
+        System.out.println("Testing the API's . END");
+
     }
 }
