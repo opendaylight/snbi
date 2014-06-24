@@ -52,8 +52,16 @@ final class CertManagerConstants {
 
     public static final String NONE = "None";
 
+    public static final String SUBJECT_NAME = "SUBJECT_NAME";
+    public static final String ISSUER_NAME = "ISSUER_NAME";
+    public static final String SN ="SN";
+    public static final String CN = "CN";
+    public static final String OU = "OU";
+    public static final String START_DATE = "START_DATE";
+    public static final String EXPIRY_DATE = "EXPIRY_DATE";
+
     public enum ALGORITHM {
-        DH, DSA, RSA, EC, SHA1PRNG
+        DH, DSA, RSA, ECDSA, EC, SHA1PRNG
     };
 
     public enum PROVIDER {

@@ -38,6 +38,8 @@ public enum SNBIRegistrar {
     protected static final Logger logger = LoggerFactory
             .getLogger(SNBIRegistrar.class);
 
+    public static int ID = 1;
+
     // initialize the registrar.
     public void init() {
         logger.info("SNBIRegistrar::init start");
@@ -45,7 +47,7 @@ public enum SNBIRegistrar {
         createKeyStore();
         populateWhileList();
         printWhiteList();
-        selfSignCertificate();
+        selfSignRSACertificate();
         logger.info("SNBIRegistrar::init end");
     }
 
@@ -102,7 +104,7 @@ public enum SNBIRegistrar {
 
     // create and self sign the certificate.
     // store the certificate and retreive it
-    private void selfSignCertificate() {
+    private void selfSignRSACertificate() {
         logger.info("SNBIRegistrar::selfSignCertificate");
         // generate key pair
         KeyPair keyPair = KeyPairMgmt

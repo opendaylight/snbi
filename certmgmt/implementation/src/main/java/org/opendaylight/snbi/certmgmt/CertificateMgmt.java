@@ -19,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -33,13 +34,17 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.cert.CertException;
 import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.SignerInfoGeneratorBuilder;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
@@ -51,13 +56,15 @@ import org.slf4j.LoggerFactory;
 public class CertificateMgmt {
 
     // a static map to keep default values for certificate management
-    protected static HashMap<String,String> defaults = null;
+    public static HashMap<String,String> defaults = null;
     static {
         defaults = new HashMap<String,String>();
         defaults.put("COUNTRY", "USA");
         defaults.put("ORGANIZATION", "ODL Community");
         defaults.put("TITLE", "SNBI Certificate by BC");
         defaults.put("STATE", "CALIFORNIA");
+        defaults.put("LOCALITY", "SANJOSE");
+        defaults.put("EMAIL", "snbi-dev@lists.opendaylight.org");
     }
 
     protected static final Logger logger = LoggerFactory
@@ -75,8 +82,14 @@ public class CertificateMgmt {
             builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
             builder.addRDN(BCStyle.ST, defaults.get("STATE"));
             builder.addRDN(BCStyle.T, defaults.get("TITLE"));
+            builder.addRDN(BCStyle.L, defaults.get("LOCALITY"));
+            builder.addRDN(BCStyle.E, defaults.get("EMAIL"));
             builder.addRDN(BCStyle.SN, BigInteger.valueOf(System.currentTimeMillis()).toString());
             builder.addRDN(BCStyle.CN, hostname);
+
+            ContentSigner sigGen = new JcaContentSignerBuilder(
+                    CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(provider
+                            ).build(pair.getPrivate());
             Calendar now = Calendar.getInstance();
             Date notBefore = now.getTime();
             now.add(Calendar.YEAR, 3);
@@ -85,9 +98,6 @@ public class CertificateMgmt {
             X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
                     builder.build(), serial, notBefore, notAfter,
                     builder.build(), pair.getPublic());
-            ContentSigner sigGen = new JcaContentSignerBuilder(
-                    CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(provider
-                            ).build(pair.getPrivate());
             cert = new JcaX509CertificateConverter().setProvider(
                     provider).getCertificate(
                             certGen.build(sigGen));
@@ -281,6 +291,113 @@ public class CertificateMgmt {
         }
         is1.close();
         return theCert;
+    }
+
+    // method to revoke a certificate
+    public static void createCRL(String name) {
+        X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
+        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
+        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
+        builder.addRDN(BCStyle.ST, defaults.get("STATE"));
+        builder.addRDN(BCStyle.T, defaults.get("TITLE"));
+        builder.addRDN(BCStyle.SN, BigInteger.valueOf(System.currentTimeMillis()).toString());
+        builder.addRDN(BCStyle.CN, name);
+        Calendar now = Calendar.getInstance();
+        Date notBefore = now.getTime();
+        now.add(Calendar.YEAR, 3);
+        Date notAfter = now.getTime();
+        X509v2CRLBuilder crlGen = new X509v2CRLBuilder(builder.build(),notBefore);
+        crlGen.setNextUpdate(notAfter);
+    }
+
+    // create signature with the root ca private key
+    public static byte[] generateSignature(byte[] data, Certificate cert,String algorithm) {
+        Signature signer = null;
+        KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
+        try {
+            signer = Signature.getInstance(algorithm, CertManagerConstants.BC);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            signer.initSign(rootPair.getPrivate());
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            signer.update(data);
+        } catch (SignatureException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            return signer.sign();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // create signature by passing the certificate
+    public static byte[] sign(Certificate cert,KeyPair pair) {
+        ContentSigner signGen = null;
+        X509CertificateHolder certHolder = new X509CertificateHolder(cert);
+
+        try {
+            signGen =  new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(CertManagerConstants.BC).build(pair.getPrivate());
+        } catch (OperatorCreationException e) {
+            e.printStackTrace();
+            return null;
+        }
+        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+
+        try {
+            gen.addSignerInfoGenerator(
+                    new SignerInfoGeneratorBuilder(new BcDigestCalculatorProvider())
+                    .build(signGen,certHolder));
+        } catch (OperatorCreationException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return certHolder.getSignature();
+    }
+
+    // create signature another api
+    public static byte[] sign(byte[] data,  KeyPair pair) {
+
+        Signature signer = null;
+        try {
+            signer = Signature.getInstance(CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString(), CertManagerConstants.BC);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            signer.initSign(pair.getPrivate());
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            signer.update(data);
+        } catch (SignatureException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            return signer.sign();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }
