@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_8faffa29",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "please remove the System.out.printlns and may be use logger.info",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_4fa57245",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "I was thinking since every device in the network needs to get a  x509 certificate from the PKCS10 request, can\u0027t we have an API which takes PKCS10 input and returns X509Certificate.",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_0f6beaf2",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "internally we can store the certificate in PEM format but we would require DER format certificates to be returned. Or provide an utility which takes PEM format and returns DER format.",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_af6bdeef",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "what is provider here ?",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_cf70a2de",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "do you think we could use CA certificate or CA public key ? and data is the current date ?",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_6f7956c7",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "I dint understand this, so we are using the certificates public key to verify the certificate ?",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_8f761ad6",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "CA is a separate entity, we should not be having CA private key.",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_ef4c86a0",
+        "filename": "certmgmt/implementation/src/main/java/org/opendaylight/snbi/certmgmt/CertificateMgmt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-06-27T14:02:58Z",
+      "side": 1,
+      "message": "We have to derive all this information from the PKCS.",
+      "revId": "e1ab76dcb4deb4dd18484beb032b23c89fc2c38d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
