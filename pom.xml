@@ -54,6 +54,7 @@
     </scm>
     <modules>
         <module>certmgmt/implementation</module>
+        <module>southplugin/implementation</module>
     </modules>
 
     <pluginRepositories>
