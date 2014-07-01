@@ -1,10 +1,7 @@
-package org.opendaylight.controller.snbi;
+package org.opendaylight.snbi.southplugin;
 
 import java.security.InvalidParameterException;
 import java.util.List;
-
-import org.opendaylight.controller.snbi.internal.SnbiNeighborDiscovery;
-import org.opendaylight.controller.snbi.internal.SnbiNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

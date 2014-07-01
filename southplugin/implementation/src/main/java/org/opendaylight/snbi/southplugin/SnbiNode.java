@@ -1,4 +1,4 @@
-package org.opendaylight.controller.snbi.internal;
+package org.opendaylight.snbi.southplugin;
 
 import java.util.LinkedList;
 import java.util.List;

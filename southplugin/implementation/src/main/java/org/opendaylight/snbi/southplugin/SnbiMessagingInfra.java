@@ -1,17 +1,17 @@
-package org.opendaylight.controller.snbi.internal;
+package org.opendaylight.snbi.southplugin;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
-import java.net.DatagramPacket;
-import java.net.Inet6Address;
-import java.net.SocketException;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

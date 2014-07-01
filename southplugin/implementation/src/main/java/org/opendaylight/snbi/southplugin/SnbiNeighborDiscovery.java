@@ -1,20 +1,19 @@
-package org.opendaylight.controller.snbi.internal;
+package org.opendaylight.snbi.southplugin;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.opendaylight.controller.snbi.Snbi;
-
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
-import java.net.SocketException;
-import java.net.NetworkInterface;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Neighbour Discovery module. Performs neighbour discovery for a given domain.
