@@ -1,0 +1,61 @@
+module snbi {
+    //The yang version - today only 1 version exists. If omitted defaults to 1.
+    yang-version 1; 
+
+    //a unique namespace for this SNBI module, to uniquely identify it from other modules that may have the same name.
+    namespace "http://netconfcentral.org/ns/snbi";
+    
+    //a shorter prefix that represents the namespace for references used below
+    prefix snbi;
+    
+    //Defines the organization which defined / owns this .yang file.
+    organization "Netconf Central";
+    
+    //defines the primary contact of this yang file.
+    contact "snbi-dev";
+    
+    //provides a description of this .yang file.
+    description "YANG version for SNBI.";
+
+    //defines the dates of revisions for this yang file
+    revision "2024-07-02" {
+        description "SNBI module";
+    }
+    
+    typedef UDI {
+        type string;
+        description "Unique Device Identifier";
+    }
+		
+    container snbi-domain {
+        leaf domain-name {
+            type string;
+			description "The SNBI domain name";
+        }
+		
+        list device-list {
+			key "list-name";
+			
+            leaf list-name {
+				type string;
+				description "Name of the device list";
+			}
+			leaf list-type {
+				type enumeration {
+					enum "white";
+				}
+				description "Indicates the type of the list";
+			}
+			leaf active {
+				type boolean;
+				description "Indicates whether the list is active or not";
+			}
+			list devices {
+                                 key "device-id";
+                                 leaf device-id {
+                                          type UDI; 
+                                  }
+			}
+        }
+    }
+}
