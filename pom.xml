@@ -321,6 +321,27 @@
                                         <execute/>
                                     </action>
                                 </pluginExecution>
+                                <pluginExecution>
+                                	<pluginExecutionFilter>
+                                		<groupId>
+                                			org.opendaylight.yangtools
+                                		</groupId>
+                                		<artifactId>
+                                			yang-maven-plugin
+                                		</artifactId>
+                                		<versionRange>
+                                			[0.6.2-SNAPSHOT,)
+                                		</versionRange>
+                                		<goals>
+                                			<goal>
+                                				generate-sources
+                                			</goal>
+                                		</goals>
+                                	</pluginExecutionFilter>
+                                	<action>
+                                		<ignore></ignore>
+                                	</action>
+                                </pluginExecution>
                             </pluginExecutions>
                         </lifecycleMappingMetadata>
                     </configuration>
