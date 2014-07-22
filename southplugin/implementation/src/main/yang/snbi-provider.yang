@@ -1,0 +1,73 @@
+module snbi-provider {
+   //The yang version - today only 1 version exists. If omitted defaults to 1.
+    yang-version 1; 
+
+    //a unique namespace for this SNBI module, to uniquely identify it from other modules that may have the same name.
+    namespace "urn:opendaylight:params:xml:ns:yang:snbi:config:snbi:provider:impl";
+    
+    //a shorter prefix that represents the namespace for references used below
+    prefix snbi-provider-impl;
+    
+    import config { prefix config; revision-date 2013-04-05; }
+    import rpc-context { prefix rpcx; revision-date 2013-06-17; }
+    import opendaylight-md-sal-binding { prefix mdsal; revision-date 2013-10-28; }
+    import opendaylight-md-sal-dom {prefix dom;}
+    
+    //Defines the organization which defined / owns this .yang file.
+    organization "Netconf Central";
+    
+    //defines the primary contact of this yang file.
+    contact "snbi-dev";
+    
+    //provides a description of this .yang file.
+     description "This module uses the config sub-system of ODL to wire in some required dependencies used by our service.";
+
+    //defines the dates of revisions for this yang file
+    revision "2024-07-02" {
+        description "SNBI module";
+    }
+    
+     // This is the definition of the service implementation as a module identity.
+    identity snbi-provider-impl {
+            base config:module-type;
+            
+            // Specifies the prefix for generated java classes.
+            config:java-name-prefix SnbiProvider;
+    }
+    
+    // Augments the 'configuration' choice node under modules/module.
+    //This is defining the services we want MD-SAL to inject for us.
+    augment "/config:modules/config:module/config:configuration" {
+        case snbi-provider-impl {
+            when "/config:modules/config:module/config:type = 'snbi-provider-impl'";
+
+            container rpc-registry {
+                uses config:service-ref {
+                    refine type {
+                        mandatory true;
+                        config:required-identity mdsal:binding-rpc-registry;
+                    }
+                }
+            }
+
+            container data-broker {
+                uses config:service-ref {
+                    refine type {
+                        mandatory false;
+                        config:required-identity mdsal:binding-data-broker;
+                    }
+                }
+            }
+            
+            container dom-registry {
+                uses config:service-ref {
+                    refine type {
+                        mandatory true;
+                        config:required-identity dom:dom-broker-osgi-registry;
+                    }
+                }
+            }
+        }
+    }
+
+}

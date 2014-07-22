@@ -20,6 +20,7 @@
     </prerequisites>
 
     <properties>
+         <sal-binding-api.version>1.1-SNAPSHOT</sal-binding-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <nexusproxy>http://nexus.opendaylight.org/content</nexusproxy>
 

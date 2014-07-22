@@ -30,6 +30,7 @@ module snbi {
     container snbi-domain {
         leaf domain-name {
             type string;
+            config true;
 			description "The SNBI domain name";
         }
 		

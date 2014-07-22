@@ -110,6 +110,18 @@
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>sal-binding-api</artifactId>
       </dependency>
+      <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>sal-binding-config</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>sal-common-util</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>sal-core-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
@@ -157,6 +169,7 @@
                   <outputBaseDir>${jmxGeneratorPath}</outputBaseDir>
                   <additionalConfiguration>
                     <namespaceToPackage1>urn:opendaylight:params:xml:ns:yang:snbi==org.opendaylight.snbi.config.yang</namespaceToPackage1>
+                    <namespaceToPackage2>urn:opendaylight:params:xml:ns:yang:controller==org.opendaylight.controller.config.yang</namespaceToPackage2>
                   </additionalConfiguration>
                 </generator>
                 <generator>
