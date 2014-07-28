@@ -1,0 +1,7 @@
+<features name="odl-snbi-${project.version}" xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0">
+<feature name="odl-snbi" version="${project.version}">
+    <bundle>mvn:org.opendaylight.snbi/certmgmt/${project.version}</bundle>
+    <bundle>mvn:org.opendaylight.snbi/distribution-snbi/${project.version}</bundle>
+    <bundle>mvn:org.opendaylight.snbi/southplugin/${project.version}<bundle>
+</feature>
+</features>
