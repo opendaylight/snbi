@@ -15,10 +15,8 @@ public class BundleContextDependencyManager implements AutoCloseable{
 
     private volatile BundleContext bundleContext;
     private volatile BindingIndependentMappingService mappingService;
-    //private volatile ServiceReference<BindingIndependentMappingService> mappingServiceRef;
-    // TBD need to investigate
-    private volatile ServiceReference mappingServiceRef;
-
+    private volatile ServiceReference<BindingIndependentMappingService> mappingServiceRef;
+    
     public void setBundleContext(BundleContext bundleContext) {
         this.bundleContext = bundleContext;
     }
@@ -26,7 +24,7 @@ public class BundleContextDependencyManager implements AutoCloseable{
     public void init() {
         mappingServiceRef =
                 bundleContext.getServiceReference( BindingIndependentMappingService.class );
-        mappingService = (BindingIndependentMappingService)(bundleContext.getService( mappingServiceRef));
+        mappingService = bundleContext.getService( mappingServiceRef);
     }
 
     public BindingIndependentMappingService getMappingService() {

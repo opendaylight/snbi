@@ -284,7 +284,7 @@
           <artifactId>maven-bundle-plugin</artifactId>
           <version>${maven.bundle.version}</version>
           <extensions>true</extensions>
-          <executions>
+          <!-- executions>
             <execution>
               <id>bundle-manifest</id>
               <phase>process-classes</phase>
@@ -292,7 +292,7 @@
                 <goal>manifest</goal>
               </goals>
             </execution>
-          </executions>
+          </executions -->
           <configuration>
             <instructions>
               <Bundle-Name>${project.groupId}.${project.artifactId}</Bundle-Name>
