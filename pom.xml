@@ -45,7 +45,7 @@
         <groovy.version>2.1.6</groovy.version>
         <mockito.version>1.9.5</mockito.version>
         <javassist.version>3.17.1-GA</javassist.version>
-
+        <lifecycle.mapping.version>1.0.0</lifecycle.mapping.version> 
         <osgi.core.version>5.0.0</osgi.core.version>
         <jmxGeneratorPath>src/main/yang-gen-config</jmxGeneratorPath>
     	<salGeneratorPath>src/main/yang-gen-sal</salGeneratorPath>
