@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_93704e0c",
+        "filename": "features/snbi/pom.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-07-31T02:39:55Z",
+      "side": 1,
+      "message": "Missing Feature File attachment and .KAR creation see features/base/pom.xml of controller for proper pom build  plugins.",
+      "revId": "cdfa60fda3490273d606e59b85dd629ac6e769ac",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
