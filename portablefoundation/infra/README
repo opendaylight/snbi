@@ -2,4 +2,3 @@ This directory contains sources for portable foundation infrastructure.
 
 Portable Foundation Dockerfile contains definition for the docker image
 for the forwarding elements.
-
