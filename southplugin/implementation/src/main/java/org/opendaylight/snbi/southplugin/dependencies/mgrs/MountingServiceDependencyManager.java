@@ -3,6 +3,7 @@ package org.opendaylight.snbi.southplugin.dependencies.mgrs;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.opendaylight.controller.md.sal.dom.api.DOMMountPointService;
 import org.opendaylight.controller.sal.core.api.Broker.ProviderSession;
 import org.opendaylight.controller.sal.core.api.Provider;
 import org.opendaylight.controller.sal.core.api.model.SchemaService;
@@ -29,7 +30,7 @@ public class MountingServiceDependencyManager implements SchemaContextListener,
                                                      AutoCloseable {
     //TODO: we made these volatile as we don't truely understand on which thread "onSessionInitiated"
     //will be called
-    private volatile MountProvisionService mountService;
+    private volatile DOMMountPointService mountService;
     private volatile SchemaContext globalSchemaContext;
 
     private final AutoCloseableManager closeables = new AutoCloseableManager();
@@ -44,7 +45,7 @@ public class MountingServiceDependencyManager implements SchemaContextListener,
     public void onSessionInitiated(ProviderSession session) {
         //The MountProvisionService is required to mount an RPC implementation, or data reader for
         //a particular node.
-        mountService = session.getService(MountProvisionService.class);
+        mountService = session.getService(DOMMountPointService.class);
 
         //The schema service allows us to reference and gain access to all compiled yang models
         //in ODL (i.e. the "Global Schema"). Since we ship our yang files as part of ODL we can
@@ -54,8 +55,8 @@ public class MountingServiceDependencyManager implements SchemaContextListener,
         //TODO: Given that the returned SchemaServiceListener is deprecated, there might be a
         //better way to do this. :)
 
-        ListenerRegistration<SchemaServiceListener> schemaListenerRegistration =
-                schemaService.registerSchemaServiceListener( this );
+        ListenerRegistration<SchemaContextListener> schemaListenerRegistration =
+        		schemaService.registerSchemaContextListener(this);
 
         //make sure you unregister your listeners on close.
         closeables.add( schemaListenerRegistration );
@@ -70,7 +71,7 @@ public class MountingServiceDependencyManager implements SchemaContextListener,
         return globalSchemaContext;
     }
 
-    public MountProvisionService getMountService() {
+    public DOMMountPointService getMountService() {
         return mountService;
     }
 
