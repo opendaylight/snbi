@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_92b5967f",
+        "filename": "features/snbi/pom.xml",
+        "patchSetId": 3
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-08-08T16:53:35Z",
+      "side": 1,
+      "message": "Feature pom file should be as stated in :\nhttps://wiki.opendaylight.org/view/Runtime:Karaf_Features_Guidelines",
+      "revId": "4b2d8497b2f9b7e588b07ba6e61999caa9646a13",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_52b38e97",
+        "filename": "features/snbi/src/main/resources/features.xml",
+        "patchSetId": 3
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-08-08T16:53:35Z",
+      "side": 1,
+      "message": "MD-SAL feature missing\n\u003cfeature version\u003d\"mdsal.version\"\u003eodl-mdsal-all\u003c/feature\u003e",
+      "revId": "4b2d8497b2f9b7e588b07ba6e61999caa9646a13",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
