@@ -12,7 +12,6 @@ import org.opendaylight.snbi.southplugin.util.AutoCloseableManager;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.model.api.SchemaContext;
 import org.opendaylight.yangtools.yang.model.api.SchemaContextListener;
-import org.opendaylight.yangtools.yang.model.api.SchemaServiceListener;
 
 /**
  * This class is responsible for extracting and holding a reference to all of the services that
