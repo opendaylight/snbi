@@ -30,11 +30,6 @@ see https://git.opendaylight.org/gerrit/#/c/390/
       <groupId>org.opendaylight.snbi</groupId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <artifactId>certmgmt</artifactId>
-      <groupId>org.opendaylight.snbi</groupId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
   <build>
     <resources>

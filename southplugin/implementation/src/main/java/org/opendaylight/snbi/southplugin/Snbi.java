@@ -2,6 +2,8 @@ package org.opendaylight.snbi.southplugin;
 
 import java.security.InvalidParameterException;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,49 +13,37 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class Snbi {
-    private String domainName = null;
-    private SnbiNeighborDiscovery ndInstance = null;
-    private static final Logger log = LoggerFactory.getLogger(Snbi.class);
+    ConcurrentHashMap <String, SnbiRegistrar> registrarList = null;
+//    private static final Logger log = LoggerFactory.getLogger(Snbi.class);
 
     public Snbi(String domainName) throws InvalidParameterException {
+        SnbiRegistrar registrar = null;
         if (domainName == null || domainName.equals(null)
                 || (domainName.length() == 0)) {
             throw new InvalidParameterException(domainName
                     + " is not a valid domain name");
         }
-        this.domainName = domainName;
-        this.ndInstance = new SnbiNeighborDiscovery(this);
+        
+        if (registrarList == null) {
+            registrarList = new ConcurrentHashMap <String, SnbiRegistrar>();
+            
+        }
+        System.out.println("Creating registrar");
+        registrar = new SnbiRegistrar(domainName);
+        registrarList.put(domainName, registrar);
     }
 
-    public void snbiStart() {
-        ndInstance.ndStart();
+    public List<SnbiNode> getNeighbors(String domainName) {
+        SnbiRegistrar registrar = null;
+        
+        if (registrarList.containsKey(domainName)) {
+            registrar = registrarList.get(domainName);
+            return registrar.getNeighborNodes();
+        }
+        return null;
     }
 
-    /**
-     * Get the domain name of the SNBI.
-     *
-     * @return The domain name of the SNBI.
-     */
-    public String getDomainName() {
-        return this.domainName;
-    }
-
-    public List<SnbiNode> getNeighbors() {
-        return ndInstance.getNeighborNodes();
-    }
-
-    /**
-     * Stop SNBI for the current domain.
-     *
-     * @return <tt>true</tt> if the SNBI process was stopped successfully,
-     *         <tt>false</tt> otherwise.
-     */
-    public boolean snbiStop() {
-        ndInstance.ndStop();
-        return true;
-    }
 
     protected void finalize () {
-        snbiStop();
     }
 }

@@ -7,11 +7,11 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,22 +28,30 @@ public class SnbiMessagingInfra {
     // Max UDP payload
     private final int MAX_UDP_PAYLOAD = 65535;
     // The multicast socket created during first time instantiation.
-    private MulticastSocket mcastSocket = null;
+    private MulticastSocket socket = null;
     // Multicast Thread
-    private Thread mThread = null;
+    private Thread pktRcvrThread = null; 
     // Multicast Thread Terminate
-    private boolean mThreadrun = true;
-    // The multicast group that SNBI messages are sent.
-    private final String mcastIPString = "FF02::1";
+    private boolean pktRcvrThreadrun = true;
+    
+    
+    private Thread pktRcvdNotifyThread = null;
+    private boolean pktTcvdNotifyThreadrun = true;
+    BlockingQueue<SnbiPkt> pktRcvdNotifyQueue = null;
+
+    private Thread pktSenderThread = null;
+    private boolean pktSenderThreadrun = true;
+    BlockingQueue<SnbiPkt> pktSendQueue = null;
+
     // The singleton instance.
     private static SnbiMessagingInfra snbiMsgInfraInstance = null;
-    // The multicast InetAddress for the mcast IP string.
-    private InetAddress mcastIP = InetAddress.getByName(mcastIPString);
+ 
     // The logger object.
     private static final Logger log = LoggerFactory
             .getLogger(SnbiMessagingInfra.class);
     // List of pkt listeners.
-    private ConcurrentHashMap<Integer, SnbiMsgInfraIncomingPktListener> rcvPktListenerList = null;
+    private ConcurrentHashMap<Integer,ISnbiMsgInfraPktsListener> rcvPktListenerList = null;
+    
 
     /**
      * Get the Singleton instance of the messaging infrastructure.
@@ -54,6 +62,7 @@ public class SnbiMessagingInfra {
         try {
             synchronized (SnbiMessagingInfra.class) {
                 if (snbiMsgInfraInstance == null) {
+                    log.debug("Initializing Message Infra");
                     snbiMsgInfraInstance = new SnbiMessagingInfra();
                 }
             }
@@ -61,39 +70,6 @@ public class SnbiMessagingInfra {
             return null;
         }
         return (snbiMsgInfraInstance);
-    }
-
-    /**
-     * Register a given listener.
-     *
-     * @return - The handle, which can be used for unregistration as well. The
-     *         listener is registered only once, multiple registration will just
-     *         ignore the new registration.
-     */
-    public int registerRcvPktListener(
-            SnbiMsgInfraIncomingPktListener rcvPktListener) {
-        if (rcvPktListenerList == null) {
-            log.debug("Create New Pkt Listener");
-
-            rcvPktListenerList = new ConcurrentHashMap<Integer, SnbiMsgInfraIncomingPktListener>();
-        }
-
-        if (rcvPktListenerList.get(rcvPktListener.hashCode()) == null) {
-            log.debug("New listener ADD.");
-            rcvPktListenerList.put(rcvPktListener.hashCode(), rcvPktListener);
-        }
-        log.debug("Listener registration success");
-        return rcvPktListener.hashCode();
-    }
-
-    /**
-     * Unregister the listener.
-     *
-     * @param rcvPktListenerHandle
-     *            - The handle that was returned as part of the registration.
-     */
-    public void unregisterRcvPktListener(int rcvPktListenerHandle) {
-        rcvPktListenerList.remove(rcvPktListenerHandle);
     }
 
     /**
@@ -106,50 +82,105 @@ public class SnbiMessagingInfra {
         log.debug("Initing SnbiMessagingInfra");
         try {
             // Init the various modules.
-            snbiMulticastSocketInit();
+            pktNotifyThreadinit();
+            pktRcvListenerInit();
+            System.out.println("Msocket init");
+            socketInit();
         } catch (Exception excpt) {
             log.error("Failed to Init SnbiMessagingInfra");
+            excpt.printStackTrace();
             throw excpt;
         }
         log.debug("SnbiMessagingInfra Sucess");
     }
+    
+    private void pktRcvListenerInit () {
+        rcvPktListenerList = new ConcurrentHashMap<Integer,ISnbiMsgInfraPktsListener> ();
+    }
+    
+    private void pktNotifyThreadinit () {
+        pktRcvdNotifyQueue = new LinkedBlockingQueue<SnbiPkt>();
 
+        pktRcvdNotifyThread = new Thread ("Packet Notification Thread") {
+            public void run () {
+                pktNotifyListenerThread();
+            }
+        };
+        
+        pktRcvdNotifyThread.start();
+    }
+    
+    private void pktNotifyListenerThread () {
+        SnbiPkt pkt;
+        while (pktTcvdNotifyThreadrun) {
+            try {
+                pkt = pktRcvdNotifyQueue.take();
+                notifyIncomingPacket(pkt);
+            } catch (InterruptedException e) {
+                log.error("Interrupt error"+e);
+            }
+        }
+    }
+    
+    private void pktSender () {
+        SnbiPkt pkt = null;
+        while (pktSenderThreadrun) {
+            try {
+                pkt = pktSendQueue.take();
+                packetSendInternal(pkt);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (SocketException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    
     /**
      * Setup a multicast socket, bind it to a port and join the multicast group.
-     *
      * @throws IOException
      *             - Throws IOException if creating a socket failed.
      */
-    private void snbiMulticastSocketInit() throws IOException {
+    private void socketInit() throws IOException {
         log.debug("Initing SnbiMulticastSocket");
-        try {
-            mcastSocket = new MulticastSocket(snbiPortNumber);
-            mcastSocket.joinGroup(mcastIP);
-            // Nonintutive, set to TRUE not to loopback.
-            mcastSocket.setLoopbackMode(true);
-            // The number of hops the packets can propagate.
-            mcastSocket.setTimeToLive(mcastTTL);
+        socket = new MulticastSocket(snbiPortNumber);
+        socket.setReuseAddress(true);
+        socket.joinGroup(SnbiUtils.getIPv6MutlicastAddress());
+        // Nonintutive, set to TRUE not to loopback.
+        socket.setLoopbackMode(true);
+        // The number of hops the packets can propagate.
+        socket.setTimeToLive(mcastTTL);
 
-            // Creating an anonymous thread.
-            mThread = new Thread("Mcast Listener Thread") {
-                public void run() {
-                    // Call a routine to listen to multicast packets.
-                    mcastPktReceiver();
-                }
-            };
-            log.debug("Mcast listener thread started");
-            this.mThreadrun = true;
-            mThread.start();
-        } catch (IOException excpt) {
-            log.error("Unable to obtain Socket " + excpt);
-        }
+        // Creating an anonymous thread.
+        pktRcvrThread = new Thread("Pkt Listener Thread") {
+            public void run() {
+                // Call a routine to listen to packets.
+                packetReceiver();
+            }
+        };
+        
+        log.debug("Mcast listener thread started");
+        this.pktRcvrThreadrun = true;
+        pktRcvrThread.start();
+        
+        pktSendQueue = new LinkedBlockingQueue<SnbiPkt>();
+        pktSenderThread = new Thread ("Pkt sender thread") {
+            public void run () {
+                pktSender();
+            }
+        };
+        pktSenderThreadrun = true;
+        pktSenderThread.start();
     }
 
     /**
      * This is a multicast packet receiver routine, the thread run in the
      * background listening to all multicast packet of a group.
      */
-    private void mcastPktReceiver() {
+    private void packetReceiver() {
         byte[] mcastBuffer = new byte[MAX_UDP_PAYLOAD];
         DatagramPacket mcastPacket;
         InetAddress fromIP;
@@ -160,9 +191,9 @@ public class SnbiMessagingInfra {
         mcastPacket = new DatagramPacket(mcastBuffer, mcastBuffer.length);
         log.info("Mcast pkt receiver");
 
-        while (mThreadrun) {
+        while (pktRcvrThreadrun) {
             try {
-                mcastSocket.receive(mcastPacket);
+                socket.receive(mcastPacket);
                 // Create a new pkt instance from the message byte stream.
                 SnbiPkt pkt = new SnbiPkt(mcastPacket.getData(),
                         mcastPacket.getLength());
@@ -170,15 +201,17 @@ public class SnbiMessagingInfra {
                 ipv6addr = (Inet6Address) fromIP;
                 scopeID = ipv6addr.getScopeId();
                 intf = NetworkInterface.getByIndex(scopeID);
-                pkt.setInterface(intf);
-                log.debug("Received packet from " + intf.getDisplayName());
+                pkt.setIngressInterface(intf);
+                pkt.setSrcIP(fromIP);
                 // Notify all relevant listeners about the received packet.
-                notifyIncomingPacket(pkt);
+                pktRcvdNotifyQueue.put(pkt);
             } catch (IOException excpt) {
                 log.error("Exception in receive mcast packet " + excpt);
             } catch (NullPointerException excpt) {
                 log.error("Null pointer exception failed to fetch interface for index "
                         + scopeID);
+            } catch (InterruptedException excpt) {
+                log.error("Interrupt exception "+excpt);
             }
         }
     }
@@ -191,23 +224,40 @@ public class SnbiMessagingInfra {
      *            -
      */
     private void notifyIncomingPacket(SnbiPkt pkt) {
-        SnbiMsgInfraIncomingPktListener rcvpktlistener = null;
-        SnbiMsgInfraFilter filter = null;
-        IsnbiMessagingInfra iListener = null;
+        ISnbiMsgInfraPktsListener rcvpktlistener = null;
 
         if (rcvPktListenerList == null) {
             return;
         }
-        for (ConcurrentHashMap.Entry<Integer, SnbiMsgInfraIncomingPktListener> entry : rcvPktListenerList
+        
+        for (ConcurrentHashMap.Entry<Integer, ISnbiMsgInfraPktsListener> entry : rcvPktListenerList
                 .entrySet()) {
             rcvpktlistener = entry.getValue();
-            filter = rcvpktlistener.getFilter();
-            iListener = rcvpktlistener.getListener();
-            log.debug("Sending listener notification to ==> "
-                    + rcvpktlistener.getString());
-            if (filter.matchPkt(pkt)) {
-                iListener.rcvPktListenerCb(pkt);
-            }
+            matchAndNotify(rcvpktlistener, pkt);
+ 
+        }          
+    }
+    
+    void matchAndNotify (ISnbiMsgInfraPktsListener listener, SnbiPkt pkt) {
+        switch (pkt.getmsgType()) {
+            case SNBI_MSG_ND_HELLO:
+                listener.incomingNDPktsListener(pkt);
+                break;
+            case SNBI_MSG_NI_CERT_REQ:
+                listener.incomingNICertReqPktsListener(pkt);
+                break;
+            case SNBI_MSG_NI_CERT_RESP:
+                listener.incomingNICertRespPktsListener(pkt);
+                break;
+            case SNBI_MSG_NBR_CONNECT:
+                listener.incomingNbrConnectPktsListener(pkt);
+                break;
+            case SNBI_MSG_BS_REQ:
+                listener.incomingBSReqPktsListener(pkt);
+                break;
+            default:
+                log.error("Pkt with invalid message type received "+pkt.getUDITLV()+" msgType "+pkt.getmsgType()+" protocol type "+pkt.getProtocolType());
+                break;
         }
     }
 
@@ -223,273 +273,96 @@ public class SnbiMessagingInfra {
      * @throws SocketException
      * @throws IOException
      */
-    public void sendMulticastPacket(SnbiPkt pkt, NetworkInterface intf)
+    private void packetSendInternal(SnbiPkt pkt)
             throws SocketException, IOException {
         DatagramPacket mcastPacket = null;
+        NetworkInterface intf = pkt.getEgressInterface();
 
         try {
-            Enumeration<InetAddress> inetAddresses = intf.getInetAddresses();
-            for (InetAddress inetAddress : Collections.list(inetAddresses)) {
-                if (inetAddress.isLinkLocalAddress()) {
-                    log.debug("Multicast pkt send Setting interface "
-                            + inetAddress);
-                    mcastSocket.setInterface(inetAddress);
+            if (intf != null) {
+               // socket.setNetworkInterface(intf);
+                Enumeration<InetAddress> inetAddresses = intf.getInetAddresses();
+                for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+                    if (inetAddress.isLinkLocalAddress()) {
+                        socket.setInterface(inetAddress);
+                    }
                 }
             }
             // Create a multicast datagram and send it out.
             mcastPacket = new DatagramPacket(pkt.getMsg(), pkt.getMsgLength(),
-                    mcastIP, snbiPortNumber);
-            mcastSocket.send(mcastPacket);
-        } catch (SocketException excpt) {
-            log.error("Failed to send multicast packet via interface "
-                    + intf.getDisplayName() + excpt);
-            throw excpt;
-        } catch (IOException excpt) {
-            log.error("Failed to send multicast packet via intfIndex "
-                    + intf.getDisplayName() + " " + excpt);
-            throw excpt;
-        } catch (NullPointerException excpt) {
-            log.error("Encountered a NULL pointer exception" + excpt);
+                    pkt.getDstIP(), snbiPortNumber);
+            socket.send(mcastPacket);
+        } catch (Exception excpt) {
+            log.error("Failed to send multicast packet "+excpt);
             excpt.printStackTrace();
+            throw excpt;
         }
     }
 
-    protected void finalize () {
-        if (mcastSocket != null) {
-            mcastSocket.disconnect();
-            mcastSocket.close();
-            mcastSocket = null;
-        }
+    /**
+     * Register a given listener.
+     *
+     * @return - The handle, which can be used for unregistration as well. The
+     *         listener is registered only once, multiple registration will just
+     *         ignore the new registration.
+     */
+    public int registerRcvPktListener(ISnbiMsgInfraPktsListener rcvPktListener) {
+        
+        rcvPktListenerList.put(rcvPktListener.hashCode(), rcvPktListener);
+        
+        log.debug("Listener registration success");
+        return rcvPktListener.hashCode();
+    }
 
-        if (mThread != null) {
-            this.mThreadrun = false;
+    /**
+     * Unregister the listener.
+     *
+     * @param rcvPktListenerHandle
+     *            - The handle that was returned as part of the registration.
+     */
+    public void unregisterRcvPktListener (int rcvPktListenerHandle) {
+        rcvPktListenerList.remove(rcvPktListenerHandle);
+    }
+
+    private void socketUninit () {
+        if (socket != null) {
             try {
-                mThread.join();
+                socket.leaveGroup(SnbiUtils.getIPv6MutlicastAddress());
+            } catch (IOException e) {
+                log.error("Failed to leave multicast group "+e);
+            }
+            socket.disconnect();
+            socket.close();
+            socket = null;
+        }
+    
+        if (pktRcvrThread != null) {
+            this.pktRcvrThreadrun = false;
+            try {
+                pktRcvrThread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
-    }
-}
-
-/**
- * Interface for the messaging service.
- */
-interface IsnbiMessagingInfra {
-    /*
-     * The callback for receiving received packets that match the registered
-     * filter.
-     */
-    void rcvPktListenerCb(SnbiPkt pkt);
-
-}
-
-/**
- * The Listener Infra for receiving packets that match a certain filter
- * criteria.
- *
- */
-class SnbiMsgInfraIncomingPktListener {
-    private SnbiMsgInfraFilter filter;
-    private IsnbiMessagingInfra listener;
-    private String clientString = null;
-    private static final Logger log = LoggerFactory
-            .getLogger(SnbiMsgInfraIncomingPktListener.class);
-
-    /**
-     * Create the Listener with the given criteria.
-     *
-     * @param filter
-     *            - The filter that should be matched.
-     * @param listener
-     *            - The object which should invoked upon a match.
-     * @param clientString
-     *            - The client String for debugging.
-     */
-    public SnbiMsgInfraIncomingPktListener(SnbiMsgInfraFilter filter,
-            IsnbiMessagingInfra listener, String clientString) {
-        this.clientString = clientString;
-        this.filter = filter;
-        this.listener = listener;
     }
 
-    public String getString() {
-        return (clientString);
+    protected void finalize () throws IOException {
+        socketUninit();
     }
 
-    /**
-     * Get the filter that is associated with this listener.
-     *
-     * @return - The message filter that is associated with this listener.
-     */
-    public SnbiMsgInfraFilter getFilter() {
-        return filter;
-    }
-
-    /**
-     * Get the registered callback object associated with this listener.
-     *
-     * @return - The listener interface that is associated with this listener.
-     */
-    public IsnbiMessagingInfra getListener() {
-        return listener;
-    }
-}
-
-/**
- * The clients can install listners and listen to only certain packets.
- */
-
-class SnbiMsgInfraFilter {
-    // Based on domain Name.
-    private String domainName = null;
-    // Message Type Filter array.
-    private ArrayList<SnbiMsgType> msgTypeFilterList = null;
-    // Protocol Type filter array.
-    private ArrayList<SnbiProtocolType> protocolTypeFilterList = null;
-    // Logger object.
-    private static final Logger log = LoggerFactory
-            .getLogger(SnbiMsgInfraFilter.class);
-
-    /**
-     * @param clientString
-     *            - The client string.
-     */
-    public SnbiMsgInfraFilter() {
-    }
-
-    /**
-     * Set the domain name filter.
-     *
-     * @param domainName
-     *            - Traffic particular to a Domain Name.
-     */
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
-    }
-
-    /**
-     * Get the domain Name.
-     *
-     * @return - The domain Name of the filter.
-     */
-    public String getDomainName() {
-        return domainName;
-    }
-
-    /**
-     * Set Of messages that the client is interested in.
-     *
-     * @param msgTypeFilter
-     *            - The collection of Message Types of Interest.
-     */
-    public void setMsgTypeFilter(Collection<SnbiMsgType> msgTypeFilter) {
-        this.msgTypeFilterList = new ArrayList<SnbiMsgType>(
-                msgTypeFilter.size());
-        for (SnbiMsgType msgType : msgTypeFilter) {
-            this.msgTypeFilterList.add(msgType);
+    public void packetSend(SnbiPkt pkt) throws NullPointerException  {
+        if (pkt.getDstIP() == null) {
+            throw  new NullPointerException("Destination IP is null");
         }
-    }
-
-    /**
-     * Set of Protocol Types the clients in interested in. Multiple sets will
-     * replace the old one.
-     *
-     * @param protocolTypeFilter
-     *            - The collection of ProtocolTypes of interest.
-     */
-    public void setProtocolTypeFilter(
-            Collection<SnbiProtocolType> protocolTypeFilter) {
-        this.protocolTypeFilterList = new ArrayList<SnbiProtocolType>(
-                protocolTypeFilter.size());
-        for (SnbiProtocolType protocolType : protocolTypeFilter) {
-            this.protocolTypeFilterList.add(protocolType);
-        }
-    }
-
-    /**
-     * Match the protocol type to the registered set of the protocol types.
-     *
-     * @param protocolType
-     *            - The protocol Type that should be matched.
-     * @return true - If the list is empty i,e no protocol type criteria has
-     *         been set or if the protocol type matched the given protocolType.
-     *         false - otherwise
-     */
-    public boolean matchProtocolType(SnbiProtocolType protocolType) {
-        if (protocolTypeFilterList == null) {
-            log.debug("Match protocol Type null list");
-            return true;
-        }
-        for (SnbiProtocolType protoType : this.protocolTypeFilterList) {
-            // Its ok to compare the enums directly rather than using the values
-            // themselves.
-            if (protoType == protocolType) {
-                log.debug(":Match protocol Type found a match in list");
-                return true;
+        try {
+            if (pkt.getDstIP().equals(SnbiUtils.getIPv6LoopbackAddress()) || 
+                pkt.getDstIP().equals(pkt.getSrcIP())){
+                pktRcvdNotifyQueue.put(pkt);
+            } else {
+                pktSendQueue.put(pkt);
             }
+        } catch (Exception excpt) {
+            log.error("Failed to send pkt "+excpt);
         }
-        log.debug("No Match protocol Type found a match in list");
-        return false;
-    }
-
-    /**
-     * Match the Message type to the registered set of the protocol types.
-     *
-     * @param msgType
-     *            - The protocol Type that should be matched.
-     * @return true - If the list is empty i,e no protocol type criteria has
-     *         been set or if the protocol type matched the given protocolType.
-     *         false - otherwise.
-     */
-    public boolean matchMsgType(SnbiMsgType msgType) {
-        if (msgTypeFilterList == null) {
-            log.debug("Match Msg Type null list");
-            return true;
-        }
-        for (SnbiMsgType mtype : msgTypeFilterList) {
-            // Its ok to compare the enums directly rather than using the values
-            // themselves.
-            if (mtype == msgType) {
-                log.debug("Match Msg Type found a match in list");
-                return true;
-            }
-        }
-        log.debug("No Match Msg Type found a match in list");
-        return false;
-    }
-
-    /**
-     * Match the domain Name registered.
-     *
-     * @param domainName
-     *            - The domainName in the incoming packet.
-     * @return true - If the domain Names matched, false - otherwise.
-     */
-    public boolean matchDomainName(String domainName) {
-        boolean match;
-        if (this.domainName == null) {
-            log.debug("DomainName string Null string");
-            return true;
-        }
-        match = this.domainName.equals(domainName);
-        log.debug("DomainName string match " + match);
-        return match;
-    }
-
-    /**
-     * Given a packet, check if it matches any critera.
-     *
-     * @param pkt
-     *            - The packet that has to matched.
-     * @return - True, if any of the filter criteria was met.
-     */
-    public boolean matchPkt(SnbiPkt pkt) {
-        // For now we are interested in protocol type based match.
-        if (matchProtocolType(pkt.getProtocolType())) {
-            return true;
-        }
-        return false;
     }
 }
