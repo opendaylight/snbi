@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_8ddc9747",
+        "filename": "features/snbi/src/main/resources/features.xml",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-08-14T14:06:52Z",
+      "side": 1,
+      "message": "Missing md-sal feature here",
+      "revId": "cb924f53159c8a5494dd6e3a88b0326d0054be7d",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
