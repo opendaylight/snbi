@@ -1,4 +1,4 @@
-package org.opendaylight.snbi.certmgmt;
+package org.opendaylight.snbi.southplugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,8 +46,8 @@ public enum SNBIRegistrar {
         logger.info("SNBIRegistrar::init start");
         printProviders();
         createKeyStore();
-        populateWhileList();
-        printWhiteList();
+      //  populateWhileList();
+      //  printWhiteList();
         selfSignRSACertificate();
         logger.info("SNBIRegistrar::init end");
     }
@@ -158,13 +158,13 @@ public enum SNBIRegistrar {
             System.out.println(entry.getKey()+ "  =  "+entry.getValue());
         }
         byte[] data = {10,20,30};
-        byte[] hashData = SNBICAInterfaces.INSTANCE.generateSignature(data, null,CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        byte[] hashData = SNBICAInterfaces.INSTANCE.generateSignature(data, null,CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString());
         System.out.println("Hash code for data is "+data.toString());
         byte[] data1 = {10,20,30};
         byte[] data2= {10,20,30,40};
-        boolean dataSame1 = SNBICAInterfaces.INSTANCE.verifySignature(data1, hashData, null,CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        boolean dataSame1 = SNBICAInterfaces.INSTANCE.verifySignature(data1, hashData, null,CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString());
         System.out.println(" Data Same = "+dataSame1);
-        boolean dataSame2 = SNBICAInterfaces.INSTANCE.verifySignature(data2, hashData, null,CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        boolean dataSame2 = SNBICAInterfaces.INSTANCE.verifySignature(data2, hashData, null,CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString());
         System.out.println(" Data Same = "+dataSame2);
 
         System.out.println("Testing the API's . END");

@@ -64,7 +64,6 @@
         <tag>HEAD</tag>
     </scm>
     <modules>
-        <module>certmgmt/implementation</module>
         <module>southplugin/implementation</module>
         <module>distribution</module>
     </modules>

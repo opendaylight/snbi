@@ -4,7 +4,7 @@
  * anu.nair@ericsson.com
  */
 
-package org.opendaylight.snbi.certmgmt;
+package org.opendaylight.snbi.southplugin;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -89,7 +89,7 @@ public class CertificateMgmt {
             builder.addRDN(BCStyle.CN, hostname);
 
             ContentSigner sigGen = new JcaContentSignerBuilder(
-                    CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(provider
+                    CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).setProvider(provider
                             ).build(pair.getPrivate());
             Calendar now = Calendar.getInstance();
             Date notBefore = now.getTime();
@@ -217,7 +217,7 @@ public class CertificateMgmt {
         builder.addRDN(BCStyle.CN, name);
         PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
                 builder.build(), pair.getPublic());
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString());
         ContentSigner signer = csBuilder.build(pair.getPrivate());
         PKCS10CertificationRequest csr = p10Builder.build(signer);
         return csr;
@@ -240,7 +240,7 @@ public class CertificateMgmt {
                 request.getSubject(), serial, notBefore, notAfter,
                 request.getSubject(), rootCert.getPublicKey());
         ContentSigner sigGen = new JcaContentSignerBuilder(
-                CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(provider
+                CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).setProvider(provider
                         ).build(rootPair.getPrivate());
         X509Certificate issuedCert = new JcaX509CertificateConverter().setProvider(
                 provider).getCertificate(
@@ -272,7 +272,7 @@ public class CertificateMgmt {
                 builder.build(), serial, notBefore, notAfter,
                 builder.build(), pair.getPublic());
         ContentSigner sigGen = new JcaContentSignerBuilder(
-                CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(CertManagerConstants.BC).build(pair.getPrivate());
+                CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).setProvider(CertManagerConstants.BC).build(pair.getPrivate());
         X509CertificateHolder holder = certGen.build(sigGen);
         Certificate eeX509CertificateStructure = holder.toASN1Structure();
         CertificateFactory cf = null;
@@ -358,7 +358,7 @@ public class CertificateMgmt {
         X509CertificateHolder certHolder = new X509CertificateHolder(cert);
 
         try {
-            signGen =  new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(CertManagerConstants.BC).build(pair.getPrivate());
+            signGen =  new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).setProvider(CertManagerConstants.BC).build(pair.getPrivate());
         } catch (OperatorCreationException e) {
             e.printStackTrace();
             return null;
@@ -381,7 +381,7 @@ public class CertificateMgmt {
 
         Signature signer = null;
         try {
-            signer = Signature.getInstance(CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString(), CertManagerConstants.BC);
+            signer = Signature.getInstance(CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString(), CertManagerConstants.BC);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return null;

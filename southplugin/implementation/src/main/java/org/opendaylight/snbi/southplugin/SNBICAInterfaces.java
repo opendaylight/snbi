@@ -4,7 +4,7 @@
  * anu.nair@ericsson.com
  */
 
-package org.opendaylight.snbi.certmgmt;
+package org.opendaylight.snbi.southplugin;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -65,7 +65,7 @@ public enum SNBICAInterfaces {
         KeyPair keyPair = KeyPairMgmt
                 .generateKeyPair(CertManagerConstants.ALGORITHM.RSA);
 
-        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString());
+        JcaContentSignerBuilder csBuilder = new JcaContentSignerBuilder(CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString());
         ContentSigner signer = null;
         try {
             signer = csBuilder.build(keyPair.getPrivate());
@@ -103,7 +103,7 @@ public enum SNBICAInterfaces {
         if (signer == null) {
             try {
                 signer = new JcaContentSignerBuilder(
-                        CertManagerConstants.CERT_ALGORITHM.SHA256WithRSAEncryption.toString()).setProvider(CertManagerConstants.BC
+                        CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).setProvider(CertManagerConstants.BC
                                 ).build(rootPair.getPrivate());
             } catch (OperatorCreationException e) {
                 e.printStackTrace();

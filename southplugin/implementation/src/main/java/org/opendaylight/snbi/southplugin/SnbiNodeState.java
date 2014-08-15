@@ -1,0 +1,11 @@
+package org.opendaylight.snbi.southplugin;
+
+public enum SnbiNodeState {
+    SNBI_NODE_STATE_REGISTRAR,
+    SNBI_NODE_STATE_NEW_NBR,
+    SNBI_NODE_STATE_NBR_LOST,
+    SNBI_NODE_STATE_NI_CERT_REQUEST,
+    SNBI_NODE_STATE_BOOTSTRAP,
+    SNBI_NODE_BS_INVITE, 
+    SNBI_NODE_BS_REJECTED,
+}

@@ -1,4 +1,4 @@
-package org.opendaylight.snbi.certmgmt;
+package org.opendaylight.snbi.southplugin;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
