@@ -230,6 +230,9 @@ public class SnbiMessagingInfra {
             return;
         }
         
+        log.debug("IN packet: Length:"+pkt.getMsgLength()+" UDI:"+pkt.getUDITLV()+"\n\t\t\tProtocol ID:"+pkt.getProtocolType()+
+                " Msg ID:"+pkt.getmsgType()+"\n\t\t\tSRC IP:"+pkt.getSrcIP()+" DST IP:"
+                +pkt.getDstIP()+"\n\t\t\tIngressIntf:"+pkt.getEgressInterface()+"\n\t\t\t"+getProtocolDebugMsg(pkt));
         for (ConcurrentHashMap.Entry<Integer, ISnbiMsgInfraPktsListener> entry : rcvPktListenerList
                 .entrySet()) {
             rcvpktlistener = entry.getValue();
@@ -238,6 +241,36 @@ public class SnbiMessagingInfra {
         }          
     }
     
+    private String getProtocolDebugMsg(SnbiPkt pkt) {
+        StringBuilder sb = new StringBuilder();
+        switch (pkt.getmsgType()) {
+            case SNBI_MSG_BS_INVITE:
+                sb.append("Domain ID:"+pkt.getDomainIDTLV()+" Device ID:"+pkt.getDeviceIDTLV()+"");
+                break;
+            case SNBI_MSG_BS_REJECT:
+                break;
+            case SNBI_MSG_BS_REQ:
+                break;
+            case SNBI_MSG_BS_RESP:
+                break;
+            case SNBI_MSG_NBR_CONNECT:
+                break;
+            case SNBI_MSG_ND_BYE:
+                break;
+            case SNBI_MSG_ND_HELLO:
+                break;
+            case SNBI_MSG_NI_CERT_REQ:
+                break;
+            case SNBI_MSG_NI_CERT_RESP:
+                break;
+            default:
+                break;
+        
+        
+        }
+        return sb.toString();
+    }
+
     void matchAndNotify (ISnbiMsgInfraPktsListener listener, SnbiPkt pkt) {
         switch (pkt.getmsgType()) {
             case SNBI_MSG_ND_HELLO:
@@ -275,25 +308,25 @@ public class SnbiMessagingInfra {
      */
     private void packetSendInternal(SnbiPkt pkt)
             throws SocketException, IOException {
-        DatagramPacket mcastPacket = null;
+        DatagramPacket dgramPkt = null;
         NetworkInterface intf = pkt.getEgressInterface();
 
         try {
             if (intf != null) {
-               // socket.setNetworkInterface(intf);
-                Enumeration<InetAddress> inetAddresses = intf.getInetAddresses();
-                for (InetAddress inetAddress : Collections.list(inetAddresses)) {
-                    if (inetAddress.isLinkLocalAddress()) {
-                        socket.setInterface(inetAddress);
-                    }
-                }
+                socket.setNetworkInterface(intf);
             }
-            // Create a multicast datagram and send it out.
-            mcastPacket = new DatagramPacket(pkt.getMsg(), pkt.getMsgLength(),
+
+            log.debug("OUT packet: Length:"+pkt.getMsgLength()+" UDI: "+pkt.getUDITLV()+"\n\t\t\tProtocol ID:"+pkt.getProtocolType()+
+                    " Msg ID:"+pkt.getmsgType()+"\n\t\t\tSRC IP:"+pkt.getSrcIP()+" DST IP:"
+                    +pkt.getDstIP()+"\n\t\t\tEgressIntf:"+pkt.getEgressInterface()+"\n\t\t\t"+getProtocolDebugMsg(pkt));
+            
+            dgramPkt = new DatagramPacket(pkt.getMsg(), pkt.getMsgLength(),
                     pkt.getDstIP(), snbiPortNumber);
-            socket.send(mcastPacket);
+            
+            socket.send(dgramPkt);
         } catch (Exception excpt) {
-            log.error("Failed to send multicast packet "+excpt);
+            log.error("Failed to send packet "+excpt + " Interface "+((intf == null) ? "null":intf.getDisplayName()));
+           
             excpt.printStackTrace();
             throw excpt;
         }
@@ -359,7 +392,7 @@ public class SnbiMessagingInfra {
                 pkt.getDstIP().equals(pkt.getSrcIP())){
                 pktRcvdNotifyQueue.put(pkt);
             } else {
-                pktSendQueue.put(pkt);
+               pktSendQueue.put(pkt);
             }
         } catch (Exception excpt) {
             log.error("Failed to send pkt "+excpt);

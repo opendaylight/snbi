@@ -60,12 +60,12 @@ public class CertificateMgmt {
     public static HashMap<String,String> defaults = null;
     static {
         defaults = new HashMap<String,String>();
-        defaults.put("COUNTRY", "USA");
-        defaults.put("ORGANIZATION", "ODL Community");
-        defaults.put("TITLE", "SNBI Certificate by BC");
-        defaults.put("STATE", "CALIFORNIA");
-        defaults.put("LOCALITY", "SANJOSE");
-        defaults.put("EMAIL", "snbi-dev@lists.opendaylight.org");
+//        defaults.put("COUNTRY", "USA");
+//        defaults.put("ORGANIZATION", "ODL Community");
+      //  defaults.put("TITLE", "SNBI Certificate by BC");
+       // defaults.put("STATE", "CALIFORNIA");
+       // defaults.put("LOCALITY", "SANJOSE");
+       // defaults.put("EMAIL", "snbi-dev@lists.opendaylight.org");
     }
 
     protected static final Logger logger = LoggerFactory
@@ -79,12 +79,12 @@ public class CertificateMgmt {
         try {
             // Generate self-signed certificate
             X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-            builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
-            builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
-            builder.addRDN(BCStyle.ST, defaults.get("STATE"));
-            builder.addRDN(BCStyle.T, defaults.get("TITLE"));
-            builder.addRDN(BCStyle.L, defaults.get("LOCALITY"));
-            builder.addRDN(BCStyle.E, defaults.get("EMAIL"));
+//            builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
+//            builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
+//            builder.addRDN(BCStyle.ST, defaults.get("STATE"));
+           // builder.addRDN(BCStyle.T, defaults.get("TITLE"));
+           // builder.addRDN(BCStyle.L, defaults.get("LOCALITY"));
+            //builder.addRDN(BCStyle.E, defaults.get("EMAIL"));
             builder.addRDN(BCStyle.SN, BigInteger.valueOf(System.currentTimeMillis()).toString());
             builder.addRDN(BCStyle.CN, hostname);
 
@@ -209,10 +209,10 @@ public class CertificateMgmt {
     // generate a certificate signing request
     public static PKCS10CertificationRequest generateCSRRequest(String name,KeyPair pair) throws Exception {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
-        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
-        builder.addRDN(BCStyle.ST, defaults.get("STATE"));
-        builder.addRDN(BCStyle.T, defaults.get("TITLE"));
+//        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
+//        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
+       // builder.addRDN(BCStyle.ST, defaults.get("STATE"));
+       // builder.addRDN(BCStyle.T, defaults.get("TITLE"));
         builder.addRDN(BCStyle.SN, BigInteger.valueOf(System.currentTimeMillis()).toString());
         builder.addRDN(BCStyle.CN, name);
         PKCS10CertificationRequestBuilder p10Builder = new JcaPKCS10CertificationRequestBuilder(
@@ -258,10 +258,10 @@ public class CertificateMgmt {
         PKCS10CertificationRequest pk10Holder = new PKCS10CertificationRequest(
                 inputCSR);
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
-        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
-        builder.addRDN(BCStyle.ST, defaults.get("STATE"));
-        builder.addRDN(BCStyle.T, defaults.get("TITLE"));
+//        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
+//        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
+        //builder.addRDN(BCStyle.ST, defaults.get("STATE"));
+       // builder.addRDN(BCStyle.T, defaults.get("TITLE"));
         builder.addRDN(BCStyle.CN, inputCSR.getSignature());
         Calendar now = Calendar.getInstance();
         Date notBefore = now.getTime();
@@ -297,10 +297,10 @@ public class CertificateMgmt {
     // method to revoke a certificate
     public static void createCRL(String name) {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
-        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
-        builder.addRDN(BCStyle.ST, defaults.get("STATE"));
-        builder.addRDN(BCStyle.T, defaults.get("TITLE"));
+//        builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
+//        builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
+       // builder.addRDN(BCStyle.ST, defaults.get("STATE"));
+       // builder.addRDN(BCStyle.T, defaults.get("TITLE"));
         builder.addRDN(BCStyle.SN, BigInteger.valueOf(System.currentTimeMillis()).toString());
         builder.addRDN(BCStyle.CN, name);
         Calendar now = Calendar.getInstance();

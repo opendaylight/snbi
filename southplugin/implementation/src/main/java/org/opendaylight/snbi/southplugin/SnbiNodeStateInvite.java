@@ -1,5 +1,8 @@
 package org.opendaylight.snbi.southplugin;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +19,9 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
     }
 
     @Override
-    public SnbiNodeState nodeStateSetEvent() {
+    public SnbiNodeState nodeStateSetEvent(eventContext evnt) {
         log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
-        sendNodeInviteMsg();        
+        sendNodeInviteMsg(evnt.getPkt().getSrcIP(), evnt.getPkt().getIngressInterface());        
         return node.getCurrState();
     }
     
@@ -27,10 +30,7 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
             log.error("Validate Node for Invite failed with null UDI");
             return false;
         }
-        if (node.getProxyIPAddress() == null) {
-            log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null proxy address ");
-            return false;
-        }
+        
         if (node.getRegistrar() == null || node.getRegistrar().getNodeself() == null ||
                 node.getRegistrar().getNodeself().getNodeAddress() == null) {
             log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null registrar address");
@@ -51,7 +51,7 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
         return true;
     }
 
-    private boolean sendNodeInviteMsg() {
+    private boolean sendNodeInviteMsg(InetAddress dstIP, NetworkInterface egressIntf) {
         
         if (!validateNodeForInvite()) {
             return false;
@@ -61,9 +61,11 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
                                    SnbiMsgType.SNBI_MSG_BS_INVITE);
 
         pkt.setUDITLV(node.getUDI());
-        pkt.setDstIP(node.getProxyIPAddress());
+        pkt.setDstIP(dstIP);
+        pkt.setEgressInterface(egressIntf);
         pkt.setSrcIP(node.getRegistrar().getNodeself().getNodeAddress());
         pkt.setDeviceIDTLV(node.getDeviceID());
+        pkt.setRegistrarIDTLV(node.getRegistrar().getRegistrarID());
         pkt.setDomainIDTLV(node.getRegistrar().getDomainName());
         pkt.setRegistrarIPaddrTLV(node.getRegistrar().getNodeself().getNodeAddress());
         pkt.setCACertTLV(CertManager.INSTANCE.getRootCACertificate());
@@ -72,7 +74,8 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
             pkt.setRegistrarCertTLV(node.getRegistrar().getNodeself().getCertificate());
             // add RA signature.
         }
+        SnbiMessagingInfra.getInstance().packetSend(pkt);
+
         return true;
     }
-
 }

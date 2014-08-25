@@ -17,18 +17,11 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
     }
     
     @Override
-    public SnbiNodeState nodeStateSetEvent() {
-        SnbiNodeState newState;
+    public SnbiNodeState nodeStateSetEvent(eventContext evt) {
         log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
         node.getRegistrar().validateNode(node);
-        node.setProxyIPAddress(node.getNodeAddress());
         bootStrapSelf();
         node.ndStart();
-        if (node.getRegistrar().validateNode(node)) {
-            newState = SnbiNodeState.SNBI_NODE_BS_INVITE;
-        } else {
-            newState = SnbiNodeState.SNBI_NODE_BS_REJECTED;
-        }
         return node.getCurrState();
     }
     
@@ -39,14 +32,17 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
                                                             node.getRegistrar().getDomainName(), 
                                                             node.getUDI());
         } catch (Exception excpt) {
-            System.out.println("Encountered exception while generating CSR request "+excpt);
+            log.error("Encountered exception while generating CSR request "+excpt);
         }
+        
         
         try {
             node.SetCertificate(CertManager.INSTANCE.generateX509Certificate(pkcs10CSR, null));
         } catch (Exception excpt) {
-            System.out.println(" Encountered exception while generating X509 cert" +excpt);
+            log.error(" Encountered exception while generating X509 cert" +excpt);
         }
+        System.out.println(" UDI is "+node.getUDI());        
+        CertificateMgmt.printCertificate(node.getCertificate());
         node.setBootStrapped(true);
     }
      

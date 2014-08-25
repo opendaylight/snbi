@@ -11,5 +11,5 @@ public interface ISnbiNodeState {
     // The current node expired.
     public SnbiNodeState handleNodeExpiredEvent ();
     // Activate the current state.
-    public SnbiNodeState nodeStateSetEvent ();
+    public SnbiNodeState nodeStateSetEvent (eventContext evnt);
 } 

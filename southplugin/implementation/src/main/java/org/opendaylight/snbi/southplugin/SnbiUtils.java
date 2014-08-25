@@ -90,7 +90,10 @@ enum SnbiTLVType {
     SNBI_TLV_TYPE_DOMAIN_ID((short)5),
     SNBI_TLV_TYPE_IF_IPADDR((short) 6), 
     SNBI_TLV_TYPE_IF_NAME((short) 7),
-    SNBI_TLV_TYPE_REGISTRAR_IPADDR((short)9);
+    SNBI_TLV_TYPE_REGISTRAR_IPADDR((short)9),
+    SNBI_TLV_TYPE_REGISTRAR_ID ((short)22),
+    SNBI_TLV_TYPE_CERT_PKCS10_REQ ((short) 23);
+    
 
     private Short value;
 
@@ -120,6 +123,37 @@ enum SnbiTLVType {
     }
 }
 
+enum SnbiTLVSubtypeRegistrarID {
+    SNBI_TLV_STYPE_REGISTRAR_ID ((short)1);
+
+    
+    private Short value;
+
+    private SnbiTLVSubtypeRegistrarID(short value) {
+        this.value = value;
+    }
+
+    /**
+     * Get the value of the enum.
+     * @return - The value of the enum.
+     */
+    public Short getValue() {
+        return this.value;
+    }
+
+    /**
+     * Get the enum corresponding to the value.
+     * @param value - The value of the enum.
+     * @return - The enum corresponding to the value.
+     */
+    public static SnbiTLVSubtypeRegistrarID getEnumFromValue(short value) {
+        for (SnbiTLVSubtypeRegistrarID type : SnbiTLVSubtypeRegistrarID.values()) {
+            if (type.getValue() == value)
+                return type;
+        }
+        return null;
+    }
+}
 enum SnbiTLVSubtypeCertificate {
     SNBI_TLV_STYPE_SUDI ((short)1),
     SNBI_TLV_STYPE_DOMAIN_CERT((short)2),
@@ -180,6 +214,39 @@ enum SnbiTLVSubtypeUDI {
      */
     public static SnbiTLVSubtypeUDI getEnumFromValue(short value) {
         for (SnbiTLVSubtypeUDI type : SnbiTLVSubtypeUDI.values()) {
+            if (type.getValue() == value)
+                return type;
+        }
+        return null;
+    }
+}
+
+/**
+ * Subtype UDI.
+ */
+enum SnbiTLVSubtypePKCS10CertReq {
+    SNBI_TLV_STYPE_PKCS10_DER((short) 1);
+    private Short value;
+
+    private SnbiTLVSubtypePKCS10CertReq(short value) {
+        this.value = value;
+    }
+
+    /**
+     * Get the value of the enum.
+     * @return - The value of the enum.
+     */
+    public Short getValue() {
+        return this.value;
+    }
+
+    /**
+     * Get the enum corresponding to the value.
+     * @param value - The value of the enum.
+     * @return - The enum corresponding to the value.
+     */
+    public static SnbiTLVSubtypePKCS10CertReq getEnumFromValue(short value) {
+        for (SnbiTLVSubtypePKCS10CertReq type : SnbiTLVSubtypePKCS10CertReq.values()) {
             if (type.getValue() == value)
                 return type;
         }

@@ -1,7 +1,10 @@
 package org.opendaylight.snbi.southplugin;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,33 +27,42 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
     }
 
     @Override
-    public SnbiNodeState nodeStateSetEvent() {
+    public SnbiNodeState nodeStateSetEvent(eventContext evt) {
         log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
-        startPeriodicNICertRequest();
+        startPeriodicNICertRequest(evt.getPkt().getSrcIP(), evt.getPkt().getIngressInterface());
         return node.getCurrState();
     }
     
-    private void startPeriodicNICertRequest () {
-        TimerTask certReqRetryTimerTask = null;
-        if (true)
-            return;
-        retryCount = 0;
-        certReqRetryTimerTask = new TimerTask() {
-            public void run() {
-               // sendNICertRequest();
-            }
-        };
-
-        certReqRetryTimer = new Timer("Cert Req Periodic retry "
-                + node.getUDI(), true);
-        certReqRetryTimer.schedule(certReqRetryTimerTask, 0, certReqRetryInterval);
+    public SnbiNodeState handleNICertRspPktEvent (SnbiPkt pkt) {
+        if (certReqRetryTimer != null) {
+            certReqRetryTimer.cancel();
+            certReqRetryTimer.purge();
+            certReqRetryTimer = null;
+        }
+        return (super.handleNICertRspPktEvent(pkt));
     }
     
-    private void sendNICertRequest() {
+    private void startPeriodicNICertRequest (InetAddress dstIP, NetworkInterface intf) {
+        //     TimerTask certReqRetryTimerTask = null;
+ //       retryCount = 0;
+ //       certReqRetryTimerTask = new TimerTask() {
+ //           public void run() {
+               sendNICertRequest(dstIP, intf);
+ //           }
+//        };
 
-        SnbiPkt pkt = new SnbiPkt(SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, SnbiMsgType.SNBI_MSG_NI_CERT_REQ);
-        pkt.setDstIP(node.getPeerIfLLAddress());
+//        certReqRetryTimer = new Timer("Cert Req Periodic retry "
+                //+ node.getUDI(), true);
+        //certReqRetryTimer.schedule(certReqRetryTimerTask, 0, certReqRetryInterval);
+    }
+    
+    private void sendNICertRequest(InetAddress dstIP, NetworkInterface intf) {
+
+        SnbiPkt pkt = new SnbiPkt(SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, 
+                                  SnbiMsgType.SNBI_MSG_NI_CERT_REQ);
+        pkt.setDstIP(dstIP);
         pkt.setUDITLV(node.getUDI());
+        pkt.setEgressInterface(intf);
         SnbiMessagingInfra.getInstance().packetSend(pkt);
         
         retryCount++;
@@ -60,5 +72,5 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
             certReqRetryTimer = null;
         }
     }
-
+    
 }

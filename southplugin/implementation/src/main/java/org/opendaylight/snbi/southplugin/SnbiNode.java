@@ -44,6 +44,7 @@ public class SnbiNode {
     private SnbiNodeStateRegistrar registrarNode = null;
     private SnbiNodeStateNICertRequest niCertRequest = null;
     private SnbiNodeStateInvite deviceInvite = null;
+    private SnbiNodeStateBootStrap deviceBS = null;
     private ISnbiNodeState currState = null;
     private X509Certificate cert = null;
     private boolean bootStrapped = false;
@@ -52,7 +53,7 @@ public class SnbiNode {
     
     public static SnbiNode createNeighborNode (SnbiPkt pkt, SnbiRegistrar registrar) {
         SnbiNode node = new SnbiNode (pkt, registrar);
-        node.setState(SnbiNodeState.SNBI_NODE_STATE_NEW_NBR);
+        node.setState(SnbiNodeState.SNBI_NODE_STATE_NEW_NBR, new eventContext (pkt));
         return node;
     }
     
@@ -63,7 +64,7 @@ public class SnbiNode {
     
     public static SnbiNode createRegistrarNode (String UDI, SnbiRegistrar registrar) {
         SnbiNode node = new SnbiNode (UDI, registrar);
-        node.setState(SnbiNodeState.SNBI_NODE_STATE_REGISTRAR);
+        node.setState(SnbiNodeState.SNBI_NODE_STATE_REGISTRAR, null);
         return node;
     }
     
@@ -97,6 +98,7 @@ public class SnbiNode {
         lostNbrNode = new SnbiNodeStateNbrLost(this);
         registrarNode = new SnbiNodeStateRegistrar(this);
         niCertRequest = new SnbiNodeStateNICertRequest(this);
+        deviceBS = new SnbiNodeStateBootStrap(this);
     }
 
     /**
@@ -132,7 +134,7 @@ public class SnbiNode {
                     .getNetworkInterfaces();
             while (intflist.hasMoreElements()) {
                 NetworkInterface intf = intflist.nextElement();
-                if (intf.isUp()) {
+                if (intf.isUp() && !intf.isLoopback()) {
                     sendPeriodicNDPackets(intf);
                 }
             }
@@ -235,12 +237,6 @@ public class SnbiNode {
         return domainNodeIPaddr;
     }
     
-    public void setProxyIPAddress (InetAddress addr) {
-        this.proxyAddress = addr;
-    }
-    public InetAddress getProxyIPAddress () {
-        return proxyAddress;
-    }
     public SnbiRegistrar getRegistrar () {
         return registrar;
     }
@@ -257,9 +253,9 @@ public class SnbiNode {
     }
     
     // State machine.
-    private void setState(SnbiNodeState newState) {        
+    private void setState(SnbiNodeState newState, eventContext evnt) {        
         while (setNewState(newState)) {
-            newState = currState.nodeStateSetEvent();
+            newState = currState.nodeStateSetEvent(evnt);
         }
     }
     
@@ -287,6 +283,9 @@ public class SnbiNode {
             case SNBI_NODE_BS_INVITE:
                 currState = deviceInvite;
                 break;
+            case SNBI_NODE_STATE_BOOTSTRAP:
+                currState = deviceBS;
+                break;
             default:
                 log.error("Unhandled state "+newState);
                 return false;
@@ -300,11 +299,11 @@ public class SnbiNode {
     
     // Event Handlers.
     private void handleKeepAliveTimerExpiredEvent() {       
-        setState(currState.handleNodeExpiredEvent());
+        setState(currState.handleNodeExpiredEvent(), null);
     }
     
     public void handleNICertReqPktEvent (SnbiPkt pkt) {
-        setState(currState.handleNICertReqPktEvent(pkt));
+        setState(currState.handleNICertReqPktEvent(pkt), new eventContext(pkt));
     }
 
     private void handleNDProbeTimerExpiredEvent () {
@@ -317,19 +316,19 @@ public class SnbiNode {
      * @param pkt
      */
     public void handleNDRefreshPktEvent(SnbiPkt pkt) {
-        setState(currState.handleNDRefreshPktEvent(pkt));
+        setState(currState.handleNDRefreshPktEvent(pkt), new eventContext(pkt));
     }
 
     public void handleNICertRespPktEvent(SnbiPkt pkt) {
-        setState(currState.handleNICertRspPktEvent(pkt));
+        setState(currState.handleNICertRspPktEvent(pkt), new eventContext(pkt));
     }
 
     public void handleNbrConnectPktEvent(SnbiPkt pkt) {
-        setState(currState.handleNbrConnectPktEvent(pkt));
+        setState(currState.handleNbrConnectPktEvent(pkt), new eventContext(pkt));
     }
 
     public void handleBSReqPktEvent(SnbiPkt pkt) {
-        setState(currState.handleBSReqPktEvent(pkt));        
+        setState(currState.handleBSReqPktEvent(pkt), new eventContext(pkt));        
     }
 
     public void setDeviceID(String deviceID) {

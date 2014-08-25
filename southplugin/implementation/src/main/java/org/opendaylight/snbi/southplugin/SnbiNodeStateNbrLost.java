@@ -15,7 +15,7 @@ public class SnbiNodeStateNbrLost extends SnbiNodeStateCommonEventHandlers imple
     }
 
     @Override
-    public SnbiNodeState nodeStateSetEvent() {
+    public SnbiNodeState nodeStateSetEvent(eventContext evt) {
         log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
         return node.getCurrState();
     }

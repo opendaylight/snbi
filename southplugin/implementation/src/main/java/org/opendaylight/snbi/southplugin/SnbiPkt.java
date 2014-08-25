@@ -1,15 +1,16 @@
 package org.opendaylight.snbi.southplugin;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
-
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
+import java.security.cert.CertificateFactory;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -450,7 +452,7 @@ public class SnbiPkt {
                 SnbiTLVSubtypeDeviceID.SNBI_TLV_STYPE_DEVICE_ID.getValue());
     }
     
-    public String getDomainIDTLV(String domainName) {
+    public String getDomainIDTLV() {
        return this.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_DOMAIN_ID.getValue(),
                 SnbiTLVSubtypeDomainID.SNBI_TLV_STYPE_DOMAIN_ID.getValue());
     }
@@ -474,28 +476,29 @@ public class SnbiPkt {
         try {
             certDer = cert.getEncoded();
         } catch (CertificateEncodingException e) {
+            log.error("Failed to add DER TLV type "+stype);
             e.printStackTrace();
-            return;
         }
         this.addTLV(new TLV (SnbiTLVType.SNBI_TLV_TYPE_CERTIFICATE.getValue(), 
                              stype, certDer, certDer.length));
     }
 
-    public X509Certificate getCertTLV (short stype) {
+    private X509Certificate getCertTLV (short stype) {
         List <TLV> tlvlist = getTLV (SnbiTLVType.SNBI_TLV_TYPE_CERTIFICATE.getValue());
         if (tlvlist == null) {
             return null;
         }
         for (TLV tlv : tlvlist) {
             if (tlv.getSubType() == stype) {
-           //     try {
-          //          return X509Certificate.getInstance(tlv.getValue());
-                    return null;
-              //  } catch (CertificateException e) {
-                //    log.error("Failed to get X509 Certificate: "+this.getUDITLV());
-                 //   e.printStackTrace();
-                  //  return null;
-               // }
+               try {
+                   ByteArrayInputStream bis = new ByteArrayInputStream(tlv.getValue());
+                   CertificateFactory cf
+                       = CertificateFactory.getInstance("X.509");
+                   return (java.security.cert.X509Certificate)cf.generateCertificate(bis);
+               } catch (CertificateException e) {
+                   log.error("Failed to obtain certificate of type "+stype);
+                   e.printStackTrace();
+               }
             }
         }
         return null;
@@ -524,10 +527,41 @@ public class SnbiPkt {
     public void setRegistrarCertTLV(X509Certificate cert) {
         addCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_REGISTERAR_CERT.getValue(), cert);
     }
+    
+    public X509Certificate getDomainCertTLV() {
+        return getCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_DOMAIN_CERT.getValue());
+    }
 
 
-    public void setDomainCert(X509Certificate cert) {
+    public void setDomainCertTLV(X509Certificate cert) {
         addCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_DOMAIN_CERT.getValue(), cert);
+    }
+    
+    public PKCS10CertificationRequest getPKCS10CSRTLV () {
+        List <TLV> tlvlist = getTLV (SnbiTLVType.SNBI_TLV_TYPE_CERT_PKCS10_REQ.getValue());
+        if (tlvlist == null) {
+            return null;
+        }
+        for (TLV tlv : tlvlist) {
+            if (tlv.getSubType() == SnbiTLVSubtypePKCS10CertReq.SNBI_TLV_STYPE_PKCS10_DER.getValue()) {
+                try {
+                    PKCS10CertificationRequest pkcs10 = new PKCS10CertificationRequest(tlv.getValue());
+                    return pkcs10;
+                } catch (IOException e) {
+                    log.error("Failed to obtain PKCS10 from packet");
+                    e.printStackTrace();
+                    return null;
+                }  
+            }
+        }
+        return null;
+    }
+
+
+    public void setRegistrarIDTLV(String registrarID) {
+        this.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_REGISTRAR_ID.getValue(), 
+                SnbiTLVSubtypeRegistrarID.SNBI_TLV_STYPE_REGISTRAR_ID.getValue(), 
+                registrarID);  
     }
 }
 

@@ -15,11 +15,9 @@ public class SnbiNodeStateNewNbr extends SnbiNodeStateCommonEventHandlers implem
         return SnbiNodeState.SNBI_NODE_STATE_NEW_NBR;
     }
     
-    public SnbiNodeState nodeStateSetEvent () {
+    public SnbiNodeState nodeStateSetEvent (eventContext evt) {
         log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
-        node.setProxyIPAddress(node.getRegistrar().getNodeself().getNodeAddress());
         node.startNewExpiryTimer();
-        return node.getCurrState();
-       // return (SnbiNodeState.SNBI_NODE_STATE_NI_CERT_REQUEST);
+       return (SnbiNodeState.SNBI_NODE_STATE_NI_CERT_REQUEST);
     }
 }

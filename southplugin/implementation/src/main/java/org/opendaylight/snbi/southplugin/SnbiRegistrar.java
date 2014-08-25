@@ -23,7 +23,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
     private SnbiMessagingInfra msgInfraInstance = null;
     private ConcurrentHashMap <String, SnbiNode> acceptedNodesList = null;
     private ConcurrentHashMap <String, SnbiNode> nbrNodesList = null;
-    private String nodeMemberPrefix;
+    private String nodeRegistrarID;
     private Integer nodeMemberID = 0;
     
     public SnbiRegistrar (String domainName) {
@@ -33,7 +33,8 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         nbrNodesList = new ConcurrentHashMap <String, SnbiNode>();
 
         msgInfraInstance = SnbiMessagingInfra.getInstance();
-        nodeMemberPrefix = new String(getFirstValidHostMacAddress()); 
+        nodeRegistrarID = getFirstValidHostMacAddress();
+        //nodeMemberPrefix = "Device";
         this.myNode = SnbiNode.createRegistrarNode("PID:JAVA-CONTROLLER SN:1234", this);
         rcvPktEventListenerHandle = msgInfraInstance.registerRcvPktListener(this);
 
@@ -43,7 +44,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         }
     }
     
-    private byte[] getFirstValidHostMacAddress () {
+    private String getFirstValidHostMacAddress () {
         Enumeration<NetworkInterface> networkIntfs;
         try {
             networkIntfs = NetworkInterface.getNetworkInterfaces();
@@ -53,7 +54,12 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
                 
                 mac = intf.getHardwareAddress();  
                 if(mac != null) {
-                    return mac;
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < mac.length; i++) {
+                        sb.append(String.format("%02x%s", mac[i], (((i+1) % 2 == 0) && (i < (mac.length - 1) ) ) ? "." : ""));        
+                    }
+                    sb.append(String.format("%c", '\0'));
+                    return sb.toString();
                 }
             }
         } catch (SocketException e) {
@@ -138,18 +144,24 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
     }
     
     public void incomingBSReqPktsListener (SnbiPkt pkt) {
-        SnbiNode node = myNode;
-        log.debug("[node: "+node.getUDI()+"] BS Req: Pkt UDI: "+pkt.getUDITLV());
-
-        if (node.getUDI() != pkt.getUDITLV()) {
+        SnbiNode node = null;
+        if (acceptedNodesList.containsKey(pkt.getUDITLV())) {
+            node = acceptedNodesList.get(pkt.getUDITLV());
+            log.debug("[node: "+node.getUDI()+"] BS Req: Pkt UDI: "+pkt.getUDITLV());
+            node.handleBSReqPktEvent(pkt);
             return;
         }
-        node.handleBSReqPktEvent(pkt);
+        log.debug("[node: null] BS Req no such accepted node: Pkt UDI: "+pkt.getUDITLV());
+
     }
 
     private void setNodeDeviceID(SnbiNode node) {
-        node.setDeviceID(nodeMemberPrefix+nodeMemberID.toString());
+        node.setDeviceID(nodeRegistrarID+"-"+nodeMemberID.toString());
         nodeMemberID++;
+    }
+    
+    public String getRegistrarID () {
+        return nodeRegistrarID;
     }
     
     private void setNodeDeviceIP (SnbiNode node) {      

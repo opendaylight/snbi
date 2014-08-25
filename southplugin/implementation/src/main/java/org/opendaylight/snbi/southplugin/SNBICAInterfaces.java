@@ -53,13 +53,13 @@ public enum SNBICAInterfaces {
     // order of arguments, common name, domain name, UDI (Serial Number)
     public PKCS10CertificationRequest generateCSRRequest(String... arguments) {
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-        builder.addRDN(BCStyle.CN, arguments[0]); // common name
-        builder.addRDN(BCStyle.OU, arguments[1]); //  organisational unit
-        builder.addRDN(BCStyle.SN, arguments[2]); // serial number
+        builder.addRDN(BCStyle.CN, arguments[0]); // common name, is the Device ID
+        builder.addRDN(BCStyle.OU, arguments[1]); //  organisational unit is the Domain ID
+        builder.addRDN(BCStyle.SN, arguments[2]); // serial number of the SubjectDN not the certificate Serial Number.
         // other defaults
-        builder.addRDN(BCStyle.C, CertificateMgmt.defaults.get("COUNTRY"));
-        builder.addRDN(BCStyle.ST, CertificateMgmt.defaults.get("STATE"));
-        builder.addRDN(BCStyle.T, CertificateMgmt.defaults.get("TITLE"));
+       // builder.addRDN(BCStyle.C, CertificateMgmt.defaults.get("COUNTRY"));
+        //builder.addRDN(BCStyle.ST, CertificateMgmt.defaults.get("STATE"));
+       // builder.addRDN(BCStyle.T, CertificateMgmt.defaults.get("TITLE"));
 
         //generate key pair
         KeyPair keyPair = KeyPairMgmt
@@ -88,10 +88,11 @@ public enum SNBICAInterfaces {
                 .getSavedCertificate(CertManagerConstants.BC,CertManagerConstants.SELF_SIGNED_CERT_FILE);
         KeyPair rootPair = KeyPairMgmt.getKeyPairFromStore(CertManagerConstants.KEY_STORE_ALIAS,CertManagerConstants.KEY_STORE_CERT_ALIAS,  CertManagerConstants.STORE_TYPE.JKS);
 
-        X500Name x500Name = request.getSubject();
-        RDN cn = x500Name.getRDNs(BCStyle.SN)[0];
-        AttributeTypeAndValue[] values = cn.getTypesAndValues();
-        BigInteger serial = BigInteger.valueOf(new Long(values[0].getValue().toString()).longValue());
+       // X500Name x500Name = request.getSubject();
+       // RDN cn = x500Name.getRDNs(BCStyle.SN)[0];
+       // AttributeTypeAndValue[] values = cn.getTypesAndValues();
+        //BigInteger serial = BigInteger.valueOf(new Long(values[0].getValue().toString()).longValue());
+        BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
         Calendar now = Calendar.getInstance();
         Date notBefore = now.getTime();
         now.add(Calendar.YEAR, 3);
