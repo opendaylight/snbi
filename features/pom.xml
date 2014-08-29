@@ -34,41 +34,75 @@
 
    <dependencies>
         <dependency>
-          <groupId>org.opendaylight.yangtools</groupId>
-          <artifactId>features-yangtools</artifactId>
-          <version>0.6.2-SNAPSHOT</version>
-          <classifier>features</classifier>
-          <type>xml</type>
+              <groupId>org.opendaylight.yangtools</groupId>
+              <artifactId>features-yangtools</artifactId>
+              <version>${yangtools.version}</version>
+              <classifier>features</classifier>
+              <type>xml</type>
         </dependency>
+
         <dependency>
-          <groupId>org.opendaylight.controller</groupId>
-          <artifactId>features-mdsal</artifactId>
-          <version>1.1-SNAPSHOT</version>
-          <classifier>features</classifier>
-          <type>xml</type>
+              <groupId>org.opendaylight.controller</groupId>
+              <artifactId>features-mdsal</artifactId>
+              <version>1.1-SNAPSHOT</version>
+              <classifier>features</classifier>
+              <type>xml</type>
         </dependency>
 
-    <!-- test to validate features.xml -->
-    <dependency>
-      <groupId>org.opendaylight.yangtools</groupId>
-      <artifactId>features-test</artifactId>
-      <version>${feature.test.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- dependency for opendaylight-karaf-empty for use by testing -->
-    <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>opendaylight-karaf-empty</artifactId>
-      <version>${karaf.empty.version}</version>
-      <type>zip</type>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.7.2</version>
-    </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>1.9.2</version>
+        </dependency>
 
+<!--
+        <dependency>
+              <groupId>equinoxSDK381</groupId>
+              <artifactId>org.eclipse.osgi</artifactId>
+              <version>3.8.1.v20120830-144521</version>
+        </dependency>
+
+        <dependency>
+              <groupId>com.google.code.jscep</groupId>
+              <artifactId>jscep</artifactId>
+              <version>2.0.1</version>
+        </dependency>
+
+       <dependency>
+             <groupId>com.google.guava</groupId>
+             <artifactId>guava</artifactId>
+             <version>14.0.1</version>
+      </dependency>
+-->
+        <dependency>
+              <groupId>org.bouncycastle</groupId>
+              <artifactId>bcprov-jdk15on</artifactId>
+              <version>1.50</version>
+        </dependency>
+
+        <dependency>
+             <groupId>org.osgi</groupId>
+             <artifactId>org.osgi.core</artifactId>
+             <version>${osgi.core.version}</version>
+        </dependency>
+
+
+        <!-- test to validate features.xml -->
+        <dependency>
+              <groupId>org.opendaylight.yangtools</groupId>
+              <artifactId>features-test</artifactId>
+              <version>${feature.test.version}</version>
+              <scope>test</scope>
+        </dependency>
+        <!-- dependency for opendaylight-karaf-empty for use by testing -->
+        <dependency>
+              <groupId>org.opendaylight.controller</groupId>
+              <artifactId>opendaylight-karaf-empty</artifactId>
+              <version>${karaf.empty.version}</version>
+              <type>zip</type>
+        </dependency>
    </dependencies>
+
    <build>
       <resources>
          <resource>
