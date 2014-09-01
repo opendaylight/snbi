@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_05e35406",
+        "filename": "features/pom.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-09-01T17:47:09Z",
+      "side": 1,
+      "message": "Not required...",
+      "revId": "edcb4f3e5130efc5f8740a91d27cdb71bd4f4151",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_e5e5100b",
+        "filename": "features/pom.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-09-01T17:47:09Z",
+      "side": 1,
+      "message": "Not required...",
+      "revId": "edcb4f3e5130efc5f8740a91d27cdb71bd4f4151",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_056ef496",
+        "filename": "features/src/main/resources/features.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-09-01T17:47:09Z",
+      "side": 1,
+      "message": "Please avoid providing container level artifacts in the project...  if possible..",
+      "revId": "edcb4f3e5130efc5f8740a91d27cdb71bd4f4151",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
