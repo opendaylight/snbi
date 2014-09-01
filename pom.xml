@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- vi: set et smarttab sw=4 tabstop=4: -->
-<!--
+<!-- vi: set et smarttab sw=4 tabstop=4: --><!--
  Copyright (c) 2013 Cisco Systems, Inc. and others.  All rights reserved.
 
  This program and the accompanying materials are made available under the
  terms of the Eclipse Public License v1.0 which accompanies this distribution,
  and is available at http://www.eclipse.org/legal/epl-v10.html
--->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>snbi</artifactId>
@@ -55,6 +52,8 @@
         <yangtools.version>0.6.2-SNAPSHOT</yangtools.version>
         <ietf-inet-types.version>2010.09.24.4-SNAPSHOT</ietf-inet-types.version>
         <mdsal.version>1.1-SNAPSHOT</mdsal.version>
+        <snbi.shell.version>1.0.0-SNAPSHOT</snbi.shell.version>
+        <karaf.shell.version>3.0.0</karaf.shell.version>
     </properties>
 
     <scm>
@@ -64,9 +63,12 @@
         <tag>HEAD</tag>
     </scm>
     <modules>
-        <module>southplugin/implementation</module>
-        <module>distribution</module>
-    </modules>
+        <module>southplugin</module>
+        <module>shellplugin</module>
+        <module>distribution/base</module>
+        <module>distribution/karaf</module>
+        <module>features</module>
+  </modules>
 
     <pluginRepositories>
         <!-- OpenDayLight Repo Mirror -->
@@ -141,6 +143,7 @@
                 <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
+
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
@@ -271,11 +274,11 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>${maven.jar.version}</version>
           <configuration>
-            <archive>
               <!-- Bundle OSGi Manifest created by maven-bundle-plugin into 
-                jar file -->
+            <archive>
               <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
             </archive>
+                jar file -->
           </configuration>
         </plugin>
         <plugin>
@@ -317,7 +320,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -330,7 +333,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -345,7 +348,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -373,7 +376,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -386,7 +389,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <execute></execute>
+                    <execute/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -399,7 +402,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>
@@ -412,7 +415,7 @@
                     </goals>
                   </pluginExecutionFilter>
                   <action>
-                    <ignore></ignore>
+                    <ignore/>
                   </action>
                 </pluginExecution>
                 <pluginExecution>

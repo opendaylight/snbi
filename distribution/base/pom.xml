@@ -8,10 +8,10 @@ see https://git.opendaylight.org/gerrit/#/c/390/
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
     <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../</relativePath>
+    <relativePath>../../</relativePath>
   </parent>
 
-  <artifactId>distributions-snbi</artifactId>
+  <artifactId>distribution-snbi</artifactId>
   <packaging>pom</packaging>
   <name>OpenDaylight SNBI Distribution</name>
   <dependencies>
