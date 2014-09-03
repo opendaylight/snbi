@@ -38,6 +38,11 @@
              <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
+        <dependency>
+             <groupId>org.opendaylight.snbi</groupId>
+             <artifactId>shellplugin</artifactId>
+             <version>1.0.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
               <groupId>org.opendaylight.controller</groupId>
@@ -169,15 +174,6 @@
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.50</version>
         </dependency>
-
-        <!-- Shell dependency         
-        <dependency>
-             <groupId>org.opendaylight.snbi</groupId>
-             <artifactId>southplugin</artifactId>
-             <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-        -->
-
 
         <!-- test to validate features.xml -->
         <dependency>
