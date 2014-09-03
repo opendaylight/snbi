@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_fc7a8924",
+        "filename": "features/pom.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1788
+      },
+      "writtenOn": "2014-09-03T01:36:51Z",
+      "side": 1,
+      "message": "Out of best practices you might want to have these in properties",
+      "revId": "95e5ae3c9a9fb495cdc10145daed6d5d6308ec39",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
