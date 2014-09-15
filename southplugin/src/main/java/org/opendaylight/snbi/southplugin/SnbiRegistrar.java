@@ -39,7 +39,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         rcvPktEventListenerHandle = msgInfraInstance.registerRcvPktListener(this);
 
         } catch (NullPointerException e ) {
-            System.out.println("Null pointer encountered");
+            log.error("Null pointer encountered");
             e.printStackTrace();
         }
     }

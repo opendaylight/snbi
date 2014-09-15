@@ -41,7 +41,7 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
         } catch (Exception excpt) {
             log.error(" Encountered exception while generating X509 cert" +excpt);
         }
-        System.out.println(" UDI is "+node.getUDI());        
+        log.debug(" UDI is "+node.getUDI());        
         CertificateMgmt.printCertificate(node.getCertificate());
         node.setBootStrapped(true);
     }
