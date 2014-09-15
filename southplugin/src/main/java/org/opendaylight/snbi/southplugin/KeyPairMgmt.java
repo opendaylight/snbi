@@ -62,7 +62,7 @@ public class KeyPairMgmt {
             e.printStackTrace();
             return false;
         }
-        System.out.println(keyStoreFile.getAbsolutePath());
+        logger.debug(keyStoreFile.getAbsolutePath());
         System.setProperty(CertManagerConstants.PROPERTY_KEYSTORE,
                 keyStoreFile.getAbsolutePath());
         System.setProperty(CertManagerConstants.PROPERTY_KEYSTORE_PASSWORD,
