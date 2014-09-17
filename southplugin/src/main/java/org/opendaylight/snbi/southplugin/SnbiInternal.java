@@ -30,7 +30,7 @@ public class SnbiInternal implements CommandProvider {
             ci.println("Domain Name not provided.");
             return;
         }
-        System.out.println("Snbi START domain:"+domainName);
+        log.debug("Snbi START domain:"+domainName);
         snbiInstance = new Snbi(domainName);
         log.info("Starting Snbi Service for domain " + domainName);
     }

@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Snbi {
     ConcurrentHashMap <String, SnbiRegistrar> registrarList = null;
-//    private static final Logger log = LoggerFactory.getLogger(Snbi.class);
+    private static final Logger log = LoggerFactory.getLogger(Snbi.class);
 
     public Snbi(String domainName) throws InvalidParameterException {
         SnbiRegistrar registrar = null;
@@ -28,7 +28,7 @@ public class Snbi {
             registrarList = new ConcurrentHashMap <String, SnbiRegistrar>();
             
         }
-        System.out.println("Creating registrar");
+        log.debug("Creating registrar");
         registrar = new SnbiRegistrar(domainName);
         registrarList.put(domainName, registrar);
     }

@@ -71,7 +71,7 @@ public abstract class SnbiNodeStateCommonEventHandlers implements ISnbiNodeState
         SnbiNodeState nextState = bsReqValidateGetNextState();
         if (nextState == SnbiNodeState.SNBI_NODE_STATE_BOOTSTRAP) {
             node.SetCertificate(CertManager.INSTANCE.generateX509Certificate(pkt.getPKCS10CSRTLV(), null));
-            System.out.println("Certificate signed "+node.getCertificate().toString());
+            log.debug("Certificate signed "+node.getCertificate().toString());
             node.setBootStrapped(true);
         }
         return (nextState);

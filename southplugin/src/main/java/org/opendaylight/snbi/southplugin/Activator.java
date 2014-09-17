@@ -14,7 +14,7 @@ public class Activator extends AbstractBindingAwareProvider {
     // called during osgi start
     @Override
     public void onSessionInitiated(final ProviderContext session) {
-        System.out.println("In onSessionInitiated");
+        logger.debug("In onSessionInitiated");
         logger.debug("Initializing SNBI South Plugin Activator");
         try {
             SnbiInternal snbi = new SnbiInternal();

@@ -84,7 +84,6 @@ public class SnbiMessagingInfra {
             // Init the various modules.
             pktNotifyThreadinit();
             pktRcvListenerInit();
-            System.out.println("Msocket init");
             socketInit();
         } catch (Exception excpt) {
             log.error("Failed to Init SnbiMessagingInfra");
