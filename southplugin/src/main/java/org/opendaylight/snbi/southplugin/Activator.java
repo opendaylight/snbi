@@ -1,5 +1,6 @@
 package org.opendaylight.snbi.southplugin;
 
+import org.opendaylight.controller.md.sal.binding.api.DataBroker;
 import org.opendaylight.controller.sal.binding.api.AbstractBindingAwareProvider;
 import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.ProviderContext;
 import org.osgi.framework.BundleContext;
@@ -8,6 +9,17 @@ import org.slf4j.LoggerFactory;
 
 // Activator class following the new MD-SAL path
 public class Activator extends AbstractBindingAwareProvider {
+	
+	private DataBroker dataBroker;
+	private static Activator INSTANCE;
+	
+	public static Activator getInstance() {
+        return INSTANCE;
+    }
+	public DataBroker getDataBroker() {
+        return dataBroker;
+    }
+	
     protected static final Logger logger = LoggerFactory
             .getLogger(Activator.class);
 
@@ -17,6 +29,8 @@ public class Activator extends AbstractBindingAwareProvider {
         logger.debug("In onSessionInitiated");
         logger.debug("Initializing SNBI South Plugin Activator");
         try {
+        	INSTANCE = this;
+        	this.dataBroker = session.getSALService(DataBroker.class);
             SnbiInternal snbi = new SnbiInternal();
             snbi.start();
             CertManager.INSTANCE.start();
