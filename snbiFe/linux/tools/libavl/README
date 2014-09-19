@@ -1,0 +1,74 @@
+/*
+ * Copyright (c) 2014  Cisco Systems, All rights reserved.
+ *
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
+
+For installation instructions see the INSTALL file.
+
+On Balanced (AVL) trees
+
+This data structure features fast (O(log N)) insertion, deletion and
+retrival of records, provided that there is a sorting relation over their
+keys and there are NO ENTRIES WITH EQUAL KEYS.
+
+The AVL tree is an explicite binary searching tree, where left children
+of each vertex are less or equal, while right children are greater or
+equal than the vertex itself. In addition, the tree is balanced so that the
+difference between the depths of the two subtrees of each vertex is at most
+one. This property - as shown by Adelson-Velskij and Landis - guarantees a
+logarithmic upper bound for the depth of the tree.
+
+About the implementation
+
+This library follows an object-oriented design, despite its ANSI C
+implementation. The reason for choosing plain old C is that it is aimed for
+system programming.
+
+The purpose of this library is to relieve the application programmer from
+the burden of implementation of this sophisticated data structure. The main
+design goal was not the ease of use or elegance but the memory-efficiency;
+Balanced trees are in a way the ultimate data structures for huge amounts of
+records in the operative memory. Therefore, any memory overhead, no matter
+how small, causes sensitive vaste of resources.
+
+The memory management is also out of scope of this library: you have to
+place your data in the memory youself and then use the provided methods
+to organize them into an AVL tree. You also have to clean up after removed
+records; all this library does is that it removes your record from the tree
+and balances it appropriately. Moreover, you have to provide an association
+between the AVL header and the record body.
+
+I am aware that the insertion can be implemented without recursion and stack
+usage as shown in TAOCP, Vol. 3. The implementation of these methods is
+extremely error prone, therefore I kept the readability of the code in mind.
+Hence the abundance of comments. Deletion needs stack storage anyway.
+
+Usage
+
+First, you have to decide on record format and write a comparator which
+takes two pointers to avl structures and returns the result of key-comparison.
+The next step is to establish an avl_tree structure and put the pointer to
+the comparator into its compar field. This is going to be your reference to
+the data structure.
+
+Keep in mind, that the search through equal keys is sequential. The library
+handles them properly, nevertheless. Elements with equal keys retain the
+order they were inserted into the tree.
+
+Never ever try to insert an element which is already in the tree; this can
+wreak infinite havoc, depending on how bulletproof your system is.
+
+In order to use the library, you have to include avl.h and compile with
+-lavl option.
+
+For the exact syntax, see the header file.
+
+C++
+
+Whenever you write a C++ wrapper for this library, do inherit your classes
+from avl, which has the same effect as placing the avl structure first in
+yours (see avl_test), but is much safer in a C++ context.
