@@ -14,7 +14,9 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
  */
 public interface ICertManager {
     public void printProviders();
-    public void printWhiteList();
+    public void printWhiteListFromFile();
+    public void printWhiteListFromStore();
+    public void populateWhileListFromStore();
     // API , used by other bundles
     public PKCS10CertificationRequest generateCSRRequest(String... arguments);
     public X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer);

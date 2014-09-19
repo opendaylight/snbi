@@ -47,7 +47,9 @@ public enum CertManager implements ICertManager, CommandProvider {
         StringBuffer help = new StringBuffer();
         help.append("\t\n---SNBI Certificate Manager---\n");
         help.append("\t printProviders \n");
-        help.append("\t printWhiteList\n");
+        help.append("\t printWhiteListFromStore\n");
+        help.append("\t populateWhileListFromStore\n");
+        help.append("\t printWhiteListFromFile\n");
         help.append("\t printCertificateLocation\n");
         help.append("\t API , used by other bundles \n");
         help.append("\t-----------------------------------------------------------------------------------\n");
@@ -71,8 +73,18 @@ public enum CertManager implements ICertManager, CommandProvider {
     }
 
     @Override
-    public void printWhiteList() {
-        SNBIRegistrar.INSTANCE.printWhiteList();
+    public void printWhiteListFromFile() {
+        SNBIRegistrar.INSTANCE.printWhiteListFromFile();;
+    }
+    
+    @Override
+    public void printWhiteListFromStore() {
+        SNBIRegistrar.INSTANCE.printWhiteListFromStore();;
+    }
+    
+    @Override
+    public void populateWhileListFromStore() {
+        SNBIRegistrar.INSTANCE.populateWhileListFromStore();
     }
 
     @Override
@@ -133,7 +145,9 @@ public enum CertManager implements ICertManager, CommandProvider {
             StringBuffer help = new StringBuffer();
             help.append("\t\n---SNBI Certificate Manager---\n");
             help.append("\t printProviders \n");
-            help.append("\t printWhiteList\n");
+            help.append("\t printWhiteListFromStore\n");
+            help.append("\t populateWhileListFromStore\n");
+            help.append("\t printWhiteListFromFile\n");
             help.append("\t printCertificateLocation\n");
             help.append("\t API , used by other bundles \n");
             help.append("\t-----------------------------------------------------------------------------------\n");
@@ -156,8 +170,16 @@ public enum CertManager implements ICertManager, CommandProvider {
         SNBIRegistrar.INSTANCE.printProviders();
     }
 
-    public void _printWhiteList(CommandInterpreter ci) {
-        SNBIRegistrar.INSTANCE.printWhiteList();
+    public void _printWhiteListFromStore(CommandInterpreter ci) {
+        SNBIRegistrar.INSTANCE.printWhiteListFromStore();
+    }
+    
+    public void _populateWhileListFromStore(CommandInterpreter ci) {
+        SNBIRegistrar.INSTANCE.populateWhileListFromStore();
+    }
+    
+    public void _printWhiteListFromFile(CommandInterpreter ci) {
+        SNBIRegistrar.INSTANCE.printWhiteListFromFile();
     }
 
     public void _printCertificateLocation(CommandInterpreter ci) {
