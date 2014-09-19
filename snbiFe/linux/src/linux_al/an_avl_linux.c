@@ -15,8 +15,9 @@
 an_avl_node_t*
 an_avl_get_first_node (an_avl_node_t *top_node, an_avl_tree *tree)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return NULL;
+    an_avl_node_t *first_node = NULL;
+    avl_get_first_node(tree, &first_node);
+    return (first_node);
 }
 
 boolean 
@@ -27,11 +28,7 @@ an_avl_insert_node (an_avl_top_p *top_node, an_avl_node_t *node, an_avl_compare_
     if (!tree || !node) {
       return (FALSE);   
     }
-    
-    if (val == NULL) {
-        return (FALSE);
-    }
-    return TRUE;
+    avl_insert(tree, node); 
 }
 
 boolean 
@@ -41,11 +38,7 @@ an_avl_remove_node (an_avl_top_p *top_node, an_avl_node_t *node, an_avl_compare_
     if (!tree || !node) {
       return (FALSE);   
     }
-    if (val == NULL) {
-        return (FALSE);
-    }
-
-    return TRUE;
+    avl_remove(tree, node);
 }
 
 an_avl_node_t* 
@@ -55,12 +48,7 @@ an_avl_search_node (an_avl_top_p top_node, an_avl_node_t *node, an_avl_compare_f
     if (!tree || !node) {
       return (FALSE);   
     }
-
-    if (node_found == NULL) {
-        return NULL; 
-    }
-
-    return node_found;
+    return (avl_search(tree, node));
 }
 
 an_avl_node_t *
@@ -78,7 +66,7 @@ an_avl_walk_all_nodes (an_avl_top_p *top_node, an_avl_walk_f walk, an_avl_compar
       return (FALSE);   
     }
     // avl_tree_walk_all_nodes return 0 for success
-    return (!avl_tree_walk_all_nodes(tree, walk, args) ? TRUE : FALSE); 
+    return (avl_tree_walk_all_nodes(tree, (avl_walk_cb_f)walk, args));
 }
 
 an_cerrno 
@@ -87,8 +75,7 @@ an_avl_init (an_avl_tree *tree, an_avl_compare_f compare_func) {
     if (tree == NULL || compare_func == NULL) {
         return -1;
     } 
-
-    return (avl_tree_init(tree, compare_func)); 
+    return (avl_tree_init(tree, (avl_compare_cb_f)compare_func));
 }
 
 an_cerrno 

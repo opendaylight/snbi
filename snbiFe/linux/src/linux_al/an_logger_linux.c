@@ -129,7 +129,8 @@ void vbuginf(const char *fmt, va_list args) {
 
    fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_WRITE_ONLY | AN_FOF_APPEND);
    if (!an_file_descr_is_valid(fd)) { 
-       fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_WRITE_ONLY | AN_FOF_APPEND);
+       fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_WRITE_ONLY |
+               AN_FOF_APPEND | AN_FOF_CREATE);
        if (!an_file_descr_is_valid(fd)) { 
            printf("\n Failed to open the file in vbuginf %s", AN_LINUX_LOGGER_FILENAME);
        }
@@ -217,13 +218,7 @@ void an_logger_init (void)
 
     fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_READ_WRITE | AN_FOF_CREATE);
     if (!an_file_descr_is_valid(fd)) {  
-       fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_READ_WRITE | AN_FOF_CREATE);
-       if (!an_file_descr_is_valid(fd)) { 
-           fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_READ_WRITE | AN_FOF_CREATE);
-           if (!an_file_descr_is_valid(fd)) {    
-               printf("\n Failed to open the file in an_logger_init() %s", AN_LINUX_LOGGER_FILENAME);
-           }
-       }
+        printf("\n Failed to open the file in an_logger_init() %s", AN_LINUX_LOGGER_FILENAME);
        return;
     }
  

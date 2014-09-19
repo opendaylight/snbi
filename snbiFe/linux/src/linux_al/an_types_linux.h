@@ -137,8 +137,8 @@ typedef an_dummy_t an_cd_oper_e;
 typedef an_dummy_t an_cd_info_t;
 
 
-#define TRUE 1
-#define FALSE 0
+#define TRUE true
+#define FALSE false
 //#define NULL 0
 int printf(const char *fmtptr, ...);
 #define an_buginf printf
@@ -351,9 +351,6 @@ typedef an_linux_timer_t an_timer;
 //typedef an_dummy_t chunk_type;
 typedef an_linux_timer_t an_mgd_timer;
 typedef an_dummy_t an_crypto_ss_cnct_id;
-typedef linux_avl_node_t an_avl_node_t;
-typedef linux_avl_node_t* an_avl_top_p;
-typedef linux_avl_tree_t an_avl_tree;
 typedef an_linux_chunk_t an_mem_chunk_t;
 typedef an_linux_chunk_t an_mem_chunkpool_t;
 typedef ulong aaa_mlist_handle;

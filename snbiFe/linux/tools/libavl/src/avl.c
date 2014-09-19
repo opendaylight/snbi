@@ -1,11 +1,10 @@
 /*
- * Copyright (c) 2014  Cisco Systems, All rights reserved.
+ *  Vijay Anand R.
  *
- * This program and the accompanying materials are made available under
- * the terms of the Eclipse License v1.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *  Copyright (c) 2014 by cisco Systems, Inc.
+ *  All rights reserved.
+ *
  */
-
 
 /*
  * ANSI C Library for maintainance of AVL Balanced Trees
@@ -23,6 +22,7 @@
  */
 
 #include "avl.h"
+#include "stdbool.h"
 
 /* Private methods */
 
@@ -66,46 +66,45 @@ void avl_nasty(avl* root){
 
 /* Public methods */
 
-int avl_tree_init (avl_tree *t, avl_compare_cb_f *compare_func) {
+int avl_tree_init (avl_tree *t, avl_compare_cb_f compare_func) {
     if (!t) {
         return -1;
     }
     t->root = NULL;
-    t->compar = *compare_func;
+    t->compar = compare_func;
     return 0;
 }
 
-int avl_tree_walk_all_nodes (avl_tree *t, avl_walk_cb_f *walk_cb_func, void *args) {
-    if (t == NULL) {
-        return 1;
+bool walktree (struct avl *a, avl_walk_cb_f walk_cb, void *args) 
+{
+    if (a == NULL) {
+        return false;
     }
-    if (t->root == NULL) {
-        return 0;
-    }
-/*
-    if(t==0) return 0;
-    if(t->right) listree(t->right,m+1);
-    while(n--) printf("   ");
-    printf("%d (%d)\n",((struct int_avl*)t)->value,t->balance);
-    if(t->left) listree(t->left,m+1);
-*/
-    return 0;
-}
 
-int avl_tree_recursive_walk (struct avl *a, avl_walk_cb_f *walk_cb_func, 
-                             int m) {
-    if (a == 0) {
-        return 1;
-    }
     if (a->right) {
-        avl_tree_recursive_walk(a->right, walk_cb_func, m+1);
+        if (!walktree(a->right, walk_cb, args)) {
+            return false;
+        }
     }
-    if (a->left) {
-        avl_tree_recursive_walk(a->left, walk_cb_func, m+1);
-    }
-    return 1;
 
+    if (!walk_cb(a, args)) {
+        return false;
+    }
+
+    if (a->left) {
+        if (!walktree(a->left, walk_cb, args)) {
+            return false;
+        }
+    }
+    return true;
 }
+
+bool avl_tree_walk_all_nodes (avl_tree *t, avl_walk_cb_f walk_cb_func, 
+                              void *args) 
+{
+    return (walktree(t->root, walk_cb_func, args)); 
+}
+
 int avl_tree_uninit (avl_tree *t) {
     if (!t || t->root) {
         // The tree is no empty.
@@ -120,72 +119,78 @@ int avl_tree_uninit (avl_tree *t) {
  * returns 1 if the depth of the tree has grown
  * Warning: do not insert elements already present
  */
-int avl_insert(avl_tree* t,avl* a)
+int avl_insert (avl_tree* t,avl* a)
 {
    /* initialize */
    a->left=0;
    a->right=0;
    a->balance=0;
    /* insert into an empty tree */
-   if(!t->root){
+   if(!t->root) {
       t->root=a;
       return 1;
    }
    
-   if(t->compar(t->root,a)>0){
+   if (t->compar(t->root,a) == AVL_COMPARE_LT) {
       /* insert into the left subtree */
       if(t->root->left){
-	 avl_tree left_subtree;
-	 left_subtree.root=t->root->left;
-	 left_subtree.compar=t->compar;
-	 if(avl_insert(&left_subtree,a)){
-	    switch(t->root->balance--){
-	     case 1: return 0;
-	     case 0:	return 1;
-	    }
-	    if(t->root->left->balance<0){
-	       avl_swr(&(t->root));
-	       t->root->balance=0;
-	       t->root->right->balance=0;
-	    }else{
-	       avl_swl(&(t->root->left));
-	       avl_swr(&(t->root));
-	       avl_nasty(t->root);
-	    }
-	 }else t->root->left=left_subtree.root;
-	 return 0;
-      }else{
-	 t->root->left=a;
-	 if(t->root->balance--) return 0;
-	 return 1;
+          avl_tree left_subtree;
+          left_subtree.root=t->root->left;
+          left_subtree.compar=t->compar;
+          if(avl_insert(&left_subtree,a)){
+              switch(t->root->balance--){
+                  case 1: return 0;
+                  case 0:	return 1;
+              }
+              if(t->root->left->balance<0){
+                  avl_swr(&(t->root));
+                  t->root->balance=0;
+                  t->root->right->balance=0;
+              }else{
+                  avl_swl(&(t->root->left));
+                  avl_swr(&(t->root));
+                  avl_nasty(t->root);
+              }
+          } else {
+              t->root->left=left_subtree.root;
+          }
+          return 0;
+      } else {
+          t->root->left=a;
+          if(t->root->balance--) return 0;
+          return 1;
       }
-   }else{
-      /* insert into the right subtree */
-      if(t->root->right){
-	 avl_tree right_subtree;
-	 right_subtree.root=t->root->right;
-	 right_subtree.compar=t->compar;
-	 if(avl_insert(&right_subtree,a)){
-	    switch(t->root->balance++){
-	     case -1: return 0;
-	     case 0: return 1;
-	    }
-	    if(t->root->right->balance>0){
-	       avl_swl(&(t->root));
-	       t->root->balance=0;
-	       t->root->left->balance=0;
-	    }else{
-	       avl_swr(&(t->root->right));
-	       avl_swl(&(t->root));
-	       avl_nasty(t->root);
-	    }
-	 }else t->root->right=right_subtree.root;
-	 return 0;
-      }else{
-	 t->root->right=a;
-	 if(t->root->balance++) return 0;
-	 return 1;
-      }
+   } else {
+       /* insert into the right subtree */
+       if (t->root->right) {
+           avl_tree right_subtree;
+           right_subtree.root=t->root->right;
+           right_subtree.compar=t->compar;
+           if (avl_insert(&right_subtree,a)) {
+               switch (t->root->balance++) {
+                   case -1: return 0;
+                   case 0: return 1;
+               }
+               if (t->root->right->balance>0) {
+                   avl_swl(&(t->root));
+                   t->root->balance=0;
+                   t->root->left->balance=0;
+               } else {
+                   avl_swr(&(t->root->right));
+                   avl_swl(&(t->root));
+                   avl_nasty(t->root);
+               }
+           } else {
+               t->root->right=right_subtree.root;
+           }
+           return 0;
+       } else {
+           t->root->right=a;
+           if(t->root->balance++) {
+               return 0;
+           }
+           return 1;
+       }
    }
 }
 
@@ -338,11 +343,51 @@ int avl_range(avl_tree* t,avl* a,avl* b,int(*iter)(avl* a))
    return c;
 }
 
+bool
+avl_recursive_search (avl *root, avl *a, avl_compare_cb_f compar_fn, 
+                      avl **match_node)
+{
+    int x;
+    
+    if (!root) {
+        return false;
+    }
+
+    x = compar_fn(root, a);
+
+    if (x == AVL_COMPARE_LT) { /* search in the left subtree */
+        return(avl_recursive_search(root->left, a, compar_fn, match_node));
+    } else if (x == AVL_COMPARE_GT) {
+        /* search in the right subtree */
+        return(avl_recursive_search(root->right, a, compar_fn, match_node));
+    } else {
+        *match_node = root;
+        return true;
+    }
+}
+
 /* Iterate through elements in t equal to a
  * for each element calls iter(a) until it returns 0
  * returns the last value returned by iterator or 0 if there were no calls
  */
-int avl_search(avl_tree* t,avl* a,int(*iter)(avl* a))
+avl* avl_search (avl_tree* t, avl* a)
 {
-   return avl_range(t,a,a,iter);
+    avl *match_node = NULL;
+    if (!t || !t->root || !t->compar) {
+        return NULL;
+    }
+    if (avl_recursive_search(t->root, a, t->compar, &match_node)) {
+        return match_node;
+    }
+    return NULL;
+}
+
+bool avl_get_first_node (avl_tree *t, avl **node) 
+{
+    if (!t || !node) {
+        return false;
+    }
+
+    *node = t->root;
+    return true;
 }

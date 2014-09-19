@@ -166,6 +166,7 @@ CC_LIBAVL_OBJS :=\
 CC_AN_CLISIM_SRCS :=\
 	$(AN_CLISIM_SRC)/an_cli.c \
 	$(AN_CLISIM_SRC)/show_an.c \
+	$(AN_CLISIM_SRC)/an_clisim_test.c \
 	$(AN_CLISIM_SRC)/conf_an.c
 
 all: mkdir libcli.o libavl.o an_linux_al.o an_common.o

@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2014  Cisco Systems, All rights reserved.
+ *  Vijay Anand R.
  *
- * This program and the accompanying materials are made available under
- * the terms of the Eclipse License v1.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *  Copyright (c) 2014 by cisco Systems, Inc.
+ *  All rights reserved.
+ *
  */
 
 
@@ -27,6 +27,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 /* Data structures */
 
@@ -39,8 +40,13 @@ typedef struct avl
    signed char balance;
 } avl;
 
-typedef int (*avl_compare_cb_f) (void *a, void *b);
-typedef int (*avl_compare_f) (void *a, void *b);
+typedef enum avl_compare_e {
+    AVL_COMPARE_LT,
+    AVL_COMPARE_EQ,
+    AVL_COMPARE_GT
+} avl_compare_e;
+
+typedef int (*avl_compare_cb_f) (avl *a, avl *b);
 typedef int (*avl_walk_cb_f) (avl *node, void *args);
 
 /* An AVL tree */
@@ -58,14 +64,14 @@ typedef struct avl_tree
  * returns 0 if successfully inited the tree.
  * returns 1 if init of tree failed.
  */
-int avl_tree_init(avl_tree *t, avl_compare_cb_f *compar);
+int avl_tree_init(avl_tree *t, avl_compare_cb_f compar);
 
 /**
   * Walk the entire tree and call walk_cb with node and args as input, 
   * the walk_cb can stop the tree walk at any point of time.
   * If all nodes in the tree were walked the API would return 0, 1 if not.
   */
-int avl_tree_walk_all_nodes(avl_tree *t, avl_walk_cb_f *walk_cb, void *args);
+bool avl_tree_walk_all_nodes(avl_tree *t, avl_walk_cb_f walk_cb, void *args);
 
 /* Insert element a into the AVL tree t
  * returns 1 if the depth of the tree has grown
@@ -92,13 +98,11 @@ int avl_removeroot(avl_tree* t);
  */
 int avl_range(avl_tree* t,avl* a,avl* b,int(*iter)(avl* a));
 
-/* Iterate through elements in t equal to a
- * for each element calls iter(a) until it returns 0
- * returns the last value returned by iterator or 0 if there were no calls
+avl* avl_search(avl_tree* t, avl* a);
+/*
+ * Get the first node in the tree
+ * returns FALSE if the tree is empty.
  */
-int avl_search(avl_tree* t, avl* a,int(*iter)(avl* a));
-
-int avl_tree_recursive_walk(struct avl *a, avl_walk_cb_f *walk_cb_func, int m);
-
+bool avl_get_first_node (avl_tree *t, avl **node);
 
 #endif /* avl.h */

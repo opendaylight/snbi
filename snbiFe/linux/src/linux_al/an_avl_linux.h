@@ -9,16 +9,10 @@
 #ifndef __AN_AVL_LINUX_H__
 #define __AN_AVL_LINUX_H__
 
-typedef struct linux_avl_node_t_ {
-    struct linux_avl_node_t_ *left;
-    struct linux_avl_node_t_ *right;
-    void *data;
-} linux_avl_node_t;
+#include "avl.h"
 
-typedef struct linux_avl_tree_t_ {
-    linux_avl_node_t *root;
-    void * compare_func;
-    unsigned int node_count;
-} linux_avl_tree_t;
+typedef avl an_avl_node_t;
+typedef avl* an_avl_top_p;
+typedef avl_tree an_avl_tree;
 
 #endif

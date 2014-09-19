@@ -23,6 +23,7 @@ void quit(bool no, int a, char *av[]) {
     exit(0); 
 }
 
+extern void cli_an_test_init(cli_set_t *s);
 void my_periodic ()
 {
     if (0 == access("/tmp/test", F_OK)) {
@@ -55,7 +56,10 @@ int main (int argc, char *argv[])
      cli_insert(s,"show process", "Processes", an_show_proc, false);
      cli_insert(s,"show ifinfowalk", "if db walk", (cbk_t)an_walk_if_db, false);
      
-     
+    
+/**************************** AN Test CLI's ***********************************/
+     cli_an_test_init(s);
+
     /* Handle the command line arguments (-f <file> to read commands from file)*/
      cli_handle_args(s, argc, argv);
      cli_set_periodic(s, my_periodic);

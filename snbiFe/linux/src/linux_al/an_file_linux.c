@@ -102,7 +102,7 @@ an_file_open (uint8_t *filename, an_file_open_flags_e flags)
         return (AN_FILE_DESCR_INVALID);
     }
 
-    fd = open(filename, flags, S_IRWXU | S_IRWXG | S_IRWXO);
+    fd = open(filename, flags|AN_FOF_CREATE , S_IRWXU | S_IRWXG | S_IRWXO);
     if (!an_file_descr_is_valid(fd)) {
         return (AN_FILE_DESCR_INVALID);
     }
