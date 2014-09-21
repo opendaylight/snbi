@@ -12,17 +12,27 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.opendaylight.controller.md.sal.binding.api.ReadOnlyTransaction;
+import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.SnbiDomain;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.snbi.domain.DeviceList;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.snbi.domain.device.list.Devices;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
+
 // inner class to hold device info. Not used yet.
-class DeviceInfo {
-    public String ip;
-    public String serialNum;
-    public String domainName;
+class DomainInfo {
+    public String listName;
+    public List devices;
+    public String listType;
+    public boolean isActive;
 
 }
 
@@ -35,7 +45,7 @@ public enum SNBIRegistrar {
     }
     private static final HashSet<String> hardwareKeySet = new HashSet<String>();
     private static final HashSet<String> domainNameSet = new HashSet<String>();
-    private static final HashMap<String, DeviceInfo> deviceInfoMap = new HashMap<String, DeviceInfo>();
+    private static final HashMap<String, List<DeviceList>> domainInfoMap = new HashMap<String, List<DeviceList>>();
     protected static final Logger logger = LoggerFactory
             .getLogger(SNBIRegistrar.class);
 
@@ -46,10 +56,13 @@ public enum SNBIRegistrar {
         logger.info("SNBIRegistrar::init start");
         printProviders();
         createKeyStore();
-      //  populateWhileList();
-      //  printWhiteList();
         selfSignRSACertificate();
         logger.info("SNBIRegistrar::init end");
+    }
+    
+    public HashMap<String, List<DeviceList>> getDomainInfoMap() {
+    	populateWhileListFromStore();
+    	return domainInfoMap;
     }
 
     public void printProviders() {
@@ -58,13 +71,54 @@ public enum SNBIRegistrar {
             logger.info("Security Provider " + ps[i].getName());
     }
 
-    public void printWhiteList() {
+    public void printWhiteListFromFile() {
         for (String key : hardwareKeySet)
             logger.info("Hardware Key = " + key);
     }
+    
+    public void printWhiteListFromStore() {
+    	  for ( Map.Entry<String, List<DeviceList>> entry : domainInfoMap.entrySet()) {
+    		    String domainName = entry.getKey();
+    		    List<DeviceList> deviceLists = entry.getValue();
+    		    logger.info(" Domain Name = "+domainName);
+    		    logger.info(" Total Device List = "+deviceLists.size());
+    		    for (DeviceList device : deviceLists) {
+    		    	logger.info("List Name = "+device.getListName());
+    		    	logger.info("Active = "+device.isActive());
+    		    	logger.info("List Type = "+device.getListType().name());
+    		    	List<Devices> devices = device.getDevices();
+    		    	logger.info("Devices count = "+devices.size());
+    		    	for (Devices d : devices) {
+    		    		logger.info("UDI = "+d.getDeviceId().getValue()); 
+    		    	}
+    		    }
+    		     
+    		}
+    }
+    
+    public void populateWhileListFromStore() {
+    	domainInfoMap.clear();
+    	InstanceIdentifier<SnbiDomain> path = InstanceIdentifier.builder(SnbiDomain.class).build();
+    	ReadOnlyTransaction readTx = Activator.getInstance().getDataBroker().newReadOnlyTransaction();
+        try {
+        	Optional<SnbiDomain> domains = readTx.read(LogicalDatastoreType.CONFIGURATION, path).get();
+        	if (!domains.isPresent()) {
+        		logger.info("No White List configured in data store");
+        		return;
+        	}
+        	SnbiDomain domain = domains.get();
+        	domainInfoMap.put(domain.getDomainName(), domain.getDeviceList());
+        } catch (InterruptedException | ExecutionException e) {
+        	logger.error("Execution Exception in populating white list "+e.getMessage());
+        }
+        catch (Exception e) {
+        	logger.error("Exception in populating white list "+e.getMessage());
+        	domainInfoMap.clear();
+        }
+    }
 
     // read the manufacturer keys from a file and populate in the map
-    public void populateWhileList() {
+    public void populateWhileListFromFile() {
         logger.info("SNBIRegistrar::populateKeySet");
         hardwareKeySet.clear();
         // create file if not exists

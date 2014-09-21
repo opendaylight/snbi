@@ -9,9 +9,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.snbi.domain.DeviceList;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.snbi.domain.device.list.Devices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,32 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
             log.error("Null pointer encountered");
             e.printStackTrace();
         }
+    }
+    
+    // assume there is only one list;
+    private  boolean isDeviceinActiveWhiteList(String udi) {
+    	HashMap<String, List<DeviceList>> domainInfoMap = SNBIRegistrar.INSTANCE.getDomainInfoMap();
+    	List<DeviceList> deviceLists = domainInfoMap.get(domainName);
+    	for (DeviceList device : deviceLists) {
+    		if (!device.isActive())
+    			continue;
+    		if (!device.getListType().name().toLowerCase().contains("white"))
+    			continue;
+    		List<Devices> devices = device.getDevices();
+    		for (Devices d : devices) {
+    			if (d.getDeviceId().getValue().equalsIgnoreCase(udi))
+    				return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    
+    public static boolean validateDomain(String domainName) {
+    	HashMap<String, List<DeviceList>> domainInfoMap = SNBIRegistrar.INSTANCE.getDomainInfoMap();
+    	if (domainInfoMap.containsKey(domainName))
+    		return true;
+    	return false;
     }
     
     private String getFirstValidHostMacAddress () {

@@ -29,6 +29,12 @@ public class Snbi {
             
         }
         log.debug("Creating registrar");
+        log.debug("Validating domain name ");
+        if(!SnbiRegistrar.validateDomain(domainName))
+        {
+        	log.error(" No domains configured. Use POST  http://localhost:8080/restconf/config/ to create a domain");
+        	return;
+        }
         registrar = new SnbiRegistrar(domainName);
         registrarList.put(domainName, registrar);
     }
