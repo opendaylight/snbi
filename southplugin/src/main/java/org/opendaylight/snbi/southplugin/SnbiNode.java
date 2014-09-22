@@ -22,7 +22,7 @@ public class SnbiNode {
     // The UDI of the node.
     private String udi = null;
     // The peer interface name.
-    private String peerIfName = null; 
+    private String peerIfName = null;
     // The most recent Epoch time, when a refresh update was received.
     private InetAddress peerIfLLAddress = null;
     private InetAddress proxyAddress = null;
@@ -45,29 +45,30 @@ public class SnbiNode {
     private SnbiNodeStateNICertRequest niCertRequest = null;
     private SnbiNodeStateInvite deviceInvite = null;
     private SnbiNodeStateBootStrap deviceBS = null;
+    private SnbiNodeStateBootStrapReject deviceBsReject = null;
     private ISnbiNodeState currState = null;
     private X509Certificate cert = null;
     private boolean bootStrapped = false;
 
     private String deviceID = null;
-    
+
     public static SnbiNode createNeighborNode (SnbiPkt pkt, SnbiRegistrar registrar) {
         SnbiNode node = new SnbiNode (pkt, registrar);
         node.setState(SnbiNodeState.SNBI_NODE_STATE_NEW_NBR, new eventContext (pkt));
         return node;
     }
-    
+
     public static SnbiNode createBootStrapNode (SnbiPkt pkt, SnbiRegistrar registrar) {
         SnbiNode node = new SnbiNode (pkt, registrar);
         return node;
     }
-    
+
     public static SnbiNode createRegistrarNode (String UDI, SnbiRegistrar registrar) {
         SnbiNode node = new SnbiNode (UDI, registrar);
         node.setState(SnbiNodeState.SNBI_NODE_STATE_REGISTRAR, null);
         return node;
     }
-    
+
     private SnbiNode (String udi, SnbiRegistrar registrar) {
         this.udi = udi;
         this.registrar = registrar;
@@ -75,14 +76,14 @@ public class SnbiNode {
         instantiateNodeStates();
     }
 
-    // timer.   
+    // timer.
     private SnbiNode (SnbiPkt pkt, SnbiRegistrar registrar) {
         lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
         String udi = pkt.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_UDI.getValue(),
                 SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue());
         log.debug("[node: "+udi+"] New node created");
         this.udi = udi;
-        this.peerIfName = pkt.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_IF_NAME.getValue(), 
+        this.peerIfName = pkt.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_IF_NAME.getValue(),
                 SnbiTLVSubtypeIfName.SNBI_TLV_STYPE_IF_NAME.getValue());
         this.registrar = registrar;
         this.peerIfLLAddress = pkt.getIPV6LLTLV();
@@ -91,7 +92,7 @@ public class SnbiNode {
         instantiateNodeStates();
 
     }
-    
+
     private void instantiateNodeStates() {
         newNbrNode = new SnbiNodeStateNewNbr(this);
         deviceInvite = new SnbiNodeStateInvite(this);
@@ -99,6 +100,7 @@ public class SnbiNode {
         registrarNode = new SnbiNodeStateRegistrar(this);
         niCertRequest = new SnbiNodeStateNICertRequest(this);
         deviceBS = new SnbiNodeStateBootStrap(this);
+        deviceBsReject = new SnbiNodeStateBootStrapReject(this);
     }
 
     /**
@@ -111,10 +113,11 @@ public class SnbiNode {
             log.error("Timer already running Stop first");
             return;
         }
-        
+
         // Create a new timer task.
         ndProbeTimerTask = new TimerTask() {
-            public void run() {
+            @Override
+			public void run() {
                 handleNDProbeTimerExpiredEvent();
             }
         };
@@ -160,19 +163,19 @@ public class SnbiNode {
         SnbiPkt pkt = new SnbiPkt(
                 SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY,
                 SnbiMsgType.SNBI_MSG_ND_HELLO);
-        
+
         pkt.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_UDI.getValue(),
-                SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue(), 
+                SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue(),
                 registrar.getNodeself().getUDI());
-        
+
         pkt.setIPV6LLTLV(intf);
         pkt.setIfNameTLV(intf);
         pkt.setEgressInterface(intf);
         pkt.setDstIP(InetAddress.getByName("FF02::1"));
-        
+
         msgInstance.packetSend(pkt);
     }
-    
+
 
     // timer.
 
@@ -186,7 +189,7 @@ public class SnbiNode {
             nodeExpiryTimer.cancel();
             nodeExpiryTimer.purge();
         }
-        
+
         log.debug("[node: "+udi+"]Starting new timer for udi ");
         lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
         nodeExpiryTimer = new Timer("Neighbor Node Expiry Timer "
@@ -199,7 +202,7 @@ public class SnbiNode {
 
         }, ndExpiryTime, ndExpiryTime);
     }
-    
+
     public void reStartExpiryTimer() {
         startNewExpiryTimer();
     }
@@ -221,44 +224,45 @@ public class SnbiNode {
     public String getUDI() {
         return udi;
     }
-    
+
     /**
      * Get peer IfName.
      */
     public String getPeerIfName () {
         return peerIfName;
     }
-    
+
     public InetAddress getPeerIfLLAddress () {
         return peerIfLLAddress;
     }
-    
+
     public InetAddress getNodeAddress () {
         return domainNodeIPaddr;
     }
-    
+
     public SnbiRegistrar getRegistrar () {
         return registrar;
     }
-    
+
     public void setNodeAddress (InetAddress addr) {
         domainNodeIPaddr = addr;
     }
 
-    protected void finalize() {
+    @Override
+	protected void finalize() {
         if (nodeExpiryTimer != null) {
             nodeExpiryTimer.cancel();
             nodeExpiryTimer.purge();
         }
     }
-    
+
     // State machine.
-    private void setState(SnbiNodeState newState, eventContext evnt) {        
+    private void setState(SnbiNodeState newState, eventContext evnt) {
         while (setNewState(newState)) {
             newState = currState.nodeStateSetEvent(evnt);
         }
     }
-    
+
     private boolean setNewState (SnbiNodeState newState ) {
         log.debug("[node:"+this.getUDI()+"] CurrState "+
          (currState != null ? currState.getState():"NONE")+" NewState "+newState);
@@ -286,22 +290,25 @@ public class SnbiNode {
             case SNBI_NODE_STATE_BOOTSTRAP:
                 currState = deviceBS;
                 break;
+            case SNBI_NODE_BS_REJECTED:
+            	currState = deviceBsReject;
+            	break;
             default:
                 log.error("Unhandled state "+newState);
                 return false;
         }
         return true;
     }
-    
+
     public SnbiNodeState getCurrState () {
         return currState.getState();
     }
-    
+
     // Event Handlers.
-    private void handleKeepAliveTimerExpiredEvent() {       
+    private void handleKeepAliveTimerExpiredEvent() {
         setState(currState.handleNodeExpiredEvent(), null);
     }
-    
+
     public void handleNICertReqPktEvent (SnbiPkt pkt) {
         setState(currState.handleNICertReqPktEvent(pkt), new eventContext(pkt));
     }
@@ -328,11 +335,11 @@ public class SnbiNode {
     }
 
     public void handleBSReqPktEvent(SnbiPkt pkt) {
-        setState(currState.handleBSReqPktEvent(pkt), new eventContext(pkt));        
+        setState(currState.handleBSReqPktEvent(pkt), new eventContext(pkt));
     }
 
     public void setDeviceID(String deviceID) {
-        this.deviceID = deviceID;  
+        this.deviceID = deviceID;
     }
 
     public String getDeviceID() {
