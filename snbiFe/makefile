@@ -193,7 +193,7 @@ an_linux_al.o: $(CC_AN_LINUX_AL_SRCS)
 	$(LD_LIB) $(LD_FLAGS) -fPIC
 	mv $(AN_LINUX_AL_OBJ)/$@ ${AN_LD_LIB_PATH}
 
-an_common.o: $(CC_AN_COMMON_SRCS) $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/an_common.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
+an_common.o: $(CC_AN_COMMON_SRCS) $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
 	@echo "Building target: $@"
 	$(CC) -o $(AN_COMMON_OBJ)/an_clisim $^ $(CC_INCDIRS) $(CFLAGS) \
 	$(LD_LIB) -fPIC

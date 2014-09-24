@@ -27,3 +27,5 @@ maven-eclipse.xml
 .DS_STORE
 .metadata
 *obj*
+*.cert
+*.ks
