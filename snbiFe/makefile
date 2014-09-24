@@ -31,7 +31,7 @@ CC_INCDIRS :=\
 
 AN_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
 AN_LINUX_AL_OBJ=$(BASE_DIR)/obj
-AN_LINUX_AL_BIN=$(BASE_DIR)/bin
+AN_LINUX_AL_BIN=$(BASE_DIR)/../bin
 
 AN_COMMON_SRC=$(BASE_COMMON_DIR)
 AN_COMMON_OBJ=$(BASE_COMMON_DIR)/obj_common
@@ -193,22 +193,17 @@ an_linux_al.o: $(CC_AN_LINUX_AL_SRCS)
 	$(LD_LIB) $(LD_FLAGS) -fPIC
 	mv $(AN_LINUX_AL_OBJ)/$@ ${AN_LD_LIB_PATH}
 
-an_common.o: $(CC_AN_COMMON_SRCS) $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/an_common.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
+an_common.o: $(CC_AN_COMMON_SRCS) $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
 	@echo "Building target: $@"
-	$(CC) -o $(AN_COMMON_OBJ)/an_clisim $^ $(CC_INCDIRS) $(CFLAGS) \
+	$(CC) -o $(AN_COMMON_OBJ)/snbi-sim $^ $(CC_INCDIRS) $(CFLAGS) \
 	$(LD_LIB) -fPIC
+	mv $(AN_COMMON_OBJ)/snbi-sim ${AN_LINUX_AL_BIN}
 
-#an_clisim: $(CC_AN_CLISIM_SRCS) $(AN_LINUX_AL_OBJ)/an_linux_al.o $(AN_COMMON_OBJ)/an_common.o $(CC_LIBCLI_OBJS)
+#an_clisim: $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/an_common.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
 #	@echo "Building target: $@"
 #	$(CC) -o $(AN_LINUX_AL_BIN)/$@ $^ $(CC_INCDIRS) $(CFLAGS)
 #	@echo 'Finished building target: $@'
 #	@echo ' '
-
-an_clisim: $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/an_common.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
-	@echo "Building target: $@"
-	$(CC) -o $(AN_LINUX_AL_BIN)/$@ $^ $(CC_INCDIRS) $(CFLAGS)
-	@echo 'Finished building target: $@'
-	@echo ' '
 
 clean:
 	@echo "Cleaning obj and bin dir"
