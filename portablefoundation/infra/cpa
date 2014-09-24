@@ -1,0 +1,96 @@
+#!/bin/bash
+#
+# Container Provisioning Agent (CPA), Version 0
+#
+# A demonstration of initial functions on host to start, stop, login
+# list all portable foundation containers.
+#
+# Sept 2014, Liming Wei
+#
+
+REST_SERVER_PID_FILE=/tmp/host_pf_server.pid
+
+nsenter_pid()
+{
+    sudo nsenter --target $1 --mount --uts --ipc --net --pid
+}
+
+pid()
+{
+    export PID=$(sudo docker inspect --format {{.State.Pid}} $1)
+}
+
+nsenter_login()
+{
+    export PID=$(sudo docker inspect --format {{.State.Pid}} $1)
+    sudo nsenter --target $PID --mount --uts --ipc --net --pid
+}
+
+pf_start()
+{
+    sudo docker run -d --name $1 -e CID=$1 --net="host" -p 127.0.0.1:$2:5000 lwei/snbi:v4
+}
+
+case $1 in 
+    pf_start)
+      pf_start $2 $3
+      ;;
+
+    pf_stop)
+      sudo docker stop $2
+      ;;
+
+    pf_kill)
+      sudo docker rm $2
+      ;;
+
+    login)
+      nsenter_login $2
+      ;;
+
+    rest_start)
+      if [ -f host_pf_server.py ]; then
+        HOST_PF_SERVER=host_pf_server.py
+      else
+        HOST_PF_SERVER=/usr/share/snbi/host_pf_server.py
+      fi
+      python ${HOST_PF_SERVER} >> host_pf_server.log 2>&1&
+      echo $! > $REST_SERVER_PID_FILE
+      ;;
+
+    rest_stop)
+      if [ -f $REST_SERVER_PID_FILE ];  then
+        REST_SRV_PID=$(cat $REST_SERVER_PID_FILE)
+        kill $REST_SRV_PID
+      else
+        echo "$REST_SERVER_PID_FILE does not exist, REST server not found"
+      fi
+      ;;
+
+    list)
+      sudo docker ps -a
+      ;;
+
+    install)
+      sudo cp cpa /usr/bin
+      if [ ! -d /usr/share/snbi ]; then
+        sudo mkdir /usr/share/snbi
+      fi
+      sudo cp host_pf_server.py /usr/share/snbi/
+      sudo cp UDI_DB.json /usr/share/snbi/
+      ;;
+
+    *)
+      cat << EOF
+Usage: cpa {pf_start <PF_NAME> <PORT> |
+            pf_stop  <PF_NAME> |
+            pf_kill  <PF_NAME> |
+            login    <PF_NAME> |
+            rest_start |
+            rest_stop  |
+            list |
+            install}
+EOF
+      exit 1
+
+esac

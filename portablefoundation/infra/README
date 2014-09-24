@@ -1,5 +1,69 @@
 This directory contains sources for portable foundation infrastructure.
 
-Portable Foundation Dockerfile contains definition for the docker image
-for the forwarding elements.
+Dockerfile contains definition for the docker image for the forwarding
+elements.
+
+cpa is the Container Provisioning Agent (CPA) script that manages the
+lifecycles of the portable foundations. The command line options for
+this script is as the following,
+
+Usage: cpa {pf_start <PF_NAME> <PORT> |
+            pf_stop  <PF_NAME> |
+            pf_kill  <PF_NAME> |
+            login    <PF_NAME> |
+            rest_start |
+            rest_stop  |
+            list |
+            install}
+
+On a freshly installed Linux host with Docker running, do the following
+commands in sequence to start 2 containers SNBI_PF0 and SNBI_PF1.
+
+1) Check out the SNBI code base, and do,
+   cd code/snbi/portablefoundation/infra 
+2) "% cpa install"                      # Installs CPA on host
+3) "% cpa rest_start"                   # Starts REST server on host
+4) "% cpa pf_start SNBI_PF0 21001"      # Starts portable foundation SNBI_PF0 
+5) "% cpa pf_start SNBI_PF1 21002"      # Starts portable foundation SNBI_PF1
+6) "% cpa list"                         # Lists all portable foundations
+
+More examples of all cpa commands,
+
+% cpa pf_start SNBI_PF0 21001
+Starts a portable foundation with name SNBI_PF0, and ssh listens on
+TCP port 21001.
+
+% cpa pf_stop SNBI_PF0
+Stops SNBI_PF0
+
+% cpa pf_kill SNBI_PF0
+Kills the container SNBI_PF0, and releases all resources allocated.
+
+% cpa login SNBI_PF0
+Log in to SNBI_PF0
+
+% cpa rest_start
+Starts the RESTconf server on host.
+
+% cpa rest_stop
+Stops the RESTConf server on host.
+
+% cpa list
+Lists all running containers on host.
+
+% cpa install
+Installs the cpa script into /usr/bin and the RESTconf server script
+host_pf_server.py and UDI_DB.json into /usr/share/snbi/
+
+
+UDI_DB.json is the configuration database for UDI's for all named
+portable foundations on the host. Only portable foundations in this
+database are supported on the host.
+
+host_pf_server.py is the host side RESTconf server serving the
+portable foundations.
+
+pf-req.py is a sample RESTconf client, written in python, to demonstrate
+and test the RESTCONF communication channel between the portable foundation
+and the host's RESTconf server.
 
