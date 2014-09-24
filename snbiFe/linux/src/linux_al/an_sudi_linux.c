@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "an_types.h"
 #include "an.h"
 #include "an_event_mgr.h"
@@ -125,38 +124,39 @@ an_sudi_check (void)
     if (!an_sudi_initialized) {
         return;
     }
- /*
+
     check_count++;
     if (check_count >= 100) {
         check_count = 100;
     }
- */
-    if (an_sudi_is_available()) {
+
+    if (udi_available) {
         an_sudi_get_udi(&udi);
         an_set_udi(udi);
         an_event_sudi_available();
-   //     check_count = 0;
-
-    } 
-    if (udi_available) {
-                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                             "\n%sWhile waiting for sUDI, "
-                             "if UDI is available using it", an_nd_event);
+        check_count = 0;
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%sWhile waiting for sUDI, "
+                "if UDI is available using it", an_nd_event);
 
     } else if (an_udi_get_from_platform(&udi)) {
-                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                             "\n%sWhile waiting for sUDI, "
-                             "if UDI is available using it", an_nd_event);
-                an_set_udi(udi);
-                an_event_udi_available();
-                udi_available = TRUE;
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%sWhile waiting for sUDI, "
+                "if UDI is available using it", an_nd_event);
+        an_set_udi(udi);
+        udi_available = TRUE;
+        time_interval = check_count * AN_TIMER_SUDI_CHECK_INTERVAL;
+        if (time_interval > AN_TIMER_MAX_SUDI_CHECK_INTERVAL) {
+            time_interval = AN_TIMER_MAX_SUDI_CHECK_INTERVAL;
+        }
+        an_timer_start(&an_sudi_check_timer, time_interval);
 
     } else {
-                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                             "\n%sWhile waiting for sUDI, Can't find the UDI",
-                             an_nd_event);
-           }
-        return;
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
+                "\n%sWhile waiting for sUDI, Can't find the UDI",
+                an_nd_event);
+    }
+    return;
 }
 
 /* Returns certificate pointer */
