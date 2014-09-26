@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa82b9bf_1b170553",
+        "filename": "snbiFe/linux/src/linux_al/an_sudi_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-09-26T09:26:10Z",
+      "side": 1,
+      "message": "Please remove this copyright..",
+      "revId": "160fd5cb525556b9ba2d1a7c61c9b06d4d4708e0",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa82b9bf_46fff001",
+        "filename": "snbiFe/linux/src/linux_al/an_timer_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2014-09-26T09:26:10Z",
+      "side": 1,
+      "message": "pleas remove this..",
+      "revId": "160fd5cb525556b9ba2d1a7c61c9b06d4d4708e0",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
