@@ -17,4 +17,5 @@
 #include "libcli.h"
 
 void an_conf_auton(bool no, int a, char *av[]);
+void an_conf_no_auton(bool no, int a, char *av[]);
 void an_conf_auton_intf(bool no, int a, char *av[]);

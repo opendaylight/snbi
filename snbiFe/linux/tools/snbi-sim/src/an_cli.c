@@ -37,7 +37,7 @@ int main (int argc, char *argv[])
      cli_set_t *s; /* Create a CLI set */
 
      /* Initialise the set with a prompt, and 1 mandatory command to exit */
-     s = cli_init("AN", "quit", quit);
+     s = cli_init("snbisim", "quit", quit);
 
      /* Add a command with no negation */
      cli_insert(s,"hello world", "the Hello world help", cbk1, false);
@@ -46,7 +46,8 @@ int main (int argc, char *argv[])
 
 /******************************AN Config CLI's********************************/
      /*Autonomic Start/End CLI...*/
-     cli_insert(s,"autonomic", "Enable Autonomic", an_conf_auton, true);
+     cli_insert(s,"snbi-start", "Enable Autonomic", an_conf_auton, false);
+     cli_insert(s,"snbi-stop", "Disable Autonomic", an_conf_no_auton, false);
      cli_insert(s,"adjvory", "Autonomic adjacency discovery", an_conf_auton_intf, true);
 
 /******************************AN Show CLI's**********************************/

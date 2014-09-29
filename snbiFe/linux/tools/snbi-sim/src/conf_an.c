@@ -11,17 +11,16 @@
 
 void 
 an_conf_auton (bool no, int a, char *av[]) {
-    if (!no) {
-        printf ("\n*********Starting Autonomic Process************\n");
-        an_autonomic_enable(TRUE);
-    }
-    if (no) {
-        an_autonomic_disable(TRUE);
-        printf ("\n*************Ending Autonomic Process**********\n");
-    }
-
+    printf ("\n*********Starting Autonomic Process************\n");
+    an_autonomic_enable(TRUE);
     return;
+}
 
+void 
+an_conf_no_auton (bool no, int a, char *av[]) {
+    an_autonomic_disable(TRUE);
+    printf ("\n*************Ending Autonomic Process**********\n");
+    return;
 }
 
 void
