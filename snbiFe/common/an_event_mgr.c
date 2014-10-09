@@ -244,7 +244,7 @@ an_event_udi_available (void)
                "\nAN: Event - Failed to create MASA trustpoint");
     }
 
-    an_if_enable();
+    an_if_init(); 
 
     /* uninit ND first, so that any ND using UDI is removed */
     if (an_is_global_cfg_autonomic_enabled()) {
@@ -270,7 +270,7 @@ an_event_sudi_available (void)
 
     an_syslog(AN_SYSLOG_SUDI_AVAILABLE, my_udi.data);
 
-    an_if_enable();
+    an_if_init();
 
     /* uninit ND first, so that any ND using sUDI is removed */
     if (an_is_global_cfg_autonomic_enabled()) {

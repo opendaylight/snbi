@@ -87,12 +87,17 @@ void an_show_proc(bool no, int a, char *av[]) {}
 an_walk_e
 an_if_info_walker(an_avl_node_t *node, void *data) {
 
-     an_if_info_t *an_if_info = NULL;
+    an_if_info_t *an_if_info = NULL;
 
     if (!node) {
         return (AN_WALK_FAIL);
     }
-    an_if_info = *(an_if_info_t **)node;
+    an_if_info = (an_if_info_t *)node;
+    printf("\nAVL walking nodes :\n");
+    printf("\n Ifhndl while walk is %lu ", an_if_info->ifhndl); 
+    printf("\n AN is auton enabled on interface ? ");
+    (an_if_info->if_cfg_autonomic_enable > 0) ? printf("YES"):printf("NO");
+
     return (AN_WALK_SUCCESS);
 }
 

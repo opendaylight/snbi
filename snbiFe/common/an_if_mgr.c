@@ -480,4 +480,3 @@ an_if_unset_routing_required (an_if_info_t *an_if_info)
     an_if_info->an_if_acp_info.is_routing_required = FALSE;
     return TRUE;
 }
-                 
