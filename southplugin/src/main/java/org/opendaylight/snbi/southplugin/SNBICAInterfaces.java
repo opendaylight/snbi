@@ -152,7 +152,7 @@ public enum SNBICAInterfaces {
     // save the certificate in keystore file and returns the alias for reference
     public String saveCertificate(X509Certificate cert ) {
         KeyStore keystore = null;
-        String certAlias = CertManagerConstants.KEY_STORE_CERT_ALIAS+SNBIRegistrar.ID++;
+        String certAlias = CertManagerConstants.KEY_STORE_CERT_ALIAS+CertRegistrar.ID++;
         try {
             keystore = KeyStore.getInstance(CertManagerConstants.STORE_TYPE.JCEKS.toString());
         } catch (KeyStoreException e) {

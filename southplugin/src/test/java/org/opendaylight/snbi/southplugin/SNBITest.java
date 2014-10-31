@@ -22,7 +22,7 @@ public class SNBITest {
 	@Test
 	public void testSNBICertInitialization() {
 		logger.info( " SNBI Registrar Initialization - " );
-		 SNBIRegistrar.INSTANCE.init();
+		 CertRegistrar.INSTANCE.init();
 	}
 	
 	@Test

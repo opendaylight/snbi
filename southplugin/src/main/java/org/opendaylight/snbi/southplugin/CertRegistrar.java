@@ -36,7 +36,7 @@ class DomainInfo {
 
 }
 
-public enum SNBIRegistrar {
+public enum CertRegistrar {
     INSTANCE;
 
     static {
@@ -47,17 +47,17 @@ public enum SNBIRegistrar {
     private static final HashSet<String> domainNameSet = new HashSet<String>();
     private static final HashMap<String, List<DeviceList>> domainInfoMap = new HashMap<String, List<DeviceList>>();
     protected static final Logger logger = LoggerFactory
-            .getLogger(SNBIRegistrar.class);
+            .getLogger(CertRegistrar.class);
 
     public static int ID = 1;
 
     // initialize the registrar.
     public void init() {
-        logger.info("SNBIRegistrar::init start");
+        logger.info("CertRegistrar::init start");
         printProviders();
         createKeyStore();
         selfSignRSACertificate();
-        logger.info("SNBIRegistrar::init end");
+        logger.info("CertRegistrar::init end");
     }
     
     public HashMap<String, List<DeviceList>> getDomainInfoMap() {
@@ -119,13 +119,13 @@ public enum SNBIRegistrar {
 
     // read the manufacturer keys from a file and populate in the map
     public void populateWhileListFromFile() {
-        logger.info("SNBIRegistrar::populateKeySet");
+        logger.info("CertRegistrar::populateKeySet");
         hardwareKeySet.clear();
         // create file if not exists
         File whilelist = new File(CertManagerConstants.HARDWARE_CERT_FILE);
         try {
             if (!whilelist.exists()) {
-                logger.info("SNBIRegistrar::creating empty file "
+                logger.info("CertRegistrar::creating empty file "
                         + CertManagerConstants.HARDWARE_CERT_FILE);
                 whilelist.createNewFile();
             }
@@ -160,7 +160,7 @@ public enum SNBIRegistrar {
     // create and self sign the certificate.
     // store the certificate and retreive it
     private void selfSignRSACertificate() {
-        logger.info("SNBIRegistrar::selfSignCertificate");
+        logger.info("CertRegistrar::selfSignCertificate");
         // generate key pair
         KeyPair keyPair = KeyPairMgmt
                 .generateKeyPair(CertManagerConstants.ALGORITHM.RSA);
@@ -188,7 +188,7 @@ public enum SNBIRegistrar {
     // for testing
     public static void main(String args[]) {
         System.out.println("Init Start ..");
-        SNBIRegistrar.INSTANCE.init();
+        CertRegistrar.INSTANCE.init();
         System.out.println("Init END ..");
         System.out.println("Testing the API's . START");
         org.bouncycastle.pkcs.PKCS10CertificationRequest certRequest =

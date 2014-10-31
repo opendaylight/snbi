@@ -35,7 +35,7 @@ public enum CertManager implements ICertManager, CommandProvider {
         BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
         bundleContext.registerService(CommandProvider.class.getName(), this,
                 null);
-        SNBIRegistrar.INSTANCE.init();
+        CertRegistrar.INSTANCE.init();
     }
 
     void stop() {
@@ -69,22 +69,22 @@ public enum CertManager implements ICertManager, CommandProvider {
 
     @Override
     public void printProviders() {
-        SNBIRegistrar.INSTANCE.printProviders();
+        CertRegistrar.INSTANCE.printProviders();
     }
 
     @Override
     public void printWhiteListFromFile() {
-        SNBIRegistrar.INSTANCE.printWhiteListFromFile();;
+        CertRegistrar.INSTANCE.printWhiteListFromFile();;
     }
     
     @Override
     public void printWhiteListFromStore() {
-        SNBIRegistrar.INSTANCE.printWhiteListFromStore();;
+        CertRegistrar.INSTANCE.printWhiteListFromStore();;
     }
     
     @Override
     public void populateWhileListFromStore() {
-        SNBIRegistrar.INSTANCE.populateWhileListFromStore();
+        CertRegistrar.INSTANCE.populateWhileListFromStore();
     }
 
     @Override
@@ -167,19 +167,19 @@ public enum CertManager implements ICertManager, CommandProvider {
     }
 
     public void _printProviders(CommandInterpreter ci) {
-        SNBIRegistrar.INSTANCE.printProviders();
+        CertRegistrar.INSTANCE.printProviders();
     }
 
     public void _printWhiteListFromStore(CommandInterpreter ci) {
-        SNBIRegistrar.INSTANCE.printWhiteListFromStore();
+        CertRegistrar.INSTANCE.printWhiteListFromStore();
     }
     
     public void _populateWhileListFromStore(CommandInterpreter ci) {
-        SNBIRegistrar.INSTANCE.populateWhileListFromStore();
+        CertRegistrar.INSTANCE.populateWhileListFromStore();
     }
     
     public void _printWhiteListFromFile(CommandInterpreter ci) {
-        SNBIRegistrar.INSTANCE.printWhiteListFromFile();
+        CertRegistrar.INSTANCE.printWhiteListFromFile();
     }
 
     public void _printCertificateLocation(CommandInterpreter ci) {

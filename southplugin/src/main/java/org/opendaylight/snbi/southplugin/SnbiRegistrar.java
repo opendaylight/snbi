@@ -50,7 +50,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
 
     // assume there is only one list;
     private  boolean isDeviceinActiveWhiteList(String udi) {
-    	HashMap<String, List<DeviceList>> domainInfoMap = SNBIRegistrar.INSTANCE.getDomainInfoMap();
+    	HashMap<String, List<DeviceList>> domainInfoMap = CertRegistrar.INSTANCE.getDomainInfoMap();
     	List<DeviceList> deviceLists = domainInfoMap.get(domainName);
 		log.debug("Read from Data store for domainName "+domainName);
 
@@ -85,7 +85,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
 
 
     public static boolean validateDomain(String domainName) {
-    	HashMap<String, List<DeviceList>> domainInfoMap = SNBIRegistrar.INSTANCE.getDomainInfoMap();
+    	HashMap<String, List<DeviceList>> domainInfoMap = CertRegistrar.INSTANCE.getDomainInfoMap();
 
     	if (domainInfoMap.containsKey(domainName))
     		return true;
