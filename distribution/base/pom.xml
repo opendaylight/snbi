@@ -7,7 +7,7 @@ see https://git.opendaylight.org/gerrit/#/c/390/
   <parent>
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1-Helium-SR1</version>
     <relativePath>../../</relativePath>
   </parent>
 
@@ -18,7 +18,7 @@ see https://git.opendaylight.org/gerrit/#/c/390/
     <dependency>
       <groupId>org.opendaylight.controller</groupId>
       <artifactId>distribution.opendaylight</artifactId>
-      <version>0.1.3-SNAPSHOT</version>
+      <version>0.1.3-Helium-SR1</version>
       <type>zip</type>
       <classifier>osgipackage</classifier>
       <!-- Make sure this isn't included on any classpath-->
