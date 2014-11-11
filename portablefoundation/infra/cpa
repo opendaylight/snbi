@@ -28,7 +28,12 @@ nsenter_login()
 
 pf_start()
 {
-    sudo docker run -d --name $1 -e CID=$1 --net="host" -p 127.0.0.1:$2:5000 lwei/snbi:v4
+    eval $(python pf_check.py $1)
+    if [ "$CNAME" == "default" ]; then
+      echo "Can not start Portable Foundation '$1'. '$1' has no local config"
+      exit 1
+    fi
+    sudo docker run -d --name $1 --net="host" -e "CID=$CNAME" -p 127.0.0.1:$2:5000 lwei/snbi:v4
 }
 
 case $1 in 

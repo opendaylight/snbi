@@ -46,7 +46,6 @@ import json
 '''Obtain the UDI element of container_name, if container_name'''
 ''' is not found in UDI_DB, return the default bad ID'''
 def OdlSnbiServerGetUdi (container_name):
-    print ("Trying to find %s," % ('container_name'))
     f = open('UDI_DB.json', 'r')
     t = f.read()
     '''Decode the JSON string into python data'''
@@ -56,10 +55,10 @@ def OdlSnbiServerGetUdi (container_name):
 
     '''Find container_name in arr'''
     for x in arr:
-        print ("Name is %s, UDI is %s" % (x['container_name'], x['UDI']))
+#       print ("Name is %s, UDI is %s" % (x['container_name'], x['UDI']))
         if (x['container_name'] == container_name):
             return x
-    return arr['default']
+    return arr[-1]
 
 
 class Root(object):
