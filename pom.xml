@@ -8,6 +8,14 @@
 --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.opendaylight.odlparent</groupId>
+        <artifactId>odlparent</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+        <relativePath></relativePath>
+    </parent>
+
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
     <version>1.1.0-SNAPSHOT</version>
@@ -34,11 +42,9 @@
         <maven.surefire.version>2.16</maven.surefire.version>
 
         <!-- Supporting Libraries -->
-        <commons.lang.version>3.1</commons.lang.version>
         <junit.version>4.10</junit.version>
         <slf4j.version>1.7.2</slf4j.version>
         <guava.version>14.0.1</guava.version>
-        <xtend.version>2.4.3</xtend.version>
         <groovy.version>2.1.6</groovy.version>
         <mockito.version>1.9.5</mockito.version>
         <javassist.version>3.17.1-GA</javassist.version>
