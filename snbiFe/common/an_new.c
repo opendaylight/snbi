@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "../al/an_types.h"
 #include "../al/an_logger.h"
 #include "../al/an_avl.h"
@@ -73,8 +72,8 @@ an_concat_str_with_num (uint8_t *prefix_str, uint8_t suffix_num, uint8_t **str)
     suffix_str = (uint8_t*)malloc(sizeof(uint8_t)*(suffix_len+1));
     an_itoa(suffix_num, suffix_str);
 
-    memcpy(*str, prefix_str, prefix_len);
-    memcpy(*str + prefix_len, suffix_str, suffix_len+1);
+    an_memcpy_s(*str, prefix_len, prefix_str, prefix_len);
+    an_memcpy_s(*str + prefix_len, prefix_len+suffix_len+1, suffix_str, suffix_len+1);
 
     free(suffix_str);
 }

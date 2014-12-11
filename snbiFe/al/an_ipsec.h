@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_IPSEC_H__
 #define __AN_IPSEC_H__
 
@@ -21,9 +20,12 @@ extern uint32_t an_ipsec_profile_id;
 
 //IPSec
 void an_ipsec_define_profile_name(void);
+void an_ipsec_set_profile_name(uint32_t unit);
+void an_ipsec_clear_profile_name(void);
 void an_ipsec_profile_init(void);
 void an_ipsec_profile_uninit(void);
-void an_ipsec_apply_on_tunnel(an_idbtype *tunnel_idb);
-void an_ipsec_remove_on_tunnel(an_idbtype *tunnel_idb);
-void an_ipsec_set_profile_name(uint32_t unit);
+//void an_ipsec_apply_on_tunnel(an_idbtype *tunnel_idb);
+//void an_ipsec_remove_on_tunnel(an_idbtype *tunnel_idb);
+boolean an_ipsec_apply_on_tunnel(an_if_t tunn_ifhndl);
+void an_ipsec_remove_on_tunnel(an_if_t tunn_ifhndl);
 #endif

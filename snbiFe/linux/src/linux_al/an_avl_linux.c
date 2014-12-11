@@ -54,7 +54,7 @@ an_avl_search_node (an_avl_top_p top_node, an_avl_node_t *node, an_avl_compare_f
 an_avl_node_t *
 an_avl_get_next_node (an_avl_top_p top_node, an_avl_node_t *node, an_avl_compare_f compare, an_avl_tree *tree)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+printf("\n[SNBI_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (NULL);
 }
 

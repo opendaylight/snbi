@@ -6,16 +6,19 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#ifndef __AN_UDP_H__
-#define __AN_UDP_H__
-
 #include "an_types.h"
+#include "an_dike.h"
 
-typedef uint16_t an_udp_port_t;
+boolean
+an_dike_profile_apply_on_tunnel (an_if_t tunn_ifhndl, uint16_t ll_dike_port,
+                                         uint16_t remote_dike_port)
+{
+            return (TRUE);
+}
 
-boolean an_udp_build_header(uint8_t *iphdr, uint8_t *udp_hdr, 
-                    an_udp_port_t dest_port, an_udp_port_t source_port, 
-                    uint16_t msg_len);
-boolean an_udp_update_checksum(an_pak_t *pak);
+void
+an_dike_profile_remove_on_tunnel (an_if_t tunn_ifhndl)
+{
+            return;
+}
 
-#endif

@@ -35,6 +35,13 @@ an_memset_guard (void *target, uint8_t num, uint32_t length)
 }
 
 void 
+an_memset_guard_s (void *target, uint8_t num, uint32_t length)
+{
+    memset(target, num, length);
+    return;
+}
+
+void 
 an_memset (void *target, uint8_t num, uint32_t length)
 {
     memset(target, num, length);
@@ -53,40 +60,55 @@ an_mem_chunkpool_create (uint16_t chunk_size, uint16_t chunkpool_size,
 {
     an_mem_chunkpool_t *an_chunk = NULL;
     an_chunk = malloc (sizeof(an_mem_chunkpool_t));
-    an_chunk->chunk_size = chunk_size;
-    an_chunk->chunkpool_size = chunkpool_size;
-    an_chunk->chunkpool_id = chunkpool_id;
+    if (an_chunk) {
+        an_chunk->chunk_size = chunk_size;
+        an_chunk->chunkpool_size = chunkpool_size;
+        an_chunk->chunkpool_id = chunkpool_id;
+        an_chunk->refcount = 0;
+    }
     return (an_chunk);
 }
 
 boolean 
 an_mem_chunkpool_destroyable (an_mem_chunkpool_t *chunkpool)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (FALSE);
+    return (chunkpool->refcount == 0);
 }
 
 boolean 
 an_mem_chunkpool_destroy (an_mem_chunkpool_t *chunkpool)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (FALSE);
+    if (chunkpool) {
+        free(chunkpool);
+    }
+    return (TRUE);
 }
 
 void *
 an_mem_chunk_malloc (an_mem_chunkpool_t *chunkpool)
 {
-    if (chunkpool) { 
-        return ((void *)malloc(chunkpool->chunk_size));
-    } else {
+    void *element = NULL;
+
+    if (!chunkpool) { 
+        return NULL;
+    } 
+
+//    element = malloc((chunkpool->chunkpool_size) +
+  //                  (chunkpool->chunk_size));
+    element = malloc(chunkpool->chunk_size);
+    if (!element) {
         return NULL;
     }
+    memset(element, 0, chunkpool->chunk_size);
+    chunkpool->refcount++;
+    return (element);
 }
 
 void
 an_mem_chunk_free (an_mem_chunkpool_t **chunkpool, void *buffer)
 {
     if (buffer) {    
+        (*chunkpool)->refcount--;
         free(buffer);
     }    
     return;
@@ -119,3 +141,38 @@ an_free_guard (void *buffer)
         free(buffer);
     }    
 }
+
+void
+an_memcpy_guard_s(void *target, uint32_t dest_len, void *source, uint32_t
+        src_len) {
+    memcpy(target, source, dest_len);
+}
+
+an_errno 
+an_memcpy_s(void *dest, an_rsize dmax, const void *src, an_rsize smax)
+{
+    memcpy(dest, src, dmax);
+    return EOK;
+}
+
+an_errno 
+an_memset_s(void *dest, uint8_t value, an_rsize len) {
+
+    memset(dest, value, len);
+    return EOK;
+}
+
+an_errno 
+an_memcmp_s(const void *dest, an_rsize dmax, const void *src,
+                an_rsize smax, int *diff)
+{
+    *diff = -1;
+    if (dest == src) {
+        *diff = 0;
+        return EOK;
+    }
+    *diff = memcmp(dest, src, dmax);
+    return EOK;
+}
+
+

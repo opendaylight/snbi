@@ -15,8 +15,8 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <net/if.h>
 #include <netinet/in.h>
+#include <net/if.h>
 #include <arpa/inet.h>
 #include "an_timer_linux.h"
 #include "an_if_linux.h"
@@ -27,17 +27,29 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <netinet/ip6.h>
+#include <netinet/udp.h>
+#include <netinet/icmp6.h>
+
 #define AN_UDI_STR_TERMINATOR_LEN 1
 #define AN_CERR_SUCCESS 0
-#define AN_CERR_POSIX_ERROR(cer_no) 0
+#define AN_CERR_FAIL 1
+#define AN_CERR_POSIX_ERROR(cer_no) cer_no
 #define AN_CERR_V_FATAL(subs, value, posx) 0
 #define AN_PAK_SUBBLOCK_L2_INFO 0
 #define AN_LINK_IPV6 0
 #define AN_WALK_FAIL FALSE
 #define AN_WALK_SUCCESS TRUE
+#define AN_AVL_WALK_FAIL FALSE
 #define EOK TRUE
+#define EFAIL FALSE
 #define CERR_IS_OK(cer_no)           ((cer_no) == AN_CERR_SUCCESS)
+#define AN_CERR_IS_OK(cer_no)           ((cer_no) == AN_CERR_SUCCESS)
 #define CERR_IS_NOTOK(cer_no)        (!CERR_IS_OK((cer_no)))
+#define AN_CERR_IS_NOTOK(cer_no)        (!CERR_IS_OK((cer_no)))
+
+#define SIGTIMER     (SIGRTMAX)
+#define AN_LINUX_ERROR -1
 
 static inline
 void buginf (const char *format, ...) 
@@ -60,7 +72,7 @@ struct an_list_header_
     unsigned short     flags;
     unsigned long      count;
     unsigned long      maximum;
-    char              *name;
+    const char *name;
 };
 
 struct an_list_element_
@@ -71,8 +83,8 @@ struct an_list_element_
     an_list_header   *list;
 };
 
-typedef struct an_list_element_ an_dummy_list_element_t;
-typedef struct an_list_header_  an_dummy_list_t;
+typedef struct an_list_element_ an_list_element_t;
+typedef struct an_list_header_  an_list_t;
 
 
 #define LIST_GET_DATA(element) ((element) ? (element)->data : NULL)
@@ -93,6 +105,11 @@ typedef struct an_list_header_  an_dummy_list_t;
        __element = LIST_NEXT_ELEMENT(__element),        \
        __data = LIST_GET_DATA(__element))
 
+#define AN_FOR_ALL_ELEMENTS_IN_LIST_SAVE_NEXT(__list, __element, __next) \
+  for ((__element)  = LIST_HEAD_ELEMENT((__list));                        \
+       (__next) = LIST_NEXT_ELEMENT((__element)), (__element) != NULL;      \
+       (__element) = (__next))
+
 typedef unsigned int an_dummy_t;
 typedef unsigned char uint8_t;
 typedef unsigned char uint8;
@@ -110,10 +127,10 @@ typedef unsigned long ulong;
 //typedef unsigned long long uint64_t; 
 typedef long time_t; 
 typedef ulong an_thread_t;
+typedef bool an_avl_walk_e;
 //typedef an_dummy_t an_dummy_list_element_t;
 //typedef an_dummy_t an_dummy_list_t;
 typedef linux_dot1q_qinq_vlan_id_t dot1q_qinq_vlan_id_t; 
-typedef an_dummy_list_t xos_list_t;
 typedef an_dummy_t httpc_session_id_t;
 typedef an_dummy_t httpc_api_status_t;
 typedef an_dummy_t httpc_res_app_data_t;
@@ -122,26 +139,49 @@ typedef an_dummy_t httpc_resp_ctxt_t;
 typedef an_dummy_t httpc_transaction_id_t;
 typedef an_dummy_t httpc_app_req_params_t;
 typedef an_dummy_t topo_event_t;
-typedef an_dummy_list_element_t xos_list_element_t;
+typedef an_list_element_t xos_list_element_t;
 typedef bool boolean;
 typedef uint32_t an_cerrno;
+typedef uint32_t an_errno;
+typedef ulong an_rsize;
 typedef boolean an_walk_e;
-typedef an_dummy_t an_unix_time_t;
-typedef an_dummy_t an_unix_msec_time_t;
+typedef long long longlong;
+typedef ulong an_unix_time_t;
+typedef longlong an_unix_msec_time_t;
 typedef an_dummy_t an_watched_boolean;
 typedef an_dummy_t an_cnp_capability_set_t;
-typedef an_dummy_t an_vrf_info_t;
 typedef an_dummy_t masa_msg_type;
 typedef an_dummy_t masa_app_context;
+typedef an_dummy_t an_DNSServiceRef;
 typedef an_dummy_t an_cd_oper_e;
 typedef an_dummy_t an_cd_info_t;
-
+typedef an_dummy_t an_intent_ver_t;
+typedef an_dummy_t an_idp_info_t;
+typedef an_dummy_t an_cd_state_e;
+typedef an_dummy_t an_service_type_t;
+typedef an_dummy_t an_srvc_srv_ctx_t;
+typedef an_dummy_t an_srvc_host_t;
+typedef an_dummy_t an_srvc_srv_t;
+typedef uint8_t an_mac_addr;
+#define AN_IEEEBYTES 6
+#define AN_AVL_WALK_SUCCESS TRUE
+#define AN_MACADDR_DELIMITER_DEVICE_NAME '.'
+#define AN_MACADDR_DELIMITER_SERVICE_NAME ':'
+typedef an_dummy_t an_ifs_pathent;
+typedef an_dummy_t an_bitlist_t;
+typedef an_dummy_t an_intent_outer_vlans_db_t;
+#define AN_INTENT_BITLIST_VLAN_MAX 4096
+#define AN_INTENT_BITLIST_VLAN_MIN 0
+#define AN_INTENT_BITLIST_VLAN_END -1
+#define AN_SERVICE_INSTANCE_START 1
+#define AN_CONFIG_PATH_LENGTH 255
+#define an_sprintf sprintf
 
 #define TRUE true
 #define FALSE false
 //#define NULL 0
 int printf(const char *fmtptr, ...);
-#define an_buginf printf
+//#define an_buginf printf
 #define EINVAL 22
 #define TOPO_EVENT_UP 0
 #define ADDRLEN_IP 4
@@ -216,28 +256,32 @@ typedef struct in6_addr rpl_in6_address_t;
 typedef rpl_in6_address_t dag_id_t;
 #endif
 
-//typedef an_dummy_t paktype;
+typedef struct in6_addr an_v6addr_t;
+typedef uint32_t an_v4addr_t;
+
+typedef struct addrtype_ {
+    char type;
+    char length;
+    an_v4addr_t ip_addr;
+    an_v6addr_t ipv6_addr;
+} addrtype;
+
 typedef an_pak_linux_t paktype;
 typedef ulong an_if_t;
 typedef an_pak_linux_t an_pak_t;
-typedef an_dummy_t an_ip6_hdr;
+//typedef struct ip6_hdr an_ip6_hdr;
 
 typedef an_dummy_t dag_id_t;
-typedef an_dummy_t an_addr_t;
-typedef an_dummy_t an_v6addr_t;
-typedef uint32_t an_v4addr_t;
+typedef addrtype an_addr_t;
 
-typedef an_dummy_t an_icmp6_hdr_t;
-typedef an_dummy_t an_ipv6_hdr_t;
+typedef struct icmp6_hdr an_icmp6_hdr_t;
+typedef struct ip6_hdr an_ipv6_hdr_t;
 
 //typedef ether_hdr an_ether_hdr_t;
 typedef an_dummy_t an_ether_hdr_t;
 
 //typedef tableid_t an_iptable_t;
 typedef an_dummy_t an_iptable_t;
-
-typedef xos_list_t an_list_t;
-typedef xos_list_element_t an_list_element_t;
 
 typedef int an_file_descr_t;
 
@@ -334,6 +378,7 @@ typedef struct an_linux_chunk_t_ {
     uint16_t chunk_size;
     uint16_t chunkpool_size;
     uint8_t *chunkpool_id;
+    uint16_t refcount;
 } an_linux_chunk_t;
 
 

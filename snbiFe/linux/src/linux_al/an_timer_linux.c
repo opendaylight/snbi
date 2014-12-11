@@ -19,12 +19,6 @@
 #include "an_if.h"
 #include "an_timer_linux.h"
 
-// Move this to a common linux file. 
-#define SIGTIMER     (SIGRTMAX)
-
-// Move this to a common linux file. 
-#define AN_LINUX_ERROR -1
-
 static const uint8_t *an_timer_type_str[] = {
     "None",
     "Sudi Check",
@@ -64,7 +58,8 @@ an_log_type_e an_get_log_timer_type(an_timer_e timer_type)
 }
 
 
-void an_handle_timer_events (int signo, siginfo_t * info, void *context)
+//boolean an_handle_timer_events (void)
+void an_handle_linux_timer_events (int signo, siginfo_t * info, void *context)
 {
     an_timer *timer = NULL;
 
@@ -75,10 +70,10 @@ void an_handle_timer_events (int signo, siginfo_t * info, void *context)
 
 void an_timer_services_init (void)
 {
-    struct sigaction sa;
+    struct sigaction sa = {{0}};
 
     sa.sa_flags = SA_SIGINFO;
-    sa.sa_sigaction = an_handle_timer_events;
+    sa.sa_sigaction = an_handle_linux_timer_events;
     sigemptyset(&sa.sa_mask);
 
     if (sigaction(SIGTIMER, &sa, NULL) == AN_LINUX_ERROR) {
@@ -90,7 +85,7 @@ void
 an_timer_init (an_timer *timer, an_timer_e timer_type,
                void *context, boolean interrupt)
 {
-    struct sigevent sigev;
+    struct sigevent sigev = {{0}};
 
     if (timer == NULL) {
         return;
@@ -121,7 +116,7 @@ an_timer_uninit (an_timer *timer)
 void
 an_timer_start (an_timer *timer, uint32_t delay)
 {
-    struct itimerspec tspec;
+    struct itimerspec tspec = {{0}};
 
     if (timer == NULL) { 
         return;
@@ -131,17 +126,17 @@ an_timer_start (an_timer *timer, uint32_t delay)
     tspec.it_value.tv_nsec = (delay * 1000000) % 1000000000;
     tspec.it_interval.tv_sec = tspec.it_value.tv_sec;
     tspec.it_interval.tv_nsec = tspec.it_value.tv_nsec;
-
+//#if 0
     if (timer_settime(timer->timerid, 0, &tspec, NULL) == AN_LINUX_ERROR) {
         perror("\nFailed to start timer");
     }
-
+//#endif    
 }
 
 void
 an_timer_stop (an_timer *timer) 
 { 
-    struct itimerspec tspec;
+    struct itimerspec tspec = {{0}};
     if (timer == NULL) {
         return;
     }
@@ -182,4 +177,24 @@ an_timer_get_timer_type_str (an_timer_e timer_type)
 {   
     return (an_timer_type_str[timer_type]);
 }
+
+/* Edit the below 3 funcs */
+boolean
+an_timer_is_running (an_timer *timer)
+{
+//        return an_timer_initialized;
+    return FALSE;
+}
+
+boolean
+an_timer_is_expired (an_timer *timer)
+{
+        return (FALSE);
+}
+
+void
+an_timer_start64 (an_timer *timer, int64_t delay)
+{
+}
+
 

@@ -18,8 +18,15 @@
 #include "an_acp.h"
 #include "an_routing.h"
 #include "an_ipv6.h"
+#include <netinet/ip6.h>
+#include <sys/types.h>
+#include <ifaddrs.h>
+
+#define IPV6_FLOWLABEL_MASK     htonl(0x000FFFFF)
+#define IPV6_FLOWINFO_MASK      htonl(0x0FFFFFFF)
 
 boolean an_ipv6_unicast_routing_enabled = FALSE;
+extern int an_sockfd;
 
 inline boolean an_ipv6_enable_on_interface (an_if_t ifhndl)
 {
@@ -66,7 +73,28 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline an_v6addr_t an_ipv6_get_ll (an_if_t ifhndl)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    struct ifaddrs *ifaddr, *ifa;
+    struct sockaddr_in6 ip;
+    char if_name[IFNAMSIZ];
+
+    if (getifaddrs(&ifaddr) == -1) {
+        perror("getifaddrs");
+        freeifaddrs(ifaddr); 
+        return (AN_V6ADDR_ZERO);
+    }
+    if_indextoname (ifhndl, if_name); 
+    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr->sa_family != AF_INET6) continue;
+        if (strncmp(ifa->ifa_name, if_name, IFNAMSIZ)) continue;
+        struct sockaddr_in6 *current_addr = (struct sockaddr_in6 *) ifa->ifa_addr;
+     //   if (IN6_IS_ADDR_LINKLOCAL(current_addr)) { 
+        if (!IN6_IS_ADDR_LINKLOCAL(&(current_addr->sin6_addr))) continue;            
+            memcpy(&ip, current_addr, sizeof(ip)); 
+            freeifaddrs(ifaddr);
+            return (ip.sin6_addr); 
+       // }
+    }
+    freeifaddrs(ifaddr);
     return (AN_V6ADDR_ZERO);
 }
 
@@ -84,13 +112,45 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 boolean an_ipv6_preroute_pak (an_pak_t *pak, an_if_t ifhndl, an_addr_t nhop)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
-boolean an_ipv6_forward_pak (an_pak_t *pak)
+boolean an_ipv6_forward_pak (an_pak_t *pak, uint8_t *msg_block,uint32_t
+        *msg_pkg,uint16_t msgb_len)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    struct sockaddr_in6 dest;
+    an_ipv6_hdr_t *ipv6_header = NULL;
+    char ipstr[INET6_ADDRSTRLEN + 1];
+    unsigned int ifhndl= 0;
+    an_addr_t *src, *dst;
+
+    an_msg_package *msg_pk = (an_msg_package *)msg_pkg;
+    ifhndl = msg_pk->ifhndl;
+    src    = &(msg_pk->src);
+    dst   = &(msg_pk->dest);
+
+    memset(&dest, 0, sizeof(dest));
+    dest.sin6_family = AF_INET6;
+    dest.sin6_port = htons(AN_UDP_PORT);
+    dest.sin6_addr = dst->ipv6_addr;
+
+    inet_ntop(AF_INET6, &dest.sin6_addr, ipstr, sizeof ipstr);
+    printf("\n****Ipv6 DEST address before sending is %s", ipstr);
+
+    if (setsockopt(an_sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (char *)&ifhndl,sizeof(an_if_t)) != 0) {
+        perror("Set socket opt failure");
+        return (FALSE);
+    }
+    
+
+    if (sendto(an_sockfd, msg_block, msgb_len, 0, (struct sockaddr *)&dest, sizeof(dest)) == -1 ) {
+            perror ("Send failed:");
+        return (FALSE);
+    }
+    else {
+            printf("\n***********Packet sent out on SNBI_UDP_PORT***************\n");
+    }
+
     return (TRUE);
 }
 
@@ -102,20 +162,23 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline an_v6addr_t an_ipv6_hdr_get_src (an_ipv6_hdr_t *ipv6_hdr)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (AN_V6ADDR_ZERO);
+    if(!ipv6_hdr) {
+        return AN_V6ADDR_ZERO;
+    }
+    return (ipv6_hdr->ip6_src);
 }
 
 inline an_v6addr_t an_ipv6_hdr_get_dest (an_ipv6_hdr_t *ipv6_hdr)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (AN_V6ADDR_ZERO);
+    if(!ipv6_hdr) {
+        return AN_V6ADDR_ZERO;
+    }
+    return (ipv6_hdr->ip6_dst);
 }
 
 inline uint8_t an_ipv6_hdr_get_next (an_ipv6_hdr_t *ipv6_hdr)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (0);
+    return 0;
 }
 
 inline uint8_t an_ipv6_hdr_get_hlim (an_ipv6_hdr_t *ipv6_hdr)
@@ -132,8 +195,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline void an_ipv6_hdr_set_paylen (an_ipv6_hdr_t *ipv6_hdr, uint16_t plen)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
+     if (ipv6_hdr) {
+        ipv6_hdr->ip6_plen = plen;
+    }
 }
 
 inline uint16_t
@@ -148,7 +212,7 @@ an_addr_t an_ipv6_get_best_source_addr (an_addr_t destination,
                                         an_iptable_t iptable)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (AN_V6ADDR_ZERO); 
+    return AN_ADDR_ZERO; 
 }
 
 boolean an_ipv6_is_our_address (an_addr_t address, an_iptable_t iptable)
@@ -161,8 +225,30 @@ inline boolean an_ipv6_hdr_init (uint8_t *ipv6_hdr, uint8_t tos, uint32_t flow_l
         uint16_t payload_len, uint8_t protocol, uint8_t hop_lim,
         an_v6addr_t *source, an_v6addr_t *destination)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE); 
+    an_ipv6_hdr_t *ipv6_header = NULL;
+
+    if (!ipv6_hdr) {
+        return FALSE;
+    }
+    ipv6_header = (an_ipv6_hdr_t *)ipv6_hdr;
+    
+    ipv6_header->ip6_flow = 0UL;
+    ipv6_header->ip6_vfc |= 0x60; /* version */
+    ipv6_header->ip6_flow |= ((tos << 20)
+          & (IPV6_FLOWINFO_MASK & ~IPV6_FLOWLABEL_MASK));
+    ipv6_header->ip6_flow |= (flow_label & IPV6_FLOWLABEL_MASK);
+    ipv6_header->ip6_plen = payload_len;
+    ipv6_header->ip6_nxt = protocol;
+    ipv6_header->ip6_hops = hop_lim;
+
+    if (source) {
+        ipv6_header->ip6_src = *source;
+    }
+    if (destination) {
+        ipv6_header->ip6_dst = *destination;
+    }
+
+    return TRUE;
 }
 
 void *an_rwatch_ctx = NULL;

@@ -32,8 +32,8 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 an_sign_api_ret_enum
-an_sign_data (uint8_t *data, uint16_t data_len_in, an_sign_digest_type_e digest_type,
-              an_sign_t *sign, uint8_t *tp_label)
+an_sign_data(uint8_t *data, uint16_t data_len, an_sign_digest_type_e digest_type,
+              an_sign_t *sign, uint8_t *tp_label, uint8_t *key_label)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (AN_SIGN_API_SUCCESS);

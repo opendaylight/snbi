@@ -94,7 +94,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void 
 an_platform_specific_init (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    an_if_services_init();
     return;
 }
 
@@ -165,5 +165,52 @@ void
 an_parser_init (void) {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
+}
+
+boolean
+an_is_startup_config_exists(void)
+{
+    return FALSE;
+}
+
+an_ifs_pathent *an_config_ifs_pathent_create (void)
+{
+}
+
+void
+an_config_ifs_build_pathent (an_ifs_pathent *src_pathent,
+                                     an_config_param_t config_sd_param_global,
+                                                                  uint8_t
+                                                                  an_file_name[200])
+{
+}
+
+void
+an_config_ifs_build_path_from_pathent (an_ifs_pathent *src_pathent)
+{
+}
+char*
+an_config_ifs_get_path (an_ifs_pathent *src_pathent)
+{
+        return (NULL);
+}
+char*
+an_config_ifs_get_filename (an_ifs_pathent *src_pathent)
+{
+    return NULL;
+}
+void
+an_config_download_send_message (an_ifs_pathent *src_pathent, ulong value)
+{
+}
+
+void
+an_config_tftp_set_source_idb (void)
+{
+}
+
+void
+an_config_tftp_reset_source_idb (void)
+{
 }
 

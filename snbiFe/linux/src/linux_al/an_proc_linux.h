@@ -31,7 +31,7 @@
 #include "../common/an_acp.h"
 #include "../common/an.h"
 #include "../common/an_topo_disc.h"
-
+#if 0
 typedef enum an_proc_messages_ {
     AN_PMSG_IF_DOWN,
     AN_PMSG_IF_UP,
@@ -44,7 +44,7 @@ typedef enum an_proc_messages_ {
     AN_PMSG_SERVICE_RESOLVED,
     AN_PMSG_MAX,
 } an_proc_messages;
-
+#endif
 extern an_watched_boolean *an_wb_node_discovered;
 extern an_watched_boolean *an_setup_done_by_user;
 extern an_watched_boolean *an_manual_config_detected;
@@ -56,10 +56,6 @@ void an_uninit(void);
 void an_process_call(void );
 void an_process_call_shut(void);
 void an_process_call_no_registrar(uint32_t value_chk);
-
-void an_linux_pak_create(an_pak_t *an_linux_pak, uint32_t ifhndl, char *data);
-uint32_t an_get_ifhndl_from_sockaddr(struct sockaddr_storage *sender);
-
 
 #endif
 

@@ -36,16 +36,15 @@ an_ipsec_profile_uninit (void)
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
         return;
 }
-
-void
-an_ipsec_apply_on_tunnel (an_idbtype *tunnel_idb)
+boolean 
+an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
         return;
 }
 
 void
-an_ipsec_remove_on_tunnel (an_idbtype *tunnel_idb)
+an_ipsec_remove_on_tunnel (an_if_t tunn_ifhndl)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
         return;

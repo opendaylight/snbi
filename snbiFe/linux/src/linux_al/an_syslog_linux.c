@@ -35,15 +35,15 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 void 
-an_syslog_config_host (an_addr_t *hstaddran,
-                       an_idbtype *an_idb, char *discriminator)
+an_syslog_config_host (an_addr_t *hstaddran, char *an_vrf_name,
+                                    an_idbtype *an_idb, char *discriminator)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
             return;
 }
 
 void
-an_syslog_delete_host (an_addr_t *hstaddran)
+an_syslog_delete_host (an_addr_t *hstaddran, char *an_vrf_name)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
             return;

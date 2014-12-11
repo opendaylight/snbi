@@ -16,8 +16,7 @@
 #define  AN_ADDR_IP   ADDR_IP
 #define  AN_ADDRLEN_IP  ADDRLEN_IP
 
-#define AN_RID_PREFIX \
-    { 0x0A010100 }
+#define AN_RID_PREFIX { 0x0A010100 }
 
 extern const an_v6addr_t AN_V6ADDR_ZERO;
 extern const an_v4addr_t AN_V4ADDR_ZERO;
@@ -64,7 +63,10 @@ an_v6addr_t an_addr_v6ton(const an_addr_t addr);
 an_v4addr_t an_addr_v4ton(const an_addr_t addr);
 inline uint8_t an_addr_get_len(const an_addr_t addr);
 inline uint8_t * an_addr_get_string(const an_addr_t *addr);
+inline int32_t an_addr_comp(const an_addr_t *addr1, const an_addr_t *addr2);
 inline int32_t an_addr_struct_comp(const an_addr_t *addr1, const an_addr_t *addr2);
+inline boolean an_addr_equal(const an_addr_t *addr1, const an_addr_t *addr2);
+inline boolean an_addr_is_zero(const an_addr_t addr);
 
 boolean an_addr_is_ipv6_linklocal(an_addr_t address);
 boolean an_addr_is_ipv6_sitelocal(an_addr_t address);
@@ -72,4 +74,13 @@ boolean an_addr_is_ipv6_multicast(an_addr_t address);
 
 void an_get_ipv6_group_id_frm_domain(uint8_t *domain_id, uint8_t* group_id);
 void an_get_ipv6_interface_id_frm_device_id(uint8_t *device_id, uint8_t* interface_id);
+an_addr_t an_get_v6addr_from_names(uint8_t *domain_id, an_mac_addr *macaddress, uint8_t *device_id);
+an_v4addr_t an_get_v4addr_from_names(uint8_t *domain_id, uint8_t *device_id);
+an_v4addr_t an_addr_get_v4addr_from_interface(an_if_t ifhndl);
+an_v4addr_t an_addr_get_v4mask_from_interface(an_if_t ifhndl);
+void an_addr_set_v4addr_on_interface_and_nvgen(an_if_t ifhndl, an_v4addr_t v4addr,
+                                                              an_v4addr_t mask);
+//void an_addr_set_v4addr_on_interface(an_if_t ifhndl, an_v4addr_t v4addr, an_v4addr_t mask);
+void an_get_ipv4_router_id_from_device_id(uint8_t *device_id, uint32_t *router_id);
+void an_addr_generator_init(void);
 #endif

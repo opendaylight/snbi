@@ -23,6 +23,7 @@
 
 #include "avl.h"
 #include "stdbool.h"
+#include <string.h>
 
 /* Private methods */
 
@@ -70,6 +71,7 @@ int avl_tree_init (avl_tree *t, avl_compare_cb_f compare_func) {
     if (!t) {
         return -1;
     }
+    memset(t, 0, sizeof(avl_tree));
     t->root = NULL;
     t->compar = compare_func;
     return 0;

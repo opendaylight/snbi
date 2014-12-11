@@ -23,10 +23,15 @@ char *global_url_str = NULL;
 #include "../al/an_topo.h"
 //#include <kernel/mki/include/signal.h>
 //#include <ipv6_forwarding/include/ipv6_forwarding.h>
+#include "../al/an_str.h"
+#include <kernel/mki/include/signal.h>
+#include <ipv6_forwarding/include/ipv6_forwarding.h>
 
-static char *tdp_proc_name = "TDP Discovery";
+//static char *tdp_proc_name = "TDP Discovery";
 watched_queue *tdp_message_q = NULL;
-pid_t tdp_pid = NO_PROCESS;
+//pid_t tdp_pid = NO_PROCESS;
+char *global_url_str = NULL;
+
 /*
  * The initiator address to which the response 
  * should always be directed to. We assume
@@ -89,7 +94,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
     if (!loc_port) {
         return;
     }
-    an_memset_guard(loc_port, 0, sizeof(topo_port_identity_t));
+    an_memset_guard_s(loc_port, 0, sizeof(topo_port_identity_t));
 
     loc_node = an_malloc_guard(sizeof(topo_node_identity_t),
                             "Event Node identity");
@@ -97,7 +102,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
         an_free_guard(loc_port);
         return;
     }
-    an_memset_guard(loc_node, 0, sizeof(topo_node_identity_t));
+    an_memset_guard_s(loc_node, 0, sizeof(topo_node_identity_t));
     
     loc_port->topo_node_ptr = loc_node;
 
@@ -108,7 +113,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
         an_free_guard(loc_port);
         return;
     }
-    strncpy_s(loc_port->port_name, LOCAL_PORT_NAME_LEN, resp_msg->local_port, 
+    an_strncpy_s(loc_port->port_name, LOCAL_PORT_NAME_LEN, resp_msg->local_port, 
              LOCAL_PORT_NAME_LEN -1);
 
     loc_node->node_name = an_malloc_guard(LOCAL_NODE_NAME_LEN,
@@ -119,7 +124,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
         return;
     }
 
-    strncpy_s(loc_node->node_name, LOCAL_NODE_NAME_LEN, resp_msg->local_node,
+    an_strncpy_s(loc_node->node_name, LOCAL_NODE_NAME_LEN, resp_msg->local_node,
              LOCAL_NODE_NAME_LEN - 1);
 
     /*
@@ -132,7 +137,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
         an_free_guard(loc_port);
         return;
     }        
-    an_memset_guard(peer_port, 0, sizeof(topo_port_identity_t));
+    an_memset_guard_s(peer_port, 0, sizeof(topo_port_identity_t));
 
     peer_node = an_malloc_guard(sizeof(topo_node_identity_t),
                              "Event Peer Node identity");
@@ -142,7 +147,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
         an_free_guard(loc_port);
         return;
     }
-    an_memset_guard(peer_node, 0, sizeof(topo_node_identity_t));
+    an_memset_guard_s(peer_node, 0, sizeof(topo_node_identity_t));
     peer_port->topo_node_ptr = peer_node;
 
     peer_port->port_name = (char *)an_malloc_guard(PEER_PORT_NAME_LEN,
@@ -150,7 +155,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
     if (!peer_port->port_name) {
         goto cleanup;   
     }
-    strncpy_s(peer_port->port_name, PEER_PORT_NAME_LEN, 
+    an_strncpy_s(peer_port->port_name, PEER_PORT_NAME_LEN, 
              resp_msg->peer_port, PEER_PORT_NAME_LEN - 1);
 
     peer_node->node_name = (char *)an_malloc_guard(PEER_NODE_NAME_LEN,
@@ -159,7 +164,7 @@ an_notify_edge (topo_resp_message *resp_msg, an_if_t ifhndl)
         goto cleanup;
     }
 
-    strncpy_s(peer_node->node_name, PEER_NODE_NAME_LEN,
+    an_strncpy_s(peer_node->node_name, PEER_NODE_NAME_LEN,
              resp_msg->peer_node, PEER_NODE_NAME_LEN - 1);
 
     an_log(AN_LOG_TOPO, "\n%sNotify %s - ", an_topo_prefix,
@@ -226,9 +231,14 @@ topo_prepare_message (an_nbr_t *nbr, an_pak_t **pak_out, topo_msg_t msg_type)
     uint32_t pak_len    = 0;
     an_v6addr_t src_v6addr, dst_v6addr;
     an_addr_t an_addr = AN_ADDR_ZERO, nbr_addr = AN_ADDR_ZERO;
+    int indicator1 = 0;
+    int indicator2 = 0;
+    int indicator3 = 0;
+    int indicator4 = 0;
 
-    if (!an_memcmp(&global_initiator_addr, 
-         (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
+    an_memcmp_s(&global_initiator_addr, sizeof(an_v6addr_t), 
+               (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t), &indicator1);
+    if (!indicator1) {
         an_log(AN_LOG_TOPO, "\n%sPrepare TDP request, No Initiator Addr",
                 an_topo_prefix);
         return (NULL);
@@ -285,23 +295,27 @@ topo_prepare_message (an_nbr_t *nbr, an_pak_t **pak_out, topo_msg_t msg_type)
             an_ipv6_get_best_source_addr(nbr_addr, nbr->iptable));
 
     dst_v6addr = an_addr_get_v6addr(nbr_addr);
+    an_memcmp_s(&dst_v6addr, sizeof(an_v6addr_t), 
+               (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t), &indicator2);
 
-    if (!an_memcmp(&dst_v6addr,
-         (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
+    if (!indicator2) {
         an_log(AN_LOG_TOPO | AN_LOG_ERR, "\n%sDST NULL", an_topo_prefix);
         an_free_guard(message);
         datagram_done(pak);
         return (NULL);
     }
-    if (!an_memcmp(&src_v6addr,
-         (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
+    an_memcmp_s(&src_v6addr, sizeof(an_v6addr_t), 
+               (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t), &indicator3);
+
+    if (!indicator3) {
         an_log(AN_LOG_TOPO | AN_LOG_ERR, "\n%sSRC NULL", an_topo_prefix);
         an_free_guard(message);
         datagram_done(pak);
         return (NULL);
     }
-    if (!an_memcmp(&src_v6addr,
-         &dst_v6addr, sizeof(an_v6addr_t))) {
+    an_memcmp_s(&src_v6addr, sizeof(an_v6addr_t), 
+               &dst_v6addr, sizeof(an_v6addr_t), &indicator4);
+    if (!indicator4) {
         an_log(AN_LOG_TOPO | AN_LOG_ERR, "\n%sSRC & DST Same", an_topo_prefix);
         an_free_guard(message);
         datagram_done(pak);
@@ -328,7 +342,7 @@ topo_prepare_message (an_nbr_t *nbr, an_pak_t **pak_out, topo_msg_t msg_type)
         datagram_done(pak);
         return (NULL);
     }
-    memcpy(msg_block, message, sizeof(topo_message)); 
+    an_memcpy_s(msg_block, sizeof(topo_message), message, sizeof(topo_message)); 
 
     *pak_out = pak;
     return (message);
@@ -420,6 +434,8 @@ topo_prepare_resp_msg (an_nbr_t *nbr,
     uint8_t  *dev_id     = NULL;
     an_if_t nbr_ifhndl  = 0;
     uint8_t *nbr_if_name = NULL;
+    int indicator1 = 0;
+    int indicator2 = 0;
 
     an_v6addr_t src_v6addr = AN_V6ADDR_ZERO;
     an_addr_t an_addr      = AN_ADDR_ZERO;
@@ -428,9 +444,10 @@ topo_prepare_resp_msg (an_nbr_t *nbr,
     topo_resp_message *resp_msg;
 
     *pak_out = NULL;
+    an_memcmp_s(&global_initiator_addr, sizeof(an_v6addr_t),
+         (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t), &indicator1);
 
-    if (!an_memcmp(&global_initiator_addr, 
-         (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
+    if (!indicator1) {
         an_log(AN_LOG_TOPO, "\n%sRESP failed - No initiator addr", 
                 an_topo_prefix);
         return (NULL);
@@ -456,9 +473,10 @@ topo_prepare_resp_msg (an_nbr_t *nbr,
     }
     device_ip  = an_get_device_ip();
     src_v6addr = an_addr_get_v6addr(device_ip);
+    an_memcmp_s(&src_v6addr, sizeof(an_v6addr_t), 
+               (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t), &indicator2);
 
-    if (!an_memcmp(&src_v6addr, 
-         (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
+    if (!indicator2) {
         an_log(AN_LOG_TOPO, "\n%sRESP No Source Addr", an_topo_prefix);
         return (NULL);
     }
@@ -476,20 +494,20 @@ topo_prepare_resp_msg (an_nbr_t *nbr,
         an_log(AN_LOG_TOPO, "\n%sDevice id %s", an_topo_prefix, nbr->device_id);
 
         if (topo_event == TOPO_EVENT_DOMAIN_OUTSIDE_UP) {
-            memcpy(resp_msg->peer_node, nbr->udi.data,
-                   PEER_NODE_NAME_LEN-1);
+            an_memcpy_s(resp_msg->peer_node, PEER_NODE_NAME_LEN-1, 
+                                     nbr->udi.data, nbr->udi.len);
         } else {
-            memcpy(resp_msg->peer_node, nbr->device_id,
-                   PEER_NODE_NAME_LEN-1);
+            an_memcpy_s(resp_msg->peer_node, PEER_NODE_NAME_LEN-1, 
+                                nbr->device_id, an_strlen(dev_id)+1);
         }
-        memcpy(resp_msg->peer_port, nbr_if_name,
-               PEER_PORT_NAME_LEN-1);
+        an_memcpy_s(resp_msg->peer_port, PEER_PORT_NAME_LEN-1, nbr_if_name,
+                                                  an_strlen(nbr_if_name)+1);
     } 
-    memcpy(resp_msg->local_node, an_get_device_id(),
-           LOCAL_NODE_NAME_LEN-1);
+    an_memcpy_s(resp_msg->local_node, LOCAL_NODE_NAME_LEN-1, an_get_device_id(),
+                                                            an_strlen(dev_id)+1);
 
-    memcpy(resp_msg->local_port,
-           an_if_get_name(nbr_ifhndl), LOCAL_PORT_NAME_LEN-1);
+    an_memcpy_s(resp_msg->local_port, LOCAL_PORT_NAME_LEN-1,
+               an_if_get_name(nbr_ifhndl), LOCAL_PORT_NAME_LEN-1);
     
     an_log(AN_LOG_TOPO, "\n%sRESP: ", an_topo_prefix); 
     an_log(AN_LOG_TOPO, "ID: %u,", resp_msg->topo_request_id);
@@ -539,7 +557,8 @@ topo_prepare_resp_msg (an_nbr_t *nbr,
                 an_topo_prefix);
         return (NULL);
     }
-    memcpy(msg_block, resp_msg, sizeof(topo_resp_message)); 
+    an_memcpy_s(msg_block, sizeof(topo_resp_message), resp_msg, 
+                                               sizeof(topo_resp_message)); 
 
     *pak_out = pak;
     return (resp_msg);
@@ -735,6 +754,7 @@ tdp_handle_queue_events (void)
     return;
 }
 
+#if 0
 static void
 tdp_enqueue_pkt (paktype *pak)
 {
@@ -743,6 +763,7 @@ tdp_enqueue_pkt (paktype *pak)
         return;
     }
 }
+#endif
 
 void
 topo_disc_adv (void)
@@ -780,12 +801,14 @@ topo_disc_initiate (void)
     an_nbr_db_walk(topo_request, NULL);
 }
 
+#if 0
 static void
 tdp_teardown (int signal, int dummy1, void *dummy2, char *dummy3)
 {
     an_log(AN_LOG_TOPO, "\n%sTDP Teardown ", an_topo_prefix);
     return;
 }
+#endif 
 
 void
 an_notify_masa_application (char *url_str)
@@ -804,15 +827,16 @@ an_notify_masa_application (char *url_str)
 
     an_log(AN_LOG_TOPO, "\n%sDevice MASA", an_topo_prefix);
 
-    memcpy(resp_msg->peer_node, "MASA Server",
-                   PEER_NODE_NAME_LEN-1);
-    memcpy(resp_msg->peer_port, url_str,
-           PEER_PORT_NAME_LEN-1);
+    an_memcpy_s(resp_msg->peer_node, PEER_NODE_NAME_LEN-1, "MASA Server",
+                                                    PEER_NODE_NAME_LEN-1);
+    an_memcpy_s(resp_msg->peer_port, PEER_PORT_NAME_LEN-1, url_str,
+                                                    PEER_PORT_NAME_LEN-1);
 
-    memcpy(resp_msg->local_node, an_get_device_id(),
-           LOCAL_NODE_NAME_LEN-1);
+    an_memcpy_s(resp_msg->local_node, LOCAL_NODE_NAME_LEN-1, an_get_device_id(),
+                                                         LOCAL_NODE_NAME_LEN-1);
 
-    memcpy(resp_msg->local_port, "Client", LOCAL_PORT_NAME_LEN-1);
+    an_memcpy_s(resp_msg->local_port, LOCAL_PORT_NAME_LEN-1, "Client", 
+                                                    LOCAL_PORT_NAME_LEN-1);
 
     an_notify_edge(resp_msg, ifhndl);
 }
@@ -834,15 +858,16 @@ an_notify_nms_application (void)
 
     an_log(AN_LOG_TOPO, "\n%sNMS", an_topo_prefix);
 
-    memcpy(resp_msg->peer_node, "NMS ",
-                   PEER_NODE_NAME_LEN-1);
-    memcpy(resp_msg->peer_port, "Client App ",
-           PEER_PORT_NAME_LEN-1);
+    an_memcpy_s(resp_msg->peer_node, PEER_NODE_NAME_LEN-1, "NMS ",
+                                             PEER_NODE_NAME_LEN-1);
+    an_memcpy_s(resp_msg->peer_port, PEER_PORT_NAME_LEN-1, "Client App ",
+                                                    PEER_PORT_NAME_LEN-1);
 
-    memcpy(resp_msg->local_node, an_get_device_id(),
-           LOCAL_NODE_NAME_LEN-1);
+    an_memcpy_s(resp_msg->local_node, LOCAL_NODE_NAME_LEN-1, an_get_device_id(),
+                                                         LOCAL_NODE_NAME_LEN-1);
 
-    memcpy(resp_msg->local_port, "Server", LOCAL_PORT_NAME_LEN-1);
+    an_memcpy_s(resp_msg->local_port, LOCAL_PORT_NAME_LEN-1, "Server", 
+                                                         LOCAL_PORT_NAME_LEN-1);
 
     an_notify_edge(resp_msg, ifhndl);
 }
@@ -865,7 +890,8 @@ topo_disc_get_next_node (topo_proto_info_t *topo_proto_info,
         an_notify_masa_application(global_url_str);
     }
 }
-
+/* To be uncommented when we use TDP proc.*/
+#if 0
 static void
 tdp_process (void)
 {
@@ -918,17 +944,28 @@ tdp_process (void)
         }
     }
 }
+#endif
 
 void
 topo_disc_init (void)
 {
-    tdp_pid = process_create(tdp_process, tdp_proc_name, 
-                             HUGE_STACK, PRIO_NORMAL);
+    /* Uncomment this section when TDP proc is reqd.
+    if (tdp_pid == NO_PROCESS) {
+        tdp_pid = process_create(tdp_process, tdp_proc_name, 
+                                 HUGE_STACK, PRIO_NORMAL);
+    }
+    */
 }
 
 void
 topo_disc_uninit (void)
-{
+{   
+    /* Uncomment this section when TDP proc is started.
+    if (tdp_pid != NO_PROCESS) {
+        process_kill(tdp_pid);
+        tdp_pid = NO_PROCESS;
+    }
     return;
+    */
 }
 #endif

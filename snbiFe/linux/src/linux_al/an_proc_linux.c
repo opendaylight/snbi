@@ -12,7 +12,7 @@
 #include "an_types_linux.h"
 #include <pthread.h>
 
-#define AN_GROUP "FF02::1"
+#define AN_GROUP "FF02::150"
 
 pthread_t an_thread;
 boolean an_initialised = FALSE;
@@ -47,7 +47,9 @@ an_udp_pak_enqueue (an_pak_t *pak, char *udp_block)
         return (FALSE);
     }
 */
+
     an_msg_mgr_receive_an_message(pak->data, pak, pak->ifhndl);    
+    an_pak_free(pak);
     return (TRUE);
 }
 
@@ -57,7 +59,7 @@ an_process (void)
     printf("\n Inside AN PROCESS func..!");
     struct ipv6_mreq mreq;
     int no_of_bytes_received = 0;
-    char buffer[1024];
+    char buffer[256];
     an_pak_t *pak;
     uint32_t ifhndl;    
    
@@ -70,7 +72,8 @@ an_process (void)
   //      exit( 1 );
     }
 
-    inet_pton(AF_INET6, AN_GROUP, &mreq.ipv6mr_multiaddr);
+//    inet_pton(AF_INET6, AN_GROUP, &mreq.ipv6mr_multiaddr);
+    mreq.ipv6mr_multiaddr = an_ll_scope_all_node_mcast.ipv6_addr;
     mreq.ipv6mr_interface = 0;
 
     if (setsockopt(an_sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&mreq, sizeof(mreq)) != 0) {
@@ -81,17 +84,14 @@ an_process (void)
 
     while (TRUE) {
 
-            printf("\nInside Infinite while loop of AN thread");
-      //  no_of_bytes_received = recvfrom(an_sockfd, buffer, 1023, 0, (struct sockaddr *)&client_addr, sizeof(client_addr));
-      //  no_of_bytes_received = recvfrom(an_sockfd, buffer, 1023, 0, 0,0);
+        memset(buffer, '\0', 256);
         no_of_bytes_received = recvfrom(an_sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&sender, &sendsize);
 
         if (no_of_bytes_received>0) {
             pak = (an_pak_t*)an_malloc(sizeof(an_pak_t), "AN Linux Pak");
             if (pak) {
                 ifhndl = an_get_ifhndl_from_sockaddr (&sender);
-                an_linux_pak_create(pak, ifhndl, buffer);
-            printf("\nReceived data on socket, ifhndl: %d", ifhndl);
+                an_linux_pak_create(pak, ifhndl, buffer, &sender);
                 if(an_udp_pak_enqueue(pak, NULL)){
                     printf("\n AN_UDP_PAK_ENQUEUE Succesfull");
                 }
@@ -138,7 +138,7 @@ an_attach_to_environment (void) {
 
     an_init();    
     /* Infra enable for AN */
-
+//    an_if_services_init();
     return;
 }
 

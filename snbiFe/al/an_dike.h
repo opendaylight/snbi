@@ -6,13 +6,12 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#ifndef __AN_IPV6_ND_H__
-#define __AN_IPV6_ND_H__
+#ifndef __AN_DIKE_H__
+#define __AN_DIKE_H__
 
-#include "an_types.h"
-
-boolean an_ipv6_nd_attach(void); 
-boolean an_ipv6_nd_detach(void);
-void an_ipv6_nd_trigger_unsolicited_na (an_v6addr_t *v6addr, an_if_t ifhdl);
-
+boolean an_dike_profile_apply_on_tunnel(an_if_t tunn_ifhndl, 
+                    uint16_t ll_dike_port, uint16_t remote_dike_port);
+void an_dike_profile_remove_on_tunnel(an_if_t tunn_ifhndl);
 #endif
+
+

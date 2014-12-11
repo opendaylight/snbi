@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __ANRA_DB_H__
 #define __ANRA_DB_H__
 
@@ -79,9 +78,5 @@ an_anra_quarantine_device_t* an_anra_quarantine_device_db_search(an_udi_t udi);
 
 void an_anra_quarantine_device_db_walk(an_avl_walk_f func, void *args);
 void an_anra_quarantine_device_db_init(void);
-an_walk_e an_accepted_device_db_init_cb(an_avl_node_t *node, void *args);
-an_walk_e an_anra_color_device_db_init_cb(an_avl_node_t *node, void *args);
-an_walk_e an_anra_quarantine_device_db_init_cb(an_avl_node_t *node, void *args);
-
 
 #endif

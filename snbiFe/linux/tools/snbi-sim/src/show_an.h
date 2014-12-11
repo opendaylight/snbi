@@ -11,6 +11,7 @@
 #include "an_event_mgr.h"
 #include "an_if_mgr.h"
 #include "an_types.h"
+#include "an_nbr_db.h"
 #include <stdio.h>
 #include <unistd.h>
 #include "libcli.h"
@@ -21,4 +22,9 @@ void an_show_auton(bool no, int a, char *av[]);
 void an_show_auton_intf(bool no, int a, char *av[]);
 void an_show_intf(bool no, int a, char *av[]);
 void an_show_proc(bool no, int a, char *av[]);
+void an_show_nbrs(bool no, int a, char *av[]);
 void an_walk_if_db(bool no, int a, char *av[]);
+an_avl_walk_e an_show_nbr_command_cb(an_avl_node_t *node, void *data_ptr);
+
+
+

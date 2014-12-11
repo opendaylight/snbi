@@ -36,9 +36,9 @@
 #define AN_AUTO_DISC_NO_DOMAIN NULL
 #define AN_AUTO_DISC_RESEND_INTERVAL 30
 
-an_addr_t anr_sd_param_global;
-void an_discover_services(void);
-void an_discover_services_deallocate(void);
+//an_addr_t anr_sd_param_global;
+//void an_discover_services(void);
+void an_discover_services_deallocate(an_if_t ifhndl);
 void an_sd_cfg_global_commands(boolean set);
 void an_sd_cfg_if_commands(an_if_t ifhndl, boolean set);
 

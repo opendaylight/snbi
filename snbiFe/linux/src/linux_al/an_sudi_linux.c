@@ -60,8 +60,8 @@ an_udi_get_from_platform (an_udi_t *udi)
             return (FALSE);
     }
 
-    uuid_generate(an_uuid);
-    an_strncpy_s(udi->data, AN_UDI_MAX_LEN, an_uuid, AN_UDI_MAX_LEN);
+//    uuid_generate(an_uuid);
+    an_strncpy_s(udi->data, AN_UDI_MAX_LEN, "PID:LINUX SN:1", AN_UDI_MAX_LEN);
     udi->len = strlen(udi->data);
 
     printf ("\n UDI     ");
@@ -110,7 +110,6 @@ an_sudi_get_udi (an_udi_t *udi)
 boolean
 an_sudi_is_available (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (an_sudi_available);
 }
 
@@ -130,7 +129,7 @@ an_sudi_check (void)
         check_count = 100;
     }
 
-    if (udi_available) {
+    if (an_sudi_is_available()) {
         an_sudi_get_udi(&udi);
         an_set_udi(udi);
         an_event_sudi_available();
@@ -138,25 +137,32 @@ an_sudi_check (void)
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                 "\n%sWhile waiting for sUDI, "
                 "if UDI is available using it", an_nd_event);
-
-    } else if (an_udi_get_from_platform(&udi)) {
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n%sWhile waiting for sUDI, "
-                "if UDI is available using it", an_nd_event);
-        an_set_udi(udi);
-        udi_available = TRUE;
+    } else {   
         time_interval = check_count * AN_TIMER_SUDI_CHECK_INTERVAL;
         if (time_interval > AN_TIMER_MAX_SUDI_CHECK_INTERVAL) {
             time_interval = AN_TIMER_MAX_SUDI_CHECK_INTERVAL;
         }
         an_timer_start(&an_sudi_check_timer, time_interval);
+            /* While waiting for sUDI, use UDI */
+        if (udi_available) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                         "\n%sWhile waiting for sUDI, "
+                         "if UDI is available using it", an_nd_event);
 
-    } else {
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
-                "\n%sWhile waiting for sUDI, Can't find the UDI",
-                an_nd_event);
+        } else if (an_udi_get_from_platform(&udi)) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                         "\n%sWhile waiting for sUDI, "
+                         "if UDI is available using it", an_nd_event);
+            an_set_udi(udi);
+            an_event_udi_available();
+            udi_available = TRUE;
+
+        } else {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                         "\n%sWhile waiting for sUDI, Can't find the UDI",
+                         an_nd_event);
+        }
     }
-    return;
 }
 
 /* Returns certificate pointer */

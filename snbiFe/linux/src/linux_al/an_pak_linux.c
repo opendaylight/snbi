@@ -19,9 +19,11 @@
 
 
 inline uint8_t* an_pak_get_network_hdr (an_pak_t *pak) 
-{
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (0);
+{   
+    if (pak) {
+        return ((uint8_t*)&pak->ipv6_hdr);
+    }
+    return NULL;
 }
 
 inline uint8_t* an_pak_get_datagram_hdr (an_pak_t *pak)
@@ -38,7 +40,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline an_if_t an_pak_get_input_if (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (0);
 }
 
@@ -86,32 +87,68 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline void an_pak_set_datagram_size (an_pak_t *pak, uint16_t paklen)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    pak->datagramsize = paklen;
     return;
 }
 
 inline void an_pak_set_linktype (an_pak_t *pak, uint8_t linktype)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    pak->linktype = linktype;
     return;
 }
 
 inline uint8_t 
 an_pak_get_linktype (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    if (pak->linktype) {
+        return (pak->linktype);
+    }
     return (0);
 }
 
-an_cerrno an_getbuffer (uint16_t pak_len, an_pak_t **pak)
+void
+an_linux_pak_create (an_pak_t *an_linux_pak, uint32_t ifhndl, char *data, 
+                                         struct sockaddr_storage *sender)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (EOK);
+    char ipstr[INET6_ADDRSTRLEN + 1];
+    struct sockaddr_in6 *s = NULL;
+
+    if (!an_linux_pak) {
+        return;
+    }
+
+    an_linux_pak->data = data;
+    an_linux_pak->ifhndl = ifhndl;
+    
+//    an_linux_pak->ipv6_hdr.ip6_src = AN_V6ADDR_ZERO;
+//    an_linux_pak->ipv6_hdr.ip6_dst = AN_V6ADDR_ZERO;
+
+    if (sender) {
+        s = (struct sockaddr_in6 *)sender;
+        an_ipv6_hdr_init(&an_linux_pak->ipv6_hdr, AN_DEFAULT_TOS, AN_DEFAULT_FLOW_LABEL,
+                0, AN_UDP_PROTOCOL, AN_DEFAULT_HOP_LIMIT,
+                &s->sin6_addr, AN_V6ADDR_ZERO);
+
+//        an_linux_pak->ipv6_hdr.ip6_src = s->sin6_addr;
+    }
+    return;
+}
+
+an_pak_t* an_getbuffer (uint16_t pak_len)
+{
+    an_pak_t *pak = (an_pak_t *)malloc(sizeof(an_pak_t)); 
+    an_linux_pak_create(pak, 0, NULL, NULL); 
+    if (pak) { 
+        return pak;
+    }
+    return NULL;
 }
 
 inline void an_pak_free (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    if (pak) {
+        an_free(pak);
+    }
     return;
 }
 
@@ -154,25 +191,12 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
-void
-an_linux_pak_create (an_pak_t *an_linux_pak, uint32_t ifhndl, char *data)
-{
-
-    if (!an_linux_pak || !data) {
-        return;
-    }
-
-    an_linux_pak->data = data;
-    an_linux_pak->ifhndl = ifhndl;
-    return;
-}
-
 uint32_t
 an_get_ifhndl_from_sockaddr (struct sockaddr_storage *sender) {
 
     char ipstr[INET6_ADDRSTRLEN + 1];
     uint32_t sender_port = 0, sender_index = 0;
-
+ 
 // Deal with both Ipv4 and IPv6 addresses
     if (sender->ss_family == AF_INET) {
         struct sockaddr_in *s = (struct sockaddr_in *)sender;
@@ -190,5 +214,26 @@ an_get_ifhndl_from_sockaddr (struct sockaddr_storage *sender) {
 //    printf("Sender Index: %d,        Index_name:%s\n", sender_index,index_name);
 
     return (sender_index);
+}
+
+an_pak_t *
+an_plat_pak_alloc(uint16_t paklen, an_if_t ifhndl,uint16_t len)
+{
+    an_pak_t * pak = NULL;
+    pak = (an_pak_t *)malloc(sizeof(an_pak_t));
+    an_linux_pak_create(pak, ifhndl, NULL, NULL);
+    if (!(pak)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, "\n%sMemory Alloc failed "
+                      "for pak");
+        return (NULL);
+    }
+    return pak;
+}
+
+void
+an_cp_msg_block_to_pak (an_pak_t * pak,uint8_t *msg_block,uint8_t
+        *temp_msg_block,uint16_t msg_len)
+{
+//    an_memcpy_s(msg_block, msg_len, temp_msg_block, msg_len);
 }
 

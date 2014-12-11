@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_ROUTING_H__
 #define __AN_ROUTING_H__
 
@@ -29,6 +28,7 @@ void an_acp_routing_enable_on_interface(an_if_t ifhndl, an_routing_cfg_t routing
 void an_acp_routing_disable_on_interface(an_if_t ifhndl, an_routing_cfg_t routing_info);
 void an_acp_routing_disable(an_routing_cfg_t routing_info);
 void an_set_rpl_routing_info(void);
+char *an_get_rpl_tag_name(void);
 boolean an_get_rpl_floating_root_enable_flag(void);
-
+void an_rpl_connect_notify_callback(bool sense);
 #endif

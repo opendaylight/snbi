@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_SYSLOG_H__
 #define __AN_SYSLOG_H__
 #include "../al/an_logger.h"
@@ -23,13 +22,10 @@ void an_syslog(an_syslog_msg_e type,...);
 void an_syslog_connect(void);
 void an_syslog_disconnect(void);
 void an_syslog_set_server_address(an_addr_t *syslog_addr, boolean service_add);
-void an_syslog_config_host(an_addr_t *hstaddran,
-                           an_idbtype *an_idb, char *discriminator);
-void an_syslog_delete_host(an_addr_t *hstaddran);
-int an_logger_discriminator(char* discriminator, 
-                            ushort fac_includes_drops_flag,
-                            char* facility_name,  
-                            ushort sev_includes_drops_flag,
-                            char* new_sev_group, boolean add);
+void an_syslog_config_host(an_addr_t *hstaddran, char *an_vrf_name,
+                            an_idbtype *an_idb, char *discriminator);
+void an_syslog_delete_host(an_addr_t *hstaddran, char *an_vrf_name);
 
+void an_syslog_create_an_discriminator(void);
+void an_syslog_delete_an_discriminator(void);
 #endif

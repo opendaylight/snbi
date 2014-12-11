@@ -294,3 +294,9 @@ uint32_t ifs_write_until (int fd, void *vbuffer, uint32_t nbytes)
 
     return (written);
 }
+
+void
+an_file_delete_from_standby (uint8_t *src_file)
+{
+}
+

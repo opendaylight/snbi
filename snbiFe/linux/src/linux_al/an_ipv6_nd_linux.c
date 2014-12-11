@@ -27,5 +27,6 @@ an_ipv6_nd_detach (void)
 void
 an_ipv6_nd_trigger_unsolicited_na (an_v6addr_t *v6addr, an_if_t ifhndl)
 {
+    printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }

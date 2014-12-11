@@ -47,7 +47,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return TRUE;
 }
         
-void 
+boolean 
 an_vrf_define (void)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
@@ -79,5 +79,9 @@ an_tunnel_uninit (void)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
         return;
+}
+
+void an_tunnel_check_integrity (an_if_t tunn_ifhndl, an_if_t tunn_src_ifhndl)
+{
 }
 

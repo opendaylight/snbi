@@ -54,9 +54,9 @@ LD_FLAGS = -shared
 LD_LIB = -lcrypt -lpthread -luuid -lrt
 
 CC_AN_COMMON_OBJS :=\
+	$(AN_COMMON_OBJ)/an_acp.o \
 	$(AN_COMMON_OBJ)/an_anra.o \
 	$(AN_COMMON_OBJ)/an_anra_db.o \
-	$(AN_COMMON_OBJ)/an_acp.o \
 	$(AN_COMMON_OBJ)/an_bs.o \
 	$(AN_COMMON_OBJ)/an.o \
 	$(AN_COMMON_OBJ)/an_event_mgr.o \
@@ -71,9 +71,9 @@ CC_AN_COMMON_OBJS :=\
 	$(AN_COMMON_OBJ)/an_util.o      
 
 CC_AN_COMMON_SRCS :=\
+	$(AN_COMMON_SRC)/an_acp.c \
 	$(AN_COMMON_SRC)/an_anra.c \
 	$(AN_COMMON_SRC)/an_anra_db.c \
-	$(AN_COMMON_SRC)/an_acp.c \
 	$(AN_COMMON_SRC)/an_bs.c \
 	$(AN_COMMON_SRC)/an.c \
 	$(AN_COMMON_SRC)/an_event_mgr.c \
@@ -91,7 +91,9 @@ CC_AN_LINUX_AL_OBJS :=\
 	$(AN_LINUX_AL_OBJ)/an_aaa_linux.o \
 	$(AN_LINUX_AL_OBJ)/an_addr_linux.o \
 	$(AN_LINUX_AL_OBJ)/an_avl_linux.o \
+	$(AN_LINUX_AL_OBJ)/an_bitlist_linux.o \
 	$(AN_LINUX_AL_OBJ)/an_cert_linux.o \
+	$(AN_LINUX_AL_OBJ)/an_dike_linux.o \
 	$(AN_LINUX_AL_OBJ)/an_ether_linux.o \
 	$(AN_LINUX_AL_OBJ)/an_file_linux.o \
 	$(AN_LINUX_AL_OBJ)/an_http_linux.o \
@@ -126,7 +128,9 @@ CC_AN_LINUX_AL_SRCS :=\
 	$(AN_LINUX_AL_SRC)/an_aaa_linux.c \
 	$(AN_LINUX_AL_SRC)/an_addr_linux.c \
 	$(AN_LINUX_AL_SRC)/an_avl_linux.c \
+	$(AN_LINUX_AL_SRC)/an_bitlist_linux.c \
 	$(AN_LINUX_AL_SRC)/an_cert_linux.c \
+	$(AN_LINUX_AL_SRC)/an_dike_linux.c \
 	$(AN_LINUX_AL_SRC)/an_ether_linux.c \
 	$(AN_LINUX_AL_SRC)/an_file_linux.c\
 	$(AN_LINUX_AL_SRC)/an_http_linux.c\
@@ -198,6 +202,7 @@ an_common.o: $(CC_AN_COMMON_SRCS) $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linu
 	$(CC) -o $(AN_COMMON_OBJ)/snbi-sim $^ $(CC_INCDIRS) $(CFLAGS) \
 	$(LD_LIB) -fPIC
 	mv $(AN_COMMON_OBJ)/snbi-sim ${AN_LINUX_AL_BIN}
+	@echo ' **SUCCESS**- Finished building target: SNBI FE APP'
 
 #an_clisim: $(CC_AN_CLISIM_SRCS) $(AN_LD_LIB_PATH)/an_linux_al.o $(AN_LD_LIB_PATH)/an_common.o $(AN_LD_LIB_PATH)/libcli.o $(AN_LD_LIB_PATH)/libavl.o
 #	@echo "Building target: $@"

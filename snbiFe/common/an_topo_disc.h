@@ -16,7 +16,8 @@ extern char *global_url_str;
 #include "../al/an_ipv6.h"
 #include "../al/an_if.h"
 
-//#include "../shim/an/loc_shims/an_topology_discovery_shim.h" 
+#include "an_topology_discovery.h"
+#include "../shim/an/loc_shims/an_topology_discovery_shim.h" 
 
 #define TDP_IPV6_VERSION 6
 #define TDP_IPV6_HDR_SIZE sizeof(an_ipv6_hdr_t)

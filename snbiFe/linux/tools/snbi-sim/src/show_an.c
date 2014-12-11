@@ -11,17 +11,43 @@
 #include "an_event_mgr.h"
 #include "an_if_mgr.h"
 
+uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
+uint8_t an_show_header[1] = {'\0'};
+uint8_t an_show_trailer[1] = {'\0'};
+static int link_count = 0;
+extern an_info_t an_info;
+
+static an_cerrno
+an_show_nbr_list_name_cb (an_list_t *list,
+        const an_list_element_t *current,
+        an_list_element_t *next, void *context)
+{
+    an_nbr_link_spec_t *curr_data = NULL;
+    uint8_t local_ifhndl[128] = {0};
+    if (list && current)    {
+        curr_data = (an_nbr_link_spec_t *) current->data;
+        link_count ++;
+        if_indextoname(curr_data->local_ifhndl, local_ifhndl);
+        if (link_count == 1) {
+                printf("%3s", local_ifhndl);
+               
+        } else {
+                printf("\n%67s %30s","", local_ifhndl);
+        }
+        return (AN_CERR_SUCCESS);
+    }
+    return 1;
+}
+
 void 
 an_show_auton(bool no, int a, char *av[]) {
-    uuid_t an_uuid = {0};
+ //   uuid_t an_uuid = {0};
     int i;
-    uuid_generate(an_uuid);
-    printf ("\n UDI     ");
-    for (i=0;i<sizeof (an_uuid); i++) {
-        printf ("%x",an_uuid[i]);
-    }
+//    uuid_generate(an_uuid);
+    printf("\n%80s", an_show_header);
+    printf ("\n UDI    %s ", an_info.udi.data);
+    printf("\n%80s", an_show_trailer); 
    
-    printf("\n");
 }
 
 void an_show_auton_intf(bool no, int a, char *av[]) {
@@ -84,18 +110,53 @@ an_show_intf(bool no, int a, char *av[])
 
 void an_show_proc(bool no, int a, char *av[]) {}
 
+void an_show_nbrs(bool no, int a, char *av[]) {
+
+    printf("\n%80s", an_show_header);
+    printf("\n%s %45s %21s %10s",
+               "UDI", "Device-ID", "Domain", "Interface");
+    printf("\n%80s", an_table_header);
+    an_nbr_db_walk(an_show_nbr_command_cb, NULL);
+    printf("\n%80s", an_show_trailer);
+
+
+}
+
 an_walk_e
 an_if_info_walker(an_avl_node_t *node, void *data) {
 
-     an_if_info_t *an_if_info = NULL;
+    an_if_info_t *an_if_info = NULL;
 
     if (!node) {
         return (AN_WALK_FAIL);
     }
-    an_if_info = *(an_if_info_t **)node;
+    an_if_info = (an_if_info_t *)node;
+    printf("\nAVL walking nodes :\n");
+    printf("\n Ifhndl while walk is %lu ", an_if_info->ifhndl); 
+    printf("\n AN is auton enabled on interface ? ");
+    (an_if_info->if_cfg_autonomic_enable > 0) ? printf("YES"):printf("NO");
+
     return (AN_WALK_SUCCESS);
 }
 
 void an_walk_if_db (bool no, int a, char *av[]) {
     an_if_info_db_walk(an_if_info_walker, NULL);
+}
+
+an_avl_walk_e
+an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
+{
+    an_nbr_t *nbr = (an_nbr_t *)node;
+    uint8_t *unknown_str = "-";
+
+    if (!nbr) {
+        return (AN_AVL_WALK_FAIL);
+    }
+    printf("\n%s %32s %21s ",
+           nbr->udi.data, nbr->device_id ? nbr->device_id : unknown_str,
+           nbr->domain_id ? nbr->domain_id : unknown_str);
+
+    an_nbr_link_db_walk(nbr->an_nbr_link_list,
+                      an_show_nbr_list_name_cb, NULL);
+    return TRUE;
 }

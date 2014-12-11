@@ -9,7 +9,6 @@
 
 #include "an_types.h"
 
-
 inline uint8_t *an_ether_hdr_get_src (an_ether_hdr_t *ether_hdr)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
@@ -38,5 +37,10 @@ inline ushort an_get_cd_vlanid(an_cd_info_t *an_cd_info)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return(0);
+}
+
+inline ushort an_get_cd_inner_vlanid(an_cd_info_t *an_cd_info)
+{
+        return(0);
 }
 

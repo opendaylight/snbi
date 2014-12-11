@@ -36,6 +36,8 @@
 
 boolean gAN_platform_is_iol = FALSE;
 
+uint8 an_multicast[] =  {0x01, 0x00, 0x0C, 0xCD, 0xCD, 0xDC};
+
 an_cd_info_t *
 an_cd_info_db_search(an_if_info_t *, an_cd_info_t *);
 an_cd_info_t *
@@ -149,4 +151,60 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
+void
+an_l2_cd_trigger_hello_request_for_given_vlan (an_if_t ifhndl, ushort vlanid)
+{
+            return;
+}
+
+void
+an_l2_cd_trigger_hello_refresh (an_if_t ifhndl, an_dot1q_qinq_vlan_id_t
+        *vlan_sb, an_udi_t *dest_udi)
+{
+            return;
+}
+
+boolean
+an_start_l2_punt (an_mac_addr *macaddress,
+                        ulong ether_type, an_if_t ifhndl)
+{
+            return (FALSE);
+}
+
+boolean
+an_stop_l2_punt (an_mac_addr *macaddress,
+                        ulong ether_type, an_if_t ifhndl)
+{
+            return (FALSE);
+}
+
+void
+an_l2_setup (void)
+{
+            return;
+}
+
+void
+an_cd_handle_incoming_pak (an_pak_t *pak)
+{
+            return;
+}
+
+void
+an_l2_cd_trigger_hello_request (an_if_t ifhndl)
+{
+            return;
+}
+
+an_if_type_e
+an_if_set_and_get_type (an_if_t ifhndl, an_if_type_e an_if_type, boolean force)
+{
+    return AN_IF_INVALID;
+}
+
+boolean
+an_l2_check_intf_is_autonomic_possible (an_if_t ifhndl)
+{
+            return TRUE;
+}
 

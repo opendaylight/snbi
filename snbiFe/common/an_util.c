@@ -28,6 +28,7 @@
 #include "../al/an_if.h"
 #include "../al/an_ipsec.h"
 #include "../al/an_ike.h"
+#include "../al/an_misc.h"
 
 static boolean an_addr_generator_initialized = FALSE;
 an_avl_tree an_mem_elem_tree;
@@ -37,6 +38,7 @@ int  sev_includes_drops_flag = 1;
 int  fac_includes_drops_flag = 1;
 char *facility_name = "AN";
 boolean an_syslog_server_set = FALSE;
+uint16_t an_setup_wait_count = 0;
 
 const uint8_t * an_cert_debug_enum_string [] = {
     "AN cert API success",
@@ -57,6 +59,11 @@ const uint8_t * an_cert_debug_enum_string [] = {
     "invalid crypto pki session handle",
     "failed to get trust point from label",
     "invalid input params",
+    "external CA not exisits",
+    "no device certificate in the trustpoint",
+    "unable to get ANRA IP",
+    "expired device cert in the trustpoint",
+    "tp busy in renew operation",
     "AN cert enum max",
 };
  
@@ -67,6 +74,7 @@ const uint8_t *an_cert_enum_get_string (an_cert_api_ret_enum enum_type)
 
 int32_t an_cert_compare (const an_cert_t cert1, const an_cert_t cert2)
 {
+    int indicator = 0;
     if (cert1.len != cert2.len) {
         return (cert1.len - cert2.len);
     }
@@ -79,7 +87,8 @@ int32_t an_cert_compare (const an_cert_t cert1, const an_cert_t cert2)
         return (1);
     }
 
-    return (an_memcmp(cert1.data, cert2.data, cert1.len));
+    an_memcmp_s(cert1.data, cert1.len, cert2.data, cert2.len, &indicator);
+    return (indicator);
 }
 
 boolean an_cert_equal (const an_cert_t cert1, const an_cert_t cert2)
@@ -126,13 +135,18 @@ void an_cert_short_print (const an_cert_t cert)
 {
     uint8_t *subject = NULL;
     uint16_t len = 0;
+    an_cert_api_ret_enum retval;
 
     if (!cert.data || !cert.len) {
         return;
     }
 
-    an_cert_get_subject_name(cert, &subject, &len);
-    printf("(sub:) %s", subject);
+    retval = an_cert_get_subject_name(cert, &subject, &len);
+    if (retval == AN_CERT_API_SUCCESS) {
+        printf("(sub:) %s", subject);
+    }else {
+        printf("(sub:) NULL - error in fetching");
+    }
     an_free_guard(subject);
     subject = NULL;
 }
@@ -162,6 +176,7 @@ an_cert_get_udi (const an_cert_t cert, an_udi_t *udi)
         return (FALSE);
     }
 
+    tem_str = an_strstr_ns(subject, udi_prefix);
     if (!tem_str) {
         udi->len = 0;
         udi->data = NULL;
@@ -172,7 +187,6 @@ an_cert_get_udi (const an_cert_t cert, an_udi_t *udi)
         return (FALSE);
     }
 
-    tem_str = an_strstr(subject, udi_prefix);
     udi_in_subject = tem_str + an_strlen(udi_prefix);
     udi->data = an_malloc_guard(an_strlen(udi_in_subject)+1, "AN Udi In Subject");
     if (!udi->data) {
@@ -182,13 +196,123 @@ an_cert_get_udi (const an_cert_t cert, an_udi_t *udi)
         }
         return (FALSE);
     }
-    an_memcpy_guard(udi->data, udi_in_subject, an_strlen(udi_in_subject)+1);
+    an_memcpy_guard_s(udi->data, an_strlen(udi_in_subject)+1, udi_in_subject, 
+                      an_strlen(udi_in_subject)+1);
     udi->len = an_udi_trim_and_get_len(udi->data);
     if (subject) {
         an_free_guard(subject);
         subject = NULL;
     }
 
+    return (TRUE);
+}
+
+boolean
+an_cert_validate_subject_cn (an_cert_t cert, uint8_t *cn_string)
+{
+    uint8_t *subject_cn = NULL;
+    uint16_t len = 0;
+    an_cert_api_ret_enum result;
+    int indicator = 0;
+
+    if (!cn_string && !cert.data) {
+        return (FALSE);
+    }
+
+    result = an_cert_get_subject_cn(cert, &subject_cn, &len);
+
+	if (result == AN_CERT_OPER_NOT_SUPPORTED) {
+		return (TRUE);
+	}
+
+    if (result != AN_CERT_API_SUCCESS) {
+       DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sReading CN field from subject returned "
+                    "error %s", an_bs_event,
+                    an_cert_enum_get_string(result));
+       return FALSE;
+    }
+
+    if (an_memcmp_s(subject_cn, an_strlen(subject_cn), cn_string,
+                    an_strlen(cn_string), &indicator) != 0) {
+        an_free_guard(subject_cn);
+        return (FALSE);
+    }
+
+    an_free_guard(subject_cn);
+    return (TRUE);
+}
+
+boolean
+an_cert_validate_subject_ou (an_cert_t cert, uint8_t *ou_string)
+{
+    uint8_t *subject_ou = NULL;
+    uint16_t len = 0;
+    an_cert_api_ret_enum result;
+    int indicator = 0;
+
+    if (!ou_string && !cert.data) {
+        return (FALSE);
+    }
+
+    result = an_cert_get_subject_ou(cert, &subject_ou, &len);
+
+	if (result == AN_CERT_OPER_NOT_SUPPORTED) {
+		return (TRUE);
+	}
+
+    if (result != AN_CERT_API_SUCCESS) {
+       DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sReading OU field from subject returned "
+                    "error %s", an_bs_event,
+                    an_cert_enum_get_string(result));
+       return FALSE;
+    }
+
+    if (an_memcmp_s(subject_ou, an_strlen(subject_ou), ou_string,
+                    an_strlen(ou_string), &indicator) != 0) {
+        an_free_guard(subject_ou);
+        return (FALSE);
+    }
+
+    an_free_guard(subject_ou);
+    return (TRUE);
+}
+
+boolean
+an_cert_validate_subject_sn (an_cert_t cert, uint8_t *sn_string,
+                             uint16_t sn_length)
+{
+    uint8_t *subject_sn = NULL;
+    uint16_t len = 0;
+    an_cert_api_ret_enum result;
+    int indicator = 0;
+
+    if (!sn_string && !cert.data && !sn_length) {
+        return (FALSE);
+    }
+
+    result = an_cert_get_subject_sn(cert, &subject_sn, &len);
+
+	if (result == AN_CERT_OPER_NOT_SUPPORTED) {
+		return (TRUE);
+	}
+
+    if(result != AN_CERT_API_SUCCESS) {
+       DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sReading SN field from subject returned "
+                    "error %s", an_bs_event,
+                    an_cert_enum_get_string(result));
+       return (FALSE);
+    }
+
+    if ((an_memcmp_s(subject_sn, AN_UDI_MAX_LEN,
+                     sn_string, sn_length, &indicator)) != 0) {
+        an_free_guard(subject_sn);
+        return (FALSE);
+    }
+
+    an_free_guard(subject_sn);
     return (TRUE);
 }
 
@@ -386,7 +510,7 @@ an_file_read_next_udi (an_file_descr_t fd, an_udi_t *udi, uint32_t max_len)
         return (retval);
     }
     an_str_get_temp_buffer(&pid);
-    an_memcpy(pid.data, buffer.data, buffer.len);
+    an_memcpy_s(pid.data, buffer.len, buffer.data, buffer.len);
     pid.len = buffer.len;
 
     /* Read SN: portion of UDI */
@@ -395,17 +519,17 @@ an_file_read_next_udi (an_file_descr_t fd, an_udi_t *udi, uint32_t max_len)
         return (retval);
     }
     an_str_get_temp_buffer(&sn);
-    an_memcpy(sn.data, buffer.data, buffer.len);
+    an_memcpy_s(sn.data, buffer.len, buffer.data, buffer.len);
     sn.len = buffer.len;
 
     an_str_get_temp_buffer(&buffer);
     udi->data = buffer.data;
     udi->len = (pid.len - 1) + 1 + (sn.len - 1) + 1;
 
-    an_memcpy(udi->data, pid.data, pid.len - 1);
+    an_memcpy_s(udi->data, udi->len, pid.data, pid.len - 1);
     udi->data[pid.len - 1] = ' ';
 
-    an_memcpy(udi->data + pid.len, sn.data, sn.len - 1);
+    an_memcpy_s(udi->data + pid.len, udi->len, sn.data, sn.len - 1);
     udi->data[pid.len + sn.len - 1] = '\0';
 
     return (retval);
@@ -451,21 +575,21 @@ an_file_read_next_line (an_file_descr_t fd, an_buffer_t *line, uint32_t max_len)
 
     an_str_get_temp_buffer(line);
     line->len = len;
-    an_memcpy(line->data, str, line->len);
+    an_memcpy_s(line->data, line->len, str, len);
 
     return (AN_FILE_API_SUCCESS);
 }
 
-boolean
-an_file_read_next_byte (an_file_descr_t fd, uint8_t *byte)
+an_file_api_ret_enum
+an_file_read_next_byte (an_file_descr_t fd, uint8_t *ch)
 {
-    return (an_file_read_next_char(fd, (int8_t *)byte));
+    return (an_file_read_next_char(fd, (int8_t *)ch));
 }
 
 an_file_api_ret_enum
-an_file_write_byte (an_file_descr_t fd, uint8_t *byte)
+an_file_write_byte (an_file_descr_t fd, uint8_t *ch)
 {
-    return (an_file_write_char(fd, (int8_t *)byte));
+    return (an_file_write_char(fd, (int8_t *)ch));
 }
 
 an_file_api_ret_enum
@@ -499,6 +623,7 @@ an_ipsec_clear_profile_name (void)
 
 }
 
+#if 0
 boolean an_ipv6_preroute_and_forward_pak (an_pak_t *pak, an_if_t ifhndl,
                                           an_addr_t nhop)
 {
@@ -510,6 +635,7 @@ boolean an_ipv6_preroute_and_forward_pak (an_pak_t *pak, an_if_t ifhndl,
 
     return (TRUE);
 }
+#endif
 
 /*
  * an_ipv6_unicast_routing_enable_disable_cb
@@ -657,18 +783,18 @@ an_mem_elem_db_walk (an_avl_walk_f walk_func, void *args)
                           an_mem_elem_compare, args, &an_mem_elem_tree);
 }
 
-an_walk_e
+an_avl_walk_e
 an_mem_elem_db_init_cb (an_avl_node_t *node, void *args)
 {
     an_mem_elem_t *mem_elem = (an_mem_elem_t *)node;
 
     if (!mem_elem) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
 
     an_mem_elem_free(mem_elem);
 
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -678,18 +804,18 @@ an_mem_elem_db_init (void)
     an_mem_elem_db_walk(an_mem_elem_db_init_cb, NULL);
 }
 
-an_walk_e
+an_avl_walk_e
 an_mem_show_cb (an_avl_node_t *node, void *args)
 {
     an_mem_elem_t *elem = (an_mem_elem_t *)node;
 
     if (!elem) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
 
-    printf("\n%50s %10p %10d", elem->name, elem->buffer, elem->buffer_size);
+    printf("\n%50s %10u %10d", elem->name, elem->buffer, elem->buffer_size);
 
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -708,14 +834,12 @@ an_mem_guard (void *target, uint16_t length)
     if (!elem) {
         an_log(AN_LOG_MEM, "\nMem-Gaurd: Accessing unallocated memory"
                " target (%u, %d)", target, length);
-        //bugtrace();
 
     } else if (((uint8_t *)target + length) >
                ((uint8_t *)(elem->buffer) + elem->buffer_size)) {
         an_log(AN_LOG_MEM, "\nMem-Gaurd: Overrunning the allocated block"
                "block = (%u, %d), target = (%u, %d)",
                elem->buffer, elem->buffer_size, target, length);
-        //bugtrace();
     }
 }
 
@@ -787,20 +911,24 @@ an_ntp_clock_sync_from_ntp (void)
     an_event_clock_synchronized();
 }
 
-an_cerrno an_pak_alloc (uint16_t pak_len, an_pak_t **pak)
+an_pak_t * an_pak_alloc (uint16_t pak_len)
 {
-    an_cerrno rc = EOK;
-    rc = an_getbuffer(pak_len, pak);
+    an_pak_t *pak = NULL;
+    pak = an_getbuffer(pak_len);
 
-    if (CERR_IS_NOTOK(rc)) {
-        *pak = NULL;
-        return (rc);
+    if (!pak) {
+        return NULL;
     }
 
-    an_pak_set_datagram_size(*pak, pak_len);
-    an_pak_set_linktype(*pak, AN_LINK_IPV6);
+    an_pak_set_datagram_size(pak, pak_len);
+    an_pak_set_linktype(pak, AN_LINK_IPV6);
 
-    return(rc);
+    return (pak);
+}
+an_pak_t *
+an_pak_alloc_common_api(uint16_t paklen, an_if_t ifhndl,uint16_t len)
+{
+    return (an_plat_pak_alloc(paklen,ifhndl,len));
 }
 
 uint16_t
@@ -824,9 +952,11 @@ an_sudi_uninit (void)
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                  "\n%sUninitializing SUDI", an_nd_event);
     udi_available = FALSE;
-    an_sudi_initialized = FALSE;
     an_sudi_available = FALSE;
-    an_timer_stop(&an_sudi_check_timer);
+	if (an_sudi_initialized) {
+		an_timer_stop(&an_sudi_check_timer);
+		an_sudi_initialized = FALSE;
+	}
 }
 
 void
@@ -851,9 +981,11 @@ an_sudi_clear (void)
 void
 an_syslog_connect (void)
 {
+   an_vrf_info_t *vrf_info;
    an_if_t syslog_ifhndl = an_get_autonomic_loopback_ifhndl();
    an_idbtype  *an_idb = an_if_number_to_swidb(syslog_ifhndl);
 
+   vrf_info = an_vrf_get();
 
    if (!hstaddran) {
       DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
@@ -868,14 +1000,8 @@ an_syslog_connect (void)
    }
 
    if (an_syslog_server_set == FALSE) {
-      if (discriminator != NULL) {
-        an_logger_discriminator(discriminator, fac_includes_drops_flag,
-                              facility_name, sev_includes_drops_flag,
-                              "1,2,3,4,5,6,7", TRUE);
-      }
-
       an_syslog_config_host(hstaddran,
-                         an_idb, discriminator);
+                         vrf_info->an_vrf_name, an_idb, discriminator);
       an_syslog_server_set = TRUE;
    }
 }
@@ -883,17 +1009,17 @@ an_syslog_connect (void)
 void
 an_syslog_disconnect (void)
 {
+   an_vrf_info_t *vrf_info;
+
+   vrf_info = an_vrf_get();
    if (!hstaddran  || !an_acp_is_initialized() || an_addr_is_zero(*hstaddran)) {
       DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
             "\n%sSyslog server address NULL- cant disconnect", an_srvc_syslog);
           return;
    }
-   an_syslog_delete_host(hstaddran);
+   an_syslog_delete_host(hstaddran, vrf_info->an_vrf_name);
    *hstaddran = AN_ADDR_ZERO;
    an_syslog_server_set = FALSE;
-   if (discriminator != NULL) {
-      an_logger_discriminator(discriminator, 0, NULL, 0, NULL, FALSE);
-   }
 }
 
 void
@@ -904,13 +1030,29 @@ an_syslog_set_server_address (an_addr_t *syslog_addr, boolean service_add)
    }
 
    if (service_add) {
-          *hstaddran = *syslog_addr;
       if (an_acp_is_initialized()) {
-         //printf ("\n Add connection AN syslog addr %s , ADD %d", an_addr_get_string(syslog_addr), service_add); 
-         an_syslog_connect();
-      }
+         if (an_syslog_server_set == FALSE) {
+   	        *hstaddran = *syslog_addr;
+            DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
+                        "\n%sDiscovered syslog server addr %s",
+                        an_srvc_syslog,
+                        an_addr_get_string(hstaddran));
+            an_syslog_connect();
+         }else {
+            if (an_addr_struct_comp(hstaddran, syslog_addr) != 0) {
+                DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
+                "\n%sRemove connection to old syslog addr %s", an_srvc_syslog,
+                an_addr_get_string(hstaddran));
+                an_syslog_disconnect();
+   	            *hstaddran = *syslog_addr;
+                DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
+                    "\n%sAdd connection to new syslog addr %s", an_srvc_syslog,
+                    an_addr_get_string(hstaddran));
+                an_syslog_connect();
+            }
+         }
+      }    
    } else {
-       //printf ("\n Remove connection AN syslog addr %s , ADD %d", an_addr_get_string(syslog_addr), service_add); 
        an_syslog_disconnect();
    }
 }
@@ -926,6 +1068,7 @@ an_process_timer_events (an_timer *expired_timer)
 {
     uint32_t timer_type = AN_TIMER_TYPE_NONE;
     void *context = NULL;
+    boolean result;
 
     timer_type = an_mgd_timer_type(expired_timer);
     an_log_type_e log;
@@ -937,11 +1080,6 @@ an_process_timer_events (an_timer *expired_timer)
         case AN_TIMER_TYPE_SUDI_CHECK:
             an_timer_stop(expired_timer);
             an_sudi_check();
-            break;
-
-        case AN_TIMER_TYPE_IF_BRING_UP:
-            an_timer_stop(expired_timer);
-            an_if_bring_up_all();
             break;
 
         case AN_TIMER_TYPE_NI_CERT_REQUEST:
@@ -961,9 +1099,66 @@ an_process_timer_events (an_timer *expired_timer)
             an_timer_stop(expired_timer);
             an_event_hello_refresh_timer_expired();
             break;
+#ifndef AN_IDP_PUSH
+        case AN_TIMER_TYPE_IDP_REQUEST:
+            an_mgd_timer_context(expired_timer);
+            an_timer_stop(expired_timer);
+            break;
+             
+        case AN_TIMER_TYPE_IDP_REFRESH:
+            context = an_mgd_timer_context(expired_timer);
+            an_timer_stop(expired_timer);
+            break;
+#else
+        case AN_TIMER_TYPE_IDP_REFRESH:
+            context = an_mgd_timer_context(expired_timer);
+            an_timer_stop(expired_timer);
+            break;
+#endif
         case AN_TIMER_TYPE_AAA_INFO_SYNC:
             context = an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
+            break;
+
+        case AN_TIMER_TYPE_ANR_CS_CHECK:
+            an_timer_stop(expired_timer);
+            an_anra_cs_check();
+            break;
+
+        case AN_TIMER_TYPE_GENERIC:
+            context = an_mgd_timer_context(expired_timer);
+            an_timer_stop(expired_timer);
+            an_event_generic_timer_expired();
+            break;
+
+        case AN_TIMER_TYPE_MY_CERT_EXPIRE:
+             an_timer_stop(expired_timer);
+             an_event_my_cert_renew_timer_expired();
+             break;
+
+        case AN_TIMER_TYPE_NBR_CERT_EXPIRE:
+            context = an_mgd_timer_context(expired_timer);
+            an_timer_stop(expired_timer);
+            an_event_nbr_cert_renew_timer_expired(context);
+            break;
+
+        case AN_TIMER_TYPE_CHECK_CERT_REVOKE:
+            an_timer_stop(expired_timer);
+            an_event_cert_revoke_check_timer_expired();
+            break;
+
+        case AN_TIMER_TYPE_REVALIDATE_CERT:
+            context = an_mgd_timer_context(expired_timer);
+            an_timer_stop(expired_timer);
+            an_event_nbr_cert_revalidate_timer_expired(context);
+            break;
+
+        case AN_TIMER_TYPE_CONFIG_DOWNLOAD:
+            an_timer_stop(expired_timer);
+            break;
+        case AN_TIMER_TYPE_ANRA_BS_THYSELF_RETRY:
+            an_timer_stop(expired_timer);
+            an_event_anra_bootstrap_retry_timer_expired();
             break;
 
         default:
@@ -973,66 +1168,102 @@ an_process_timer_events (an_timer *expired_timer)
     }
 }
 
-an_log_type_e an_get_log_type (uint8_t protocol_type, uint16_t msg_type)
+void an_vrf_set_name (uint32_t unit)
 {
-    switch (protocol_type) {
-        case AN_PROTO_CHANNEL_DISCOVERY:
-            switch (msg_type)  {
-                case AN_MSG_UNTRUSTED_L2_CHANNEL_HELLO_REQ:
-                case AN_MSG_UNTRUSTED_L2_CHANNEL_HELLO_RESP:
-                    return (AN_LOG_ND_PACKET);
-                default:
-                    break;
-            }
-            break;
-        case AN_PROTO_ADJACENCY_DISCOVERY:
-            switch (msg_type) {
-                case AN_MSG_ND_HELLO:
-                    return (AN_LOG_ND_PACKET);
-                default:
-                    break;
-            }
-            break;
-        case AN_PROTO_ACP:
-            switch (msg_type) {
-                case AN_MSG_ND_CERT_REQUEST:
-                case AN_MSG_ND_CERT_RESPONSE:
-                    return (AN_LOG_ND_PACKET);
-                case AN_MSG_BS_INVITE:
-                case AN_MSG_BS_REJECT:
-                case AN_MSG_BS_REQUEST:
-                case AN_MSG_BS_RESPONSE:
-                case AN_MSG_BS_ENROLL_QUARANTINE:
-                case AN_MSG_ACP_DATA:
-                case AN_MSG_NBR_CONNECT:
-                case AN_MSG_NBR_RECONNECT:
-                case AN_MSG_NBR_JOIN:
-                case AN_MSG_NBR_LEAVE:
-                case AN_MSG_NBR_LOST:
-                case AN_MSG_NBR_MODIFY:
-                    return (AN_LOG_BS_PACKET);
-                case AN_MSG_IDP_INTENT:
-                case AN_MSG_IDP_ACK:
-                case AN_MSG_IDP_INTENT_VERSION:
-                case AN_MSG_IDP_INTENT_REQUEST:
-                case AN_MSG_SERVICE_INFO:
-                case AN_MSG_SERVICE_INFO_ACK:
-                    return (AN_LOG_SRVC_PACKET);
-                default:
-                    break;
-             }
-            break;
-        default:
-            break;
-        }
-        return AN_LOG_NONCE;
+    if (unit) {
+        an_snprintf(an_vrf_info.an_vrf_name, AN_VRF_NAME_BUF_SIZE,
+                 "%s_%u", AN_VRF_NAME, unit);
+    } else {
+        an_snprintf(an_vrf_info.an_vrf_name, AN_VRF_NAME_BUF_SIZE,
+                 "%s", AN_VRF_NAME);
+    }
+}
+
+an_vrf_info_t* an_vrf_get(void)
+{
+    return (&an_vrf_info);
+}
+
+an_log_type_e an_get_log_type (an_header *header)
+{
+	if (!header) {
+		return (AN_LOG_NONE);
+	}
+
+    switch (header->protocol_type) {
+	case AN_PROTO_CHANNEL_DISCOVERY:
+	switch (header->msg_type) {
+		case AN_MSG_UNTRUSTED_L2_CHANNEL_HELLO_PROBE_REQ:
+		case AN_MSG_UNTRUSTED_L2_CHANNEL_HELLO_PROBE_RESP:
+		case AN_MSG_UNTRUSTED_L2_CHANNEL_HELLO_PROBE_ACK:
+		case AN_MSG_UNTRUSTED_L2_CHANNEL_HELLO_REFRESH:
+			return (AN_LOG_ND_PACKET);
+		default:
+			break;
+	}
+	break;
+	case AN_PROTO_ADJACENCY_DISCOVERY:
+	switch (header->msg_type) {
+		case AN_MSG_ND_HELLO:
+		case AN_MSG_ND_KEEP_ALIVE:
+			return (AN_LOG_ND_PACKET);
+		default:
+			break;
+	}
+	break;
+	case AN_PROTO_ACP:
+	switch (header->msg_type) {
+		case AN_MSG_ND_CERT_REQUEST:
+		case AN_MSG_ND_CERT_RESPONSE:
+			return (AN_LOG_ND_PACKET);
+		case AN_MSG_BS_INVITE:
+		case AN_MSG_BS_REJECT:
+		case AN_MSG_BS_REQUEST:
+		case AN_MSG_BS_RESPONSE:
+		case AN_MSG_BS_ENROLL_QUARANTINE:
+		case AN_MSG_ACP_DATA:
+		case AN_MSG_NBR_CONNECT:
+		case AN_MSG_NBR_RECONNECT:
+		case AN_MSG_NBR_JOIN:
+		case AN_MSG_NBR_LEAVE:
+		case AN_MSG_NBR_LOST:
+		case AN_MSG_NBR_MODIFY:
+			return (AN_LOG_BS_PACKET);
+		case AN_MSG_IDP_INTENT:
+		case AN_MSG_IDP_ACK:
+		case AN_MSG_IDP_INTENT_VERSION:
+		case AN_MSG_IDP_INTENT_REQUEST:
+		case AN_MSG_SERVICE_INFO:
+		case AN_MSG_SERVICE_INFO_ACK:
+			return (AN_LOG_SRVC_PACKET);
+		default:
+			break;
+	}
+	break;
+	case AN_PROTO_CNP:
+	switch (header->msg_type) {
+		case AN_MSG_CNP_SOLICIT:
+		case AN_MSG_CNP_ADVERTISEMENT:
+		case AN_MSG_CNP_PROPOSAL:
+		case AN_MSG_CNP_ACCEPT:
+		case AN_MSG_CNP_REJECT:
+		case AN_MSG_CNP_ERROR:
+		case AN_MSG_CNP_ACK:
+			return (AN_LOG_BS_PACKET);
+		default:
+			break;
+	}
+	default:
+		break;
+	}
+	return AN_LOG_NONE;
 }
 
 /*
 *  This function initializes a table indexed by ascii character code
 *  Value at each index corresponds to 6 bit code that will be used
 *  to generate SubnetID + InterfaceID part of IPv6 address to be 
-*  assigned to loopback interface 
+*  assigned to loopback interface in AN VRF 
 */
 void an_generate_address_codes(void)
 {
@@ -1133,16 +1364,19 @@ inline boolean an_addr_is_zero (const an_addr_t addr)
 }
 
 an_addr_t
-an_get_v6addr_from_names (uint8_t *domain_id, uint8_t *device_id)
+an_get_v6addr_from_names (uint8_t *domain_id, an_mac_addr *macaddress,
+                          uint8_t *device_id)
 {
     an_addr_t addr = an_site_local_prefix;
     an_v6addr_t v6addr = an_addr_get_v6addr(addr);
+    an_mac_addr macaddr[6];
+    uint8_t device_suffix_hex[2];
 
     /* set p_router_id_8 to IPv6 ADDR's 2nd byte(GROUPID), 1st is fixed 0xFD
        as in an_nw_prefix */
     uint8_t *p_router_id_8 = ((uint8_t *)&v6addr) + 1;
 
-    if (!domain_id || !device_id) {
+    if (!domain_id || !device_id || !macaddress) {
         return (AN_ADDR_ZERO);
     }
 
@@ -1150,8 +1384,16 @@ an_get_v6addr_from_names (uint8_t *domain_id, uint8_t *device_id)
 
     p_router_id_8+=5;
 
-    an_get_ipv6_interface_id_frm_device_id(device_id, p_router_id_8);
-
+    //an_get_ipv6_interface_id_frm_device_id(device_id, p_router_id_8);
+    /* For now Type and AN_area ID are zero*/
+    p_router_id_8+=2;
+    an_memset(macaddr, 0, 6);
+    an_str_convert_mac_addr_str_to_hex(macaddress, macaddr);
+    an_memcpy(p_router_id_8, macaddr, 6);
+    p_router_id_8+=6;
+    an_memset(device_suffix_hex, 0, 2);
+    an_str_get_device_suffix_in_hex(device_id, device_suffix_hex);
+    an_memcpy(p_router_id_8, device_suffix_hex, 2);
     an_addr_set_from_v6addr(&addr, v6addr);
     return (addr);
 }
@@ -1167,5 +1409,14 @@ an_get_v4addr_from_names(uint8_t *domain_id, uint8_t *device_id)
 
     an_get_ipv4_router_id_from_device_id(device_id, &router_id);
     return (router_id);
+}
+
+boolean
+an_is_setup_max_wait_reached (void)
+{
+    if (an_setup_wait_count >= AN_MAX_WAIT_COUNT_BEFORE_SETUP_ABORT) {
+        return TRUE;
+    }
+    return FALSE;
 }
 

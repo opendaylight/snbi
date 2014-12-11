@@ -21,6 +21,41 @@
 boolean an_debug_map[AN_LOG_ALL_ALL][AN_DEBUG_MAX];
 #define AN_LINUX_LOGGER_FILENAME "an_logger.log"
 #define AN_LOGGER_MAX_LINE_LEN 500
+an_log_type AN_LOG_NONE;
+an_log_type AN_LOG_ND;
+an_log_type AN_LOG_CD;
+an_log_type AN_LOG_NI;
+an_log_type AN_LOG_BS;
+an_log_type AN_LOG_ACP;
+an_log_type AN_LOG_MESSAGE;
+an_log_type AN_LOG_ANRA;
+an_log_type AN_LOG_EVENT;
+an_log_type AN_LOG_SUDI;
+an_log_type AN_LOG_TLV;
+an_log_type AN_LOG_MSG_MGR;
+an_log_type AN_LOG_IDP;
+an_log_type AN_LOG_IF;
+an_log_type AN_LOG_ERR;
+an_log_type AN_LOG_DB;
+an_log_type AN_LOG_IP;
+an_log_type AN_LOG_PAK;
+an_log_type AN_LOG_TIMER;
+an_log_type AN_LOG_AVL;
+an_log_type AN_LOG_SIGN;
+an_log_type AN_LOG_CERT;
+an_log_type AN_LOG_CLI;
+an_log_type AN_LOG_MASA;
+an_log_type AN_LOG_MEM;
+an_log_type AN_LOG_SRVC;
+an_log_type AN_LOG_TOPO;
+an_log_type AN_LOG_AAA;
+an_log_type AN_LOG_LIST;
+an_log_type AN_LOG_CNP;
+an_log_type AN_LOG_NBR_LINK;
+an_log_type AN_LOG_NTP;
+an_log_type AN_LOG_FILE;
+an_log_type AN_LOG_INTENT;
+an_log_type AN_LOG_ALL;
 
 uint64_t an_log_flag = 0;
 static boolean an_logger_initialized = FALSE;
@@ -39,6 +74,10 @@ const uint8_t * an_srvc_ntp = "AN: SRVC_NTP - ";
 const uint8_t * an_srvc_syslog = "AN: SRVC_SYSLOG - ";
 const uint8_t * an_srvc_idp = "AN: SRVC_IDP - ";
 
+const uint8_t * an_cd_event = "AN: CD_EVENT - ";
+const uint8_t * an_cd_pak = "AN: CD_PACKET - ";
+const uint8_t * an_cd_db = "AN: CD_DB - ";
+
 const uint8_t * an_timer_prefix = "AN: TIMER - ";
 const uint8_t * an_nd_prefix = "AN: ND - ";
 const uint8_t * an_cd_prefix = "AN: CD - ";
@@ -49,7 +88,7 @@ const uint8_t * an_nbr_link_prefix = "AN: NBR_LINK - ";
 const uint8_t * an_topo_prefix = "AN: TDP - ";
 const uint8_t * an_pak_prefix = "AN: TUNNEL - ";
 const uint8_t * an_ni_prefix = "AN: NI - ";
-
+const uint8_t * an_srvc_config = "AN: SRVC_CONFIG - ";
 
 const uint8_t *an_log_lev_str [] = {
     "Info",
@@ -399,5 +438,10 @@ void an_log_init (void)
 void an_log_uninit (void) 
 {
     an_logger_uninit();
+}
+
+void an_buginf (const char *fmt, ...)
+{
+            return;
 }
 

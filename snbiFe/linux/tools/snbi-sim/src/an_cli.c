@@ -46,17 +46,21 @@ int main (int argc, char *argv[])
 
 /******************************AN Config CLI's********************************/
      /*Autonomic Start/End CLI...*/
-     cli_insert(s,"snbi-start", "Enable Autonomic", an_conf_auton, false);
-     cli_insert(s,"snbi-stop", "Disable Autonomic", an_conf_no_auton, false);
-     cli_insert(s,"adjvory", "Autonomic adjacency discovery", an_conf_auton_intf, true);
+     cli_insert(s,"snbi-start", "Enable Autonomic Globally", an_conf_auton, false);
+     cli_insert(s,"snbi-stop", "Disable Autonomic Globally", an_conf_no_auton, false);
+     cli_insert(s,"snbi-intf-start", "Enable Autonomic on interface",
+             an_conf_intf_auton, false);
+     cli_insert(s,"snbi-intf-stop", "Disable Autonomic on interface",
+             an_conf_intf_no_auton, false);
+     cli_insert(s,"snbi-discovery", "Snbi Nbr Ddiscovery", an_discovery_intf, true);
 
 /******************************AN Show CLI's**********************************/
-     cli_insert(s,"show autonomic device", "Autonomic Device UDI", an_show_auton, false);
+     cli_insert(s,"show snbi device", "SNBI Device UDI", an_show_auton, false);
      cli_insert(s,"show autonomic interface", "Autonomic Interfaces", an_show_auton_intf, false);
      cli_insert(s,"show ip interfaces", "IP Interfaces", (cbk_t)an_show_intf, false);
      cli_insert(s,"show process", "Processes", an_show_proc, false);
+     cli_insert(s,"show snbi neighbors", "Neighbors", an_show_nbrs, false);
      cli_insert(s,"show ifinfowalk", "if db walk", (cbk_t)an_walk_if_db, false);
-     
     
 /**************************** AN Test CLI's ***********************************/
      cli_an_test_init(s);

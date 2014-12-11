@@ -18,8 +18,24 @@
 //#include "an_parse_linux.h" 
 
 #define AN_LOOP_VIS_BW 8000000
-
+char if_name_asked_for[IFNAMSIZ] = {0};
 extern boolean gAN_platform_is_iol;
+extern an_avl_tree  an_if_info_tree;
+
+extern int an_sockfd;
+
+const uint8_t *an_cd_state_str [] = {
+     "Init",
+     "Reuse",
+     "Probing",
+     "Active",
+     "Inactive",
+};
+
+const uint8_t * an_get_cd_state_str (an_cd_state_e state)
+{
+    return (an_cd_state_str[state]);
+}
 
 inline const uint8_t * an_if_get_short_name (an_if_t ifhndl)
 {
@@ -29,6 +45,11 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline const uint8_t * an_if_get_name (an_if_t ifhndl)
 {
+#if 0   
+    an_buffer_t *buffer;
+    an_str_get_temp_buffer(buffer);
+    if_indextoname(ifhndl, buffer->data);
+    return (buffer->data);
 /*
     uint8_t *if_name;
     if_name = (uint8_t*)an_malloc(sizeof(char) * (AN_STR_MAX_LEN)+1);
@@ -39,20 +60,36 @@ inline const uint8_t * an_if_get_name (an_if_t ifhndl)
     return(if_name);
 // Free this "if_name" in caller.
 */
+    char *if_name;
+    if_name = malloc(IFNAMSIZ); 
 
-    an_buffer_t buffer = {};
+    if_indextoname(ifhndl, if_name);
 
-    if(!an_str_get_temp_buffer(&buffer)) {
-        return NULL;
-    }
-    if_indextoname(ifhndl, buffer.data);
-
-    return (buffer.data);
+    return (if_name);
+#endif   
+    if_indextoname(ifhndl, if_name_asked_for);
+    return (if_name_asked_for);
 }
 
 inline boolean an_if_is_up (an_if_t ifhndl)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    uint8_t *iface_name = NULL;
+    struct ifreq ifr;
+
+    if (!ifhndl) {
+        return (FALSE);
+    }
+
+    iface_name = (uint8_t *)an_if_get_name(ifhndl); 
+    /* get interface name */
+    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ);
+    /* Read interface flags */
+    if (ioctl(an_sockfd, SIOCGIFFLAGS, &ifr) < 0) {
+        return (FALSE);
+    }
+    if ((ifr.ifr_flags & IFF_UP)) {
+        return (TRUE);
+    }
     return (FALSE);
 }
 
@@ -201,8 +238,13 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 an_if_services_init (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-   return;
+   an_cerrno rc = EOK;
+
+    rc = an_avl_init(&an_if_info_tree, an_if_info_compare);
+    if (CERR_IS_NOTOK(rc)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%s AN IF DB Init Failed", an_nd_event);
+    }
 }
 
 void
@@ -211,3 +253,5 @@ an_if_services_uninit (void)
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
    return;
 }
+
+

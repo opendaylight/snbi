@@ -30,14 +30,15 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return TRUE;
 }
 
-boolean an_ntp_set_peer (an_ntp_peer_param_t *ntp_peer)
+boolean an_ntp_set_peer (an_ntp_peer_param_t *ntp_peer, boolean
+        is_peer_association)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return FALSE;
 }
 
 boolean
-an_ntp_remove_peer (an_ntp_peer_param_t *ntp_peer)
+an_ntp_remove_peer (an_ntp_peer_param_t *ntp_peer, boolean is_peer_association)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return FALSE;
@@ -88,5 +89,11 @@ an_unix_time_t
 an_unix_time_get_elapsed_time(an_unix_time_t timestamp) {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
+}
+
+boolean
+an_ntp_is_system_clock_valid (void)
+{
+        return TRUE;
 }
 

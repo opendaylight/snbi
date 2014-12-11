@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_NBR_DB_H__
 #define __AN_NBR_DB_H__
 
@@ -16,18 +15,14 @@
 #include "../al/an_list.h"
 #include "an.h"
 
-typedef enum an_acp_channel_type_e_ {
-    AN_ACP_CHANNEL_NONE         = (0),
-    AN_ACP_CHANNEL_PHYSICAL     = (1 << 0),
-    AN_ACP_CHANNEL_GRE_IPV6     = (1 << 1),
-    AN_ACP_CHANNEL_VLAN         = (1 << 2),
-} an_acp_channel_type_e;
-
-typedef enum an_acp_sec_type_e_ {
-    AN_ACP_SEC_NONE             = (0),
-    AN_ACP_SEC_IPSEC            = (1 << 0),
-    AN_ACP_SEC_MACSEC           = (1 << 1),
-} an_acp_sec_type_e;
+typedef enum an_acp_secure_channel_type_e_ {
+    AN_ACP_NONE         = 0,
+    AN_ACP_NOSEC_ON_PHY = (1 << 0),
+    AN_ACP_IPSEC_ON_PHY = (1 << 1),   
+    AN_ACP_IPSEC_ON_GRE = (1 << 2),         
+    AN_ACP_NOSEC_ON_GRE = (1 << 3),             
+    AN_ACP_DIKE_ON_GRE = (1 << 4),         
+} an_acp_secure_channel_type_e;
 
 typedef enum an_acp_tunn_state_e_ {
     AN_ACP_TUNN_NONE = 0,
@@ -40,26 +35,6 @@ typedef enum an_acp_vlan_state_e_ {
     AN_ACP_VLAN_CREATED_UP,
     AN_ACP_VLAN_CREATED_DOWN,
 } an_acp_vlan_state_e;
-
-typedef struct an_acp_phy_info_t_ {
-    an_if_t ifhndl;
-} an_acp_phy_info_t;
-
-typedef struct an_acp_tunn_info_t_ {
-    an_if_t ifhndl;
-    an_acp_tunn_state_e state;
-} an_acp_tunn_info_t;
-
-typedef struct an_acp_vlan_info_t_ {
-    uint16_t number;
-    an_acp_vlan_state_e state;
-} an_acp_vlan_info_t;
-
-union an_acp_channel_spec_t {
-    an_acp_phy_info_t phy_info;
-    an_acp_tunn_info_t tunn_info;
-    an_acp_vlan_info_t vlan_info;
-};
 
 typedef struct an_acp_ipsec_info_t_ {
     uint inbound_ah_spi;
@@ -96,37 +71,73 @@ typedef struct an_acp_macsec_info_t_ {
     char an_ipsec_policy[31];
 }an_acp_macsec_info_t;
 
+typedef struct an_acp_dike_info_t_ {
+    boolean tunnel_mode;
+}an_acp_dike_info_t;
+
+typedef struct an_acp_gre_channel_info_t_ {
+    an_if_t ifhndl;
+    an_acp_tunn_state_e state;
+} an_acp_gre_channel_info_t;
+
+typedef struct an_acp_phy_channel_info_t_ {
+    an_if_t ifhndl;
+} an_acp_phy_channel_info_t;    
+
+typedef struct an_acp_vlan_channel_info_t_ {
+    uint16_t number;
+    an_acp_vlan_state_e state;
+} an_acp_vlan_channel_info_t;
+
 union an_acp_sec_spec_t {
     /* change this as required once ipsec/macsec is added */
     an_acp_ipsec_info_t ipsec_info;
     an_acp_macsec_info_t macsec_info; 
+    an_acp_dike_info_t dike_info; 
 };
 
-typedef struct an_acp_channel_info_t_ {
-    an_acp_channel_type_e channel_negotiated;
-    an_acp_channel_type_e channel_type; 
-    union an_acp_channel_spec_t channel_spec; 
-    an_acp_sec_type_e sec_negotiated;
-    an_acp_sec_type_e sec_type; 
+typedef struct an_acp_sec_on_phy_info_t_ {
+    an_acp_phy_channel_info_t phy_channel;    
     union an_acp_sec_spec_t sec_spec;
-} an_acp_channel_info_t;
+} an_acp_sec_on_phy_info_t;
 
-typedef struct an_intent_file_t_ {
-    uint32_t len;
-    uint8_t *data;
-} an_intent_file_t;
+typedef struct an_acp_nosec_on_phy_info_t_ {
+    an_acp_phy_channel_info_t phy_channel;    
+} an_acp_nosec_on_phy_info_t;
 
-/* change an_idp_hton_version() & an_idp_ntoh_version() 
- * if and when an_intent_ver_t definition is changed */
-typedef uint32_t an_intent_ver_t;
+typedef struct an_acp_sec_on_gre_info_t_ {
+    an_acp_gre_channel_info_t gre_channel;
+    union an_acp_sec_spec_t sec_spec;
+} an_acp_sec_on_gre_info_t;
 
-typedef struct an_idp_info_t_ {
-    an_intent_ver_t version;
-    an_intent_file_t file;
-    uint8_t retries_done;
-    an_timer cleanup_timer;
-} an_idp_info_t;
+typedef struct an_acp_nosec_on_gre_info_t_ {
+    an_acp_gre_channel_info_t gre_channel;
+} an_acp_nosec_on_gre_info_t;
 
+typedef struct an_acp_sec_on_vlan_info_t_ {
+    an_acp_vlan_channel_info_t vlan_channel;
+    union an_acp_sec_spec_t sec_spec;
+} an_acp_sec_on_vlan_info_t;
+
+typedef struct an_acp_nosec_on_vlan_info_t_ {
+    an_acp_vlan_channel_info_t vlan_channel;
+} an_acp_nosec_on_vlan_info_t;
+
+union an_acp_spec_t {
+    an_acp_sec_on_phy_info_t sec_phy_info;
+    an_acp_nosec_on_phy_info_t nosec_phy_info;
+    an_acp_sec_on_gre_info_t sec_gre_info;
+    an_acp_nosec_on_gre_info_t nosec_gre_info;
+};
+
+typedef struct an_acp_secure_channel_info_t_ { 
+    an_unix_time_t acp_secure_channel_negotiation_started;
+    an_acp_secure_channel_type_e sec_channel_negotiated;
+    an_acp_secure_channel_type_e sec_channel_established;
+    union an_acp_spec_t sec_channel_spec;
+    an_unix_time_t created_time;
+} an_acp_secure_channel_info_t;
+    
 typedef struct an_nbr_service_info_t_ {
     an_addr_t srvc_ip;
     an_timer cleanup_timer;
@@ -159,9 +170,12 @@ typedef struct an_nbr_link_spec_t {
  
      an_if_t local_ifhndl;
      uint8_t *nbr_if_name;
+     boolean keep_alive_received;
      an_timer cleanup_timer;
      an_addr_t ipaddr;        /* Link Address */ 
-     an_acp_channel_info_t acp_info;
+     an_acp_secure_channel_info_t acp_info;
+     an_unix_time_t added_time;
+     an_unix_time_t last_refreshed_time;
 } an_nbr_link_spec_t;
 
 typedef struct an_nbr_t_ {
@@ -173,7 +187,7 @@ typedef struct an_nbr_t_ {
     uint8_t *device_id;
     uint8_t *domain_id;
     uint16_t num_of_links;
-    an_addr_t loopbk_ipaddr; /* Actual Neighbor's address */
+    an_addr_t device_ipaddr; /* Actual Neighbor's address */
 
     /* Bootstrap Section */
     an_nbr_bs_state_e bs_state;
@@ -185,8 +199,21 @@ typedef struct an_nbr_t_ {
     an_ni_state_e ni_state;
     an_nbr_cert_type_e cert_type;
     an_cert_validation_t validation; 
+    an_unix_time_t last_validated_time;
+
+    /* Ni timer */
     an_timer cert_request_timer;
     uint8_t cert_request_retries;
+
+    /* Renewal Timer */
+    an_timer cert_expire_timer;
+    uint16_t renew_cert_poll_count;
+    an_unix_time_t my_cert_expired_time;
+    an_unix_msec_time_t  renew_cert_5perc_poll_timer;
+    an_unix_msec_time_t  renew_cert_1perc_poll_timer;
+
+    /*Cert Revalidate Timer */
+    an_timer cert_revalidate_timer;
 
     /* IDP section */
     an_idp_info_t idp_info;
@@ -196,6 +223,9 @@ typedef struct an_nbr_t_ {
 
     an_timer cleanup_timer;
     an_list_t *an_nbr_link_list;
+
+    an_unix_time_t selected_anr_reference_time;
+    an_addr_t selected_anr_addr;
 } an_nbr_t;
 
 typedef struct an_nbr_link_context_t {

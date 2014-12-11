@@ -6,16 +6,17 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_EVENT_H__
 #define __AN_EVENT_H__
 
 #include "../al/an_types.h"
 #include "an.h"
 #include "an_nbr_db.h"
+#include "an_if_mgr.h"
+#include "../al/an_cert.h"
 
 void an_event_autonomics_init(void);
-void an_event_autonomics_uninit(boolean flag);
+void an_event_autonomics_uninit(void);
 void an_event_registrar_init(void);
 void an_event_registrar_uninit(void);
 void an_event_system_configured(void);
@@ -39,10 +40,15 @@ void an_event_nbr_link_lost(an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
 void an_event_nbr_link_add(an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
 void an_event_remove_and_free_nbr(an_nbr_t *nbr);
 void an_event_nbr_params_changed(an_nbr_t *nbr, an_msg_interest_e changed);
-void an_event_nbr_refreshed(an_nbr_t *nbr);
-void an_event_device_bootstrapped(void);
-void an_event_nbr_domain_cert_validated(an_nbr_t *nbr,boolean result);
+void an_event_nbr_refreshed(an_nbr_t *nbr, an_nbr_link_spec_t *link_data);
+void an_event_nbr_domain_cert_validated(an_nbr_t *nbr);
 
+void an_event_device_bootstrapped(void);
+void an_event_device_cert_enroll_success(uchar * cert_der,
+                uint16_t cert_len, an_udi_t dest_udi,
+                an_addr_t proxy_device, an_iptable_t iptable);
+void an_event_anra_bootstrap_retry_timer_expired(void);
+void an_event_device_cert_enroll_failed(void);
 void an_event_anra_up_locally(void);
 void an_event_anra_learnt(an_addr_t ipaddr);
 void an_event_anra_reachable(void);
@@ -50,9 +56,13 @@ void an_event_anra_shut(void);
 
 void an_event_domain_ca_cert_learnt(void);
 void an_event_domain_device_cert_learnt(void);
+void an_event_domain_device_cert_renewd(void);
+void an_event_domain_device_cert_expired(void);
 
-void an_event_acp_to_nbr_created(an_nbr_t *nbr);
-void an_event_acp_to_nbr_removed(an_nbr_t *nbr);
+void an_event_acp_on_nbr_link_created(an_nbr_t *nbr, 
+                an_nbr_link_spec_t *nbr_link_data);
+void an_event_acp_on_nbr_link_removed(an_nbr_t *nbr, 
+                an_nbr_link_spec_t *nbr_link_data);
 void an_event_acp_initialized(void);
 void an_event_acp_uninitialized(void);
 void an_event_acp_negotiate_security_with_nbr_link(an_nbr_t *nbr, 
@@ -62,18 +72,33 @@ void an_event_if_autonomic_enable(an_if_t ifhndl);
 void an_event_if_autonomic_disable(an_if_t ifhndl);
 
 void an_event_clock_synchronized(void);
-void an_event_interface_activated(an_if_t ifhndl);
+void an_event_interface_activated(an_if_info_t *an_if_info);
 void an_event_interface_deactivated(an_if_t ifhndl);
 
 void an_event_acp_pre_uninitialization(void);
 
-void an_sudi_uninit(void);
-void an_sudi_init(void);
-void an_addr_generator_init(void);
-
 void an_event_generic_timer_expired(void);
+void an_event_my_cert_renew_timer_expired(void);
+void an_event_nbr_cert_renew_timer_expired(an_nbr_t *nbr);
+void an_event_clean_and_refresh_nbr_cert(an_nbr_t *nbr);
+void an_event_nbr_cert_in_validity_expired_state(an_nbr_t *nbr);
+
+void an_event_nbr_cert_revalidate_timer_expired(an_nbr_t *nbr);
+void an_event_start_revoke_check_timer(void);
+void an_event_restart_revoke_check_timer(an_unix_time_t revoke_interval);
+void an_event_set_revoke_timer_interval(uint16_t interval_in_mins);
+void an_event_cert_revoke_check_timer_expired(void);
+
+void an_event_update_nbr_cert_validation_result(
+            an_cert_validation_result_e result, an_nbr_t *nbr);
+void
+an_event_validation_cert_response_obtained(an_cert_validation_result_e status, 
+                                           void *device_ctx);
 
 void an_event_registrar_up(void);
 void an_event_registrar_shut(void);
 void an_event_no_registrar(void);
+void an_event_service_received(void *context, int value);
+void an_event_service_resolved(void *context, int value);
+void an_event_host_resolved(void *context, int value);
 #endif

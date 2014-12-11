@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_SUDI_H__
 #define __AN_SUDI_H__
 
@@ -17,7 +16,10 @@ extern boolean udi_available;
 extern boolean an_sudi_available;
 extern boolean an_sudi_initialized;
 extern an_timer an_sudi_check_timer;
+void an_sudi_init(void);
+void an_sudi_uninit(void);
 void an_sudi_check(void);
+void an_sudi_clear(void);
 uint8_t *an_sudi_get_label(void);
 boolean an_sudi_is_available(void);
 boolean an_sudi_get_cert(an_cert_t *sudi);

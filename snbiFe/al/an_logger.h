@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_LOGGER_H__
 #define __AN_LOGGER_H__
 
@@ -25,6 +24,9 @@ extern const uint8_t * an_nbr_link_prefix;
 extern const uint8_t * an_topo_prefix;
 extern const uint8_t * an_pak_prefix;
 extern const uint8_t * an_ni_prefix;
+extern const uint8_t * an_cd_event;
+extern const uint8_t * an_cd_pak;
+extern const uint8_t * an_cd_db;
 extern const uint8_t * an_nd_event;
 extern const uint8_t * an_nd_pak;
 extern const uint8_t * an_nd_db;
@@ -39,6 +41,7 @@ extern const uint8_t * an_srvc_aaa;
 extern const uint8_t * an_srvc_ntp;
 extern const uint8_t * an_srvc_syslog;
 extern const uint8_t * an_srvc_idp;
+extern const uint8_t * an_srvc_config;
 
 typedef enum an_debug_level_e_ {
     AN_DEBUG_INFO,
@@ -50,6 +53,7 @@ typedef enum an_debug_level_e_ {
 typedef struct an_debug_context_ {
     uint8_t *if_name;
     an_udi_t udi;
+    an_vrf_info_t vrf;
 } an_debug_context_t;
 
 typedef enum an_log_cfg_e_ {
@@ -87,48 +91,51 @@ typedef enum an_log_cfg_e_ {
     AN_LOG_CFG_CNP,
     AN_LOG_CFG_NTP,
     AN_LOG_CFG_FILE,
+    AN_LOG_CFG_INTENT,
     AN_LOG_CFG_ALL,
 } an_log_cfg_e;
 
 typedef uint64_t an_log_type;
 
-an_log_type AN_LOG_NONE;
-an_log_type AN_LOG_ND;
-an_log_type AN_LOG_CD;
-an_log_type AN_LOG_NI;
-an_log_type AN_LOG_BS;
-an_log_type AN_LOG_ACP;
-an_log_type AN_LOG_MESSAGE;
-an_log_type AN_LOG_ANRA;
-an_log_type AN_LOG_EVENT;
-an_log_type AN_LOG_SUDI;
-an_log_type AN_LOG_TLV;
-an_log_type AN_LOG_MSG_MGR;
-an_log_type AN_LOG_IDP;
-an_log_type AN_LOG_IF;
-an_log_type AN_LOG_ERR;
-an_log_type AN_LOG_DB;
-an_log_type AN_LOG_IP;
-an_log_type AN_LOG_PAK;
-an_log_type AN_LOG_TIMER;
-an_log_type AN_LOG_AVL;
-an_log_type AN_LOG_SIGN;
-an_log_type AN_LOG_CERT;
-an_log_type AN_LOG_CLI;
-an_log_type AN_LOG_MASA;
-an_log_type AN_LOG_MEM;
-an_log_type AN_LOG_SRVC;
-an_log_type AN_LOG_TOPO;
-an_log_type AN_LOG_AAA;
-an_log_type AN_LOG_LIST;
-an_log_type AN_LOG_CNP;
-an_log_type AN_LOG_NBR_LINK;
-an_log_type AN_LOG_NTP;
-an_log_type AN_LOG_FILE;
-an_log_type AN_LOG_ALL;
+extern an_log_type AN_LOG_NONE;
+extern an_log_type AN_LOG_ND;
+extern an_log_type AN_LOG_CD;
+extern an_log_type AN_LOG_NI;
+extern an_log_type AN_LOG_BS;
+extern an_log_type AN_LOG_ACP;
+extern an_log_type AN_LOG_MESSAGE;
+extern an_log_type AN_LOG_ANRA;
+extern an_log_type AN_LOG_EVENT;
+extern an_log_type AN_LOG_SUDI;
+extern an_log_type AN_LOG_TLV;
+extern an_log_type AN_LOG_MSG_MGR;
+extern an_log_type AN_LOG_IDP;
+extern an_log_type AN_LOG_IF;
+extern an_log_type AN_LOG_ERR;
+extern an_log_type AN_LOG_DB;
+extern an_log_type AN_LOG_IP;
+extern an_log_type AN_LOG_PAK;
+extern an_log_type AN_LOG_TIMER;
+extern an_log_type AN_LOG_AVL;
+extern an_log_type AN_LOG_SIGN;
+extern an_log_type AN_LOG_CERT;
+extern an_log_type AN_LOG_CLI;
+extern an_log_type AN_LOG_MASA;
+extern an_log_type AN_LOG_MEM;
+extern an_log_type AN_LOG_SRVC;
+extern an_log_type AN_LOG_TOPO;
+extern an_log_type AN_LOG_AAA;
+extern an_log_type AN_LOG_LIST;
+extern an_log_type AN_LOG_CNP;
+extern an_log_type AN_LOG_NBR_LINK;
+extern an_log_type AN_LOG_NTP;
+extern an_log_type AN_LOG_FILE;
+extern an_log_type AN_LOG_INTENT;
+extern an_log_type AN_LOG_ALL;
 
 typedef enum an_log_type_e_ {
     AN_LOG_NONCE,
+
     AN_LOG_ND_EVENT,
     AN_LOG_ND_PACKET,
     AN_LOG_ND_DB,
@@ -148,7 +155,13 @@ typedef enum an_log_type_e_ {
     AN_LOG_SRVC_NTP,
     AN_LOG_SRVC_SYSLOG,
     AN_LOG_SRVC_IDP,
+    AN_LOG_SRVC_TOPO,   
+    AN_LOG_SRVC_CONFIG,
     AN_LOG_SRVC_ALL,
+
+    AN_LOG_INTENT_EVENT,
+    AN_LOG_INTENT_PACKET,
+    AN_LOG_INTENT_ALL,
 
     AN_LOG_ALL_ALL,
 
@@ -179,6 +192,10 @@ typedef enum an_syslog_msg_e_ {
     AN_SYSLOG_NBR_LOST,
     AN_SYSLOG_NBR_DOMAIN_CERT_VALID,
     AN_SYSLOG_NBR_DOMAIN_CERT_INVALID,
+    AN_SYSLOG_NBR_DOMAIN_CERT_REVOKED,
+    AN_SYSLOG_NBR_DOMAIN_CERT_EXPIRED,
+    AN_SYSLOG_MY_DOMAIN_CERT_RENEWED,
+    AN_SYSLOG_MY_DOMAIN_CERT_EXPIRED,
     AN_SYSLOG_DOMAIN_KEY_GEN_FAIL,
     AN_SYSLOG_ANRA_SIGN_VERIFY_FAIL,
     AN_SYSLOG_MASA_AUTH_TOKEN_PARSE_ERROR,
@@ -190,6 +207,12 @@ typedef enum an_syslog_msg_e_ {
     AN_SYSLOG_ACP_ROUTING_INTERFACE_ENABLED,
     AN_SYSLOG_ACP_ROUTING_GLOBAL_DISABLE, 
     
+    AN_SYSLOG_ACP_VRF_GLOBAL_CREATE_SUCCESS,
+    AN_SYSLOG_ACP_VRF_INTERFACE_CREATE_SUCCESS,
+    AN_SYSLOG_ACP_VRF_GLOBAL_CREATE_FAIL,
+    AN_SYSLOG_ACP_VRF_INTERFACE_CREATE_FAIL,
+    AN_SYSLOG_ACP_VRF_GLOBAL_REMOVE, 
+
     AN_SYSLOG_ACP_CHANNEL_TO_NBR_CREATED,
     AN_SYSLOG_ACP_CHANNEL_TO_NBR_FAILED,
     AN_SYSLOG_ACP_CHANNEL_TO_NBR_REMOVED,
@@ -197,6 +220,13 @@ typedef enum an_syslog_msg_e_ {
     AN_SYSLOG_ACP_IPSEC_TO_NBR_CREATED,
     AN_SYSLOG_ACP_IPSEC_TO_NBR_FAILED,
     AN_SYSLOG_ACP_IPSEC_TO_NBR_REMOVED,
+    
+    AN_SYSLOG_ACP_DIKE_TO_NBR_CREATED,
+    AN_SYSLOG_ACP_DIKE_TO_NBR_FAILED,
+    AN_SYSLOG_ACP_DIKE_TO_NBR_REMOVED,
+    
+    AN_SYSLOG_CONFIG_DOWNLOAD_SUCCESS,
+    AN_SYSLOG_CONFIG_DOWNLOAD_FAILED,
 } an_syslog_msg_e;
 
 void an_debug_log(an_log_type_e type, an_debug_level_e lev, 
@@ -223,5 +253,4 @@ boolean an_log_is_enabled_for_type(an_log_type type);
 boolean an_debug_log_is_enabled_for_type(an_log_type_e type);
 boolean an_log_is_enabled_for_cfg(an_log_cfg_e cfg);
 boolean an_log_is_enabled(void);
-an_log_type_e an_get_log_type(uint8_t protocol_type, uint16_t msg_type);
 #endif

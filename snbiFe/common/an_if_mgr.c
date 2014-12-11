@@ -6,9 +6,9 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "an_if_mgr.h"
 #include "an_anra.h"
+#include "../al/an_misc.h"
 #include "../al/an_mem.h"
 #include "../al/an_if.h"
 #include "../al/an_timer.h"
@@ -23,7 +23,6 @@ static boolean an_if_initialized = FALSE;
 #define AN_TIMER_IF_BRING_UP_INTERVAL (10*1*1000)
 #define AN_TIMER_IF_BRING_UP_RETRY 3
 
-static uint32_t an_bring_up_all_interface_retry_count = 0;
 an_timer an_if_bring_up_timer;
 
 an_if_info_t* 
@@ -60,7 +59,7 @@ an_if_info_free (an_if_info_t *an_if_info)
     an_mem_chunk_free(&an_if_info_pool, an_if_info);
 }
 
-static an_avl_compare_e 
+an_avl_compare_e 
 an_if_info_compare (an_avl_node_t *node1, an_avl_node_t *node2)
 {
     an_if_info_t *an_if_info1 = (an_if_info_t *)node1;
@@ -152,6 +151,10 @@ an_if_info_db_search (an_if_t ifhndl, boolean force)
                              avl_type, an_if_info_compare, &an_if_info_tree); 
 
     if (!an_if_info && force) {
+        
+        if (!an_l2_check_intf_is_autonomic_possible(ifhndl)) {
+            return (NULL);
+        }
         an_if_info = an_if_info_alloc();
         if (!an_if_info) {
             return (NULL);
@@ -164,7 +167,7 @@ an_if_info_db_search (an_if_t ifhndl, boolean force)
         an_if_info->an_if_acp_info.ext_conn_state = AN_EXT_CONNECT_STATE_NO;
         an_if_info->if_cfg_autonomic_enable = TRUE;
 
-        an_if_info->efp_id        = 0;
+        an_if_info->efp_id        = AN_SERVICE_INSTANCE_START;
         an_if_info->phy_ifhndl    = 0;
         an_if_info->vlan_ifhndl   = 0;
         an_if_info->tunnel_ifhndl = 0;
@@ -181,6 +184,22 @@ an_if_info_db_search (an_if_t ifhndl, boolean force)
 
         an_if_info->an_cd_info_database = NULL;
 
+        if (CERR_IS_NOTOK(rc)) {
+            printf("\nAN CD Info DB Init Failed");
+            DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL,
+                  "\n%sAN CD Info DB Init Failed", an_nd_db);
+        }
+        if (CERR_IS_NOTOK(rc)) {
+            printf("\nAN CD Vlan DB Init Failed");
+            DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL,
+                  "\n%sAN CD Vlan DB Init Failed", an_nd_db);
+        }
+
+        an_if_info->an_if_sd_info.an_syslog_sdRef = 0;
+        an_if_info->an_if_sd_info.an_aaa_sdRef = 0;
+        an_if_info->an_if_sd_info.an_config_sdRef = 0;
+        an_if_info->an_if_sd_info.an_anr_sdRef = 0;
+
         an_if_info_db_insert(an_if_info);
     }
     return (an_if_info);
@@ -195,19 +214,19 @@ an_if_info_db_walk (an_avl_walk_f walk_func, void *args)
                           an_if_info_compare, args, &an_if_info_tree);    
 }
 
-an_walk_e
+an_avl_walk_e
 an_if_info_db_init_cb (an_avl_node_t *node, void *args)
 {
     an_if_info_t *an_if_info = (an_if_info_t *)node;
 
     if (!an_if_info) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
 
     an_if_info_db_remove(an_if_info);
     an_if_info_free(an_if_info);
 
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -288,17 +307,19 @@ an_if_is_autonomic_tunnel (an_if_t tunn_ifhndl)
     return (TRUE);
 }
 
-boolean 
-an_if_platform_specific_cfg_cb (an_if_t ifhndl, void *data)
+boolean
+an_should_bring_up_interfaces (void)
 {
-    if (!ifhndl) {
-        return (FALSE);
+    if (!an_is_startup_config_exists()) {
+        /* There is no startup-config, hence go ahead and bringup interfaces
+         */
+        return (TRUE);
     }
-    an_if_platform_specific_cfg(ifhndl);
-    return (TRUE);
+
+    return (FALSE);
 }
 
-static boolean 
+boolean 
 an_if_noshut_cb (an_if_t ifhndl, void *data)
 {
     if (!ifhndl) {
@@ -316,99 +337,46 @@ an_if_noshut_cb (an_if_t ifhndl, void *data)
     return (TRUE);
 }
 
-void
-an_if_bring_up_all (void)
-{
-    if (!is_an_initialised()) {
-        an_timer_start(&an_if_bring_up_timer, 
-                       AN_TIMER_IF_BRING_UP_INTERVAL);
-        an_bring_up_all_interface_retry_count++;
-        if (an_bring_up_all_interface_retry_count >=
-                AN_TIMER_IF_BRING_UP_RETRY) {
-            /*
-             * TODO: Temp Fix
-             */
-            an_platform_specific_init();
-            an_if_walk(an_if_platform_specific_cfg_cb, NULL);
-            platform_ready = TRUE;
-        }
-        return;
-    } 
-
-
-    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
-        "\n%sPlatform ready bring up", an_nd_event);
-
-    an_platform_specific_init();
-    an_if_walk(an_if_platform_specific_cfg_cb, NULL);
-
-    /*
-     * Bring UP interfaces to be UP state only if 
-     * there is no startup configuration.
-     */
-    if (an_should_bring_up_interfaces()) {
-        an_if_walk(an_if_noshut_cb, NULL);
-    } else {
-        platform_ready = TRUE;
-    }
-}
-
 static boolean 
 an_if_is_initialized (void)
 {
     return (an_if_initialized);
 }
 
-void
-an_if_enable (void)
-{   
-    if (an_if_is_initialized()) {
-        return;
-    }
+boolean
+an_if_info_create_cb (an_if_t ifhndl, void *data)
+{
+    an_if_info_db_search(ifhndl, TRUE);
     
-    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
-                 "\n%sBringing UP all the interfaces", an_nd_event); 
-    an_bring_up_all_interface_retry_count  = 0;
-    an_timer_init(&an_if_bring_up_timer, AN_TIMER_TYPE_IF_BRING_UP, 
-                  NULL, FALSE);
-    an_timer_start(&an_if_bring_up_timer, AN_TIMER_IF_BRING_UP_INTERVAL);
-
-    an_if_initialized = TRUE;
-    
+    return (TRUE);
 }
 
 void 
 an_if_init (void)
 {
-    an_cerrno rc = EOK;
-
-    rc = an_avl_init(&an_if_info_tree, an_if_info_compare);
-    if (CERR_IS_NOTOK(rc)) {
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                 "\n%s AN IF DB Init Failed", an_nd_event);
+    if (an_if_is_initialized()) {
+        return;
     }
 
-    an_if_services_init();
+    /* Creata an_if_info for all the interfaces first */
+    an_if_walk(an_if_info_create_cb, NULL);
+
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sBringing UP all the interfaces", an_nd_event);
+    an_if_initialized = TRUE;
+
 }
 
 void 
 an_if_uninit (void)
 {
-    an_if_services_uninit();
-    an_avl_uninit(&an_if_info_tree);
-}
-
-void
-an_if_disable (void)
-{
-   
     if (!an_if_is_initialized()) {
         return;
     }
+
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                  "\n%sStop timer to bring up all interfaces", an_nd_event);
-    an_bring_up_all_interface_retry_count  = 0;
-    an_timer_stop(&an_if_bring_up_timer);
+
     an_avl_uninit(&an_if_info_tree);
     an_if_initialized = FALSE;
 }

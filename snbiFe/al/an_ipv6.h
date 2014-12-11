@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_IPV6_H__
 #define __AN_IPV6_H__
 
@@ -25,7 +24,7 @@ inline an_v6addr_t an_ipv6_get_ll(an_if_t ifhndl);
 inline boolean an_ipv6_join_mld_group(an_if_t ifhndl, an_v6addr_t *group_addr);
 inline boolean an_ipv6_leave_mld_group(an_if_t ifhndl, an_v6addr_t *group_addr);
 inline boolean an_ipv6_preroute_pak (an_pak_t *pak, an_if_t ifhndl, an_addr_t nhop);
-inline boolean an_ipv6_forward_pak(an_pak_t *pak);
+boolean an_ipv6_forward_pak(an_pak_t *pak,uint8_t *msg_block,uint32_t *msg_pk,uint16_t msgb_len);
 inline uint16_t an_ipv6_calculate_cksum(const an_ipv6_hdr_t *ipv6_hdr, 
                          const void *ulp_hdr, uint8_t ulp);
 
@@ -47,14 +46,19 @@ inline void an_ipv6_hdr_set_paylen(an_ipv6_hdr_t *ipv6_hdr, uint16_t plen);
 void an_rwatch_cb(void *app_ctx);
 boolean an_rwatch_init(void);
 boolean an_rwatch_uninit(void);
-void an_rwatch_start_track_ipaddr(an_addr_t ipadr, an_afi_t af, an_iptable_t iptable);
+void an_rwatch_start_track_ipaddr(an_addr_t ipadr, an_afi_t af, 
+								  an_iptable_t iptable);
 void an_rwatch_stop_track_ipaddr(void);
 
+void an_ip_routing_enable(void);
 void an_ipv6_routing_start_global_unicast(void);
 void an_ipv6_routing_stop_global_unicast(void);
 void an_ipv6_unicast_routing_enable_disable_register(void);
 void an_ipv6_unicast_routing_enable_disable_unregister(void);
 void an_ipv6_unicast_routing_enable_disable_cb(boolean);
-
+an_list_t* an_ipv6_get_list_of_ipv6_addresses_on_interface(an_if_t ifhndl);
+void an_ipv6_set_and_clean_v6addr_on_interface_and_nvgen(an_list_t *list, 
+														an_if_t ifhndl);
+void an_ipv6_clean_all_v6addr_on_interface(an_list_t *list, an_if_t ifhndl);
 
 #endif

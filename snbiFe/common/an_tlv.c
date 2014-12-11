@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "an.h"
 #include "an_tlv.h"
 #include "an_acp.h"
@@ -15,88 +14,96 @@
 #include "../al/an_mem.h"
 #include "../al/an_str.h"
 
+extern an_log_type_e an_get_log_type (an_header *header);
 
-static const uint8_t *an_tlv_type_str[] = {
-    
+static const uint8_t *an_cd_tlv_type_str[] = {
     "Invalid",
     "Udi",
-    "Nonce",
-    "Certificate",
+    "IF Name",
+    "Dest Udi",
+    "Max",
+};
+
+static const uint8_t *an_nd_tlv_type_str[] = {
+    "Invalid",
+    "Udi",
     "Device Id",
     "Domain Id",
-    "IF IPAddr",
+    "Device V4addr",
+    "Device V6addr",
+    "IF V4addr",
+    "IF V6addr",
     "IF Name",
-    "Dev IPAddr",
-    "AN Registrar IPAddr",
-    "Registrar Sign",
-    "N/w Prefix",
-    "Routing Cfg",
-    "Cert Req",
+    "Max",
+};
+
+
+static const uint8_t *an_bs_tlv_type_str[] = {
+    "Invalid",
+    "Udi",
+    "Device Id",
+    "Domain Id",
+    "IF V4addr",
+    "IF V6addr",
+    "Unsigned Cert Req",
     "Cert Req Sign",
     "Cert Response",
     "Public Key",
-    "Idp Version",
-    "ACP Payload",
-    "Masa Sign",
+    "Registrar V4addr",
+    "Registrar V6addr",
+    "Registrar Sign",
+    "Sudi Cert",
+    "Domain Cert",
+    "Registrar Cert",   
+    "CA Cert",
+    "Registrar ID", 
+    "MASA Sign",
+    "Payload",
+    "Dest Udi",
     "Service",
+    "IDP version",
+	"Signed Cert Request",
+    "Max",
 };
+
+static const uint8_t *an_cnp_tlv_type_str[] = {
+    "Invalid",
+    "CNP Capability",
+    "CNP Error",
+    "Max",
+};
+
 
 const uint8_t * 
-an_tlv_get_tlv_type_str (uint8_t *tlv) 
+an_tlv_get_tlv_type_str (uint8_t *tlv, an_protocol_type_e proto_type) 
 {
-    return (an_tlv_type_str[an_tlv_get_type(tlv)]);
+    if (proto_type == AN_PROTO_CHANNEL_DISCOVERY) {
+        return (an_cd_tlv_type_str[an_tlv_get_type(tlv)]);
+    }
+    
+    if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+        return (an_nd_tlv_type_str[an_tlv_get_type(tlv)]);
+    }
+    
+    if (proto_type == AN_PROTO_ACP) {
+        return (an_bs_tlv_type_str[an_tlv_get_type(tlv)]);
+    }
+            
+    if (proto_type == AN_PROTO_CNP) {
+        return (an_cnp_tlv_type_str[an_tlv_get_type(tlv)]);
+    }
+    
+    return ("Invalid");
 }
 
-static const uint8_t *an_tlv_subtype_str[][4] = {
-    
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Sudi", "Domain Cert", "Registrar Cert" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "IPv4 Addr", "IPv6 Addr", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "OSPF", "EIGRP", "IS-IS" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "RSA", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "Default", "Default", "Default", "Default" },
-    { "AAA", "MAX" },
-    { "Default", "Default", "Default", "Default" }
-
-};
-    
-const uint8_t *an_tlv_get_tlv_subtype_str(uint8_t *tlv) 
-{
-    return (an_tlv_subtype_str[an_tlv_get_type(tlv)][an_tlv_get_subtype(tlv)]);
-}
-    
-uint8_t
+uint8_t 
 an_tlv_get_type (uint8_t *tlv) {
             
     if (!tlv) {
         return (0);
     }
     
-    return (an_ntoh_1_byte(tlv + TLV_BYTE_OFFSET_TYPE));
-}
-
-uint8_t 
-an_tlv_get_subtype (uint8_t *tlv)
-{
-    if (!tlv) {
-        return (0);
-    }
-    
-    return (an_ntoh_1_byte(tlv + TLV_BYTE_OFFSET_STYPE));
+    return (an_ntoh_2_bytes(tlv + TLV_BYTE_OFFSET_TYPE));
 }
 
 uint16_t 
@@ -130,7 +137,7 @@ an_tlv_get_next_tlv (uint8_t *tlv)
 }
 
 void
-an_tlv_compose (uint8_t *buffer, uint8_t type, uint8_t stype, 
+an_tlv_compose (uint8_t *buffer, uint16_t type, 
                 uint16_t value_length, uint8_t* value)
 {
     uint8_t *tlv = NULL;
@@ -138,23 +145,14 @@ an_tlv_compose (uint8_t *buffer, uint8_t type, uint8_t stype,
     if (!buffer) {
         return;
     }
-    //TBD- will not get header like this - call an_msg_mgr_parse_header
-
-//    an_log_type_e log;
-//    log = an_get_log_type((an_header *)buffer);
     
     tlv = buffer;
 
-    tlv = an_hton_1_byte_and_move(tlv, type);
-    tlv = an_hton_1_byte_and_move(tlv, stype);
+    tlv = an_hton_2_bytes_and_move(tlv, type);
     tlv = an_hton_2_bytes_and_move(tlv, value_length + AN_TLV_HDR_SIZE);
-    an_memcpy_guard(tlv, value, value_length);
-    
-  /*  DEBUG_AN_LOG(log, AN_DEBUG_INFO, NULL, "\n%sComposed TLV of Type %s, "
-                "Tlv Subtype - %s, Len = %d", 
-                an_get_log_str(log), an_tlv_get_tlv_type_str(buffer), 
-                an_tlv_get_tlv_subtype_str(buffer), an_tlv_get_length(buffer));
-  */
+    if (value_length) {    
+        an_memcpy_guard_s(tlv, value_length, value, value_length);
+    }
 }
 
 uint8_t *
@@ -167,7 +165,7 @@ an_header_compose_and_move (uint8_t *buffer, an_header header)
         return (NULL);
     }
 
-    log = an_get_log_type(header.protocol_type, header.msg_type);
+    log = an_get_log_type(&header);
     
     buffer_p = buffer;    
 
@@ -179,6 +177,8 @@ an_header_compose_and_move (uint8_t *buffer, an_header header)
     buffer_p = an_hton_1_byte_and_move(buffer_p, header.hop_limit);
     buffer_p = an_hton_2_bytes_and_move(buffer_p, header.msg_type);
     buffer_p = an_hton_2_bytes_and_move(buffer_p, header.length);
+    buffer_p = an_hton_2_bytes_and_move(buffer_p, header.msg_num);
+    buffer_p = an_hton_2_bytes_and_move(buffer_p, header.reserved_2);
     
     DEBUG_AN_LOG(log, AN_DEBUG_INFO, NULL, 
                  "\n%sComposed AN header of len = [%d] bytes" , 
@@ -188,8 +188,11 @@ an_header_compose_and_move (uint8_t *buffer, an_header header)
 }
 
 uint8_t *
-an_tlv_compose_udi_and_move (uint8_t *buffer, an_udi_t udi)
+an_tlv_compose_udi_and_move (uint8_t *buffer, an_udi_t udi, 
+                             uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
+
     if (!buffer) {
         return (NULL);
     }
@@ -198,71 +201,94 @@ an_tlv_compose_udi_and_move (uint8_t *buffer, an_udi_t udi)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_UDI, 1, 
-                   udi.len, udi.data);
+    if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+        tlv_type = AN_ND_TLV_TYPE_UDI;
+    } else if (proto_type == AN_PROTO_ACP) {
+        tlv_type = AN_BS_TLV_TYPE_UDI;
+    }
+
+    an_tlv_compose(buffer, tlv_type, udi.len, udi.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_sudi_and_move (uint8_t *buffer, an_cert_t sudi)
+an_tlv_compose_sudi_and_move (uint8_t *buffer, an_cert_t sudi, 
+                              uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
     }
     
-    an_tlv_compose(buffer, AN_TLV_TYPE_CERTIFICATE, AN_TLV_STYPE_SUDI, 
-                   sudi.len, sudi.data);
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_SUDI_CERTIFICATE, sudi.len, sudi.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_domain_cert_and_move (uint8_t *buffer, an_cert_t domain_cert)
+an_tlv_compose_domain_cert_and_move (uint8_t *buffer, an_cert_t domain_cert,
+                                     uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
     }
     
-    an_tlv_compose(buffer, AN_TLV_TYPE_CERTIFICATE, AN_TLV_STYPE_DOMAIN_CERT, 
-                   domain_cert.len, domain_cert.data);
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_DOMAIN_CERTIFICATE, domain_cert.len, 
+                   domain_cert.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_device_id_and_move (uint8_t *buffer, uint8_t *device_id)
+an_tlv_compose_device_id_and_move (uint8_t *buffer, uint8_t *device_id, 
+                                   uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
     if (!buffer) {
         return (NULL);
     }
     
-    an_tlv_compose(buffer, AN_TLV_TYPE_DEVICE_ID, 1, 
+    if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+        tlv_type = AN_ND_TLV_TYPE_DEVICE_ID;
+    } else if (proto_type == AN_PROTO_ACP) {
+        tlv_type = AN_BS_TLV_TYPE_DEVICE_ID;
+    }
+
+    an_tlv_compose(buffer, tlv_type, 
                    1+an_strlen(device_id), device_id);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_domain_id_and_move (uint8_t *buffer, uint8_t *domain_id)
+an_tlv_compose_domain_id_and_move (uint8_t *buffer, uint8_t *domain_id, 
+                                   uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
     if (!buffer) {
         return (NULL);
     }
     
-    an_tlv_compose(buffer, AN_TLV_TYPE_DOMAIN_ID, 1, 
+    if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+        tlv_type = AN_ND_TLV_TYPE_DOMAIN_ID;
+    } else if (proto_type == AN_PROTO_ACP) {
+        tlv_type = AN_BS_TLV_TYPE_DOMAIN_ID;
+    }
+
+    an_tlv_compose(buffer, tlv_type, 
                    1+an_strlen(domain_id), domain_id);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_if_ipaddr_and_move (uint8_t *buffer, an_addr_t address)
+an_tlv_compose_if_ipaddr_and_move (uint8_t *buffer, an_addr_t address, 
+                                   uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
     an_v4addr_t v4addr = AN_V4ADDR_ZERO;
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
     uint8_t *addr = NULL;
-    uint8_t stype = 0;
 
     if (!buffer) {
         return (NULL);
@@ -271,39 +297,62 @@ an_tlv_compose_if_ipaddr_and_move (uint8_t *buffer, an_addr_t address)
     if (an_addr_is_v4(address)) {
         v4addr = an_addr_v4ton(address); 
         addr = (uint8_t *)&v4addr;
-        stype = AN_TLV_STYPE_IPV4_ADDR;
-        an_tlv_compose(buffer, AN_TLV_TYPE_IF_IPADDR, stype, 
+
+        if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+            tlv_type = AN_ND_TLV_TYPE_IF_V4ADDR;
+        } else if (proto_type == AN_PROTO_ACP) {
+            tlv_type = AN_BS_TLV_TYPE_IF_V4ADDR;
+        }
+
+        an_tlv_compose(buffer, tlv_type,
                        sizeof(v4addr), addr);
     } else {
         v6addr = an_addr_v6ton(address); 
         addr = (uint8_t *)&v6addr;
-        stype = AN_TLV_STYPE_IPV6_ADDR;
-        an_tlv_compose(buffer, AN_TLV_TYPE_IF_IPADDR, stype, 
+
+        if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+            tlv_type = AN_ND_TLV_TYPE_IF_V6ADDR;
+        } else if (proto_type == AN_PROTO_ACP) {
+            tlv_type = AN_BS_TLV_TYPE_IF_V6ADDR;
+        }
+
+        an_tlv_compose(buffer, tlv_type,
                        sizeof(v6addr), addr);
     }
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_if_name_and_move (uint8_t *buffer, uint8_t *if_name)
+an_tlv_compose_if_name_and_move (uint8_t *buffer, uint8_t *if_name, 
+                                 uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
+
     if (!buffer) {
         return (NULL);
     }
     
-    an_tlv_compose(buffer, AN_TLV_TYPE_IF_NAME, 1, 
-                   1 + an_strnlen(if_name, 99), if_name);
+    if (proto_type == AN_PROTO_CHANNEL_DISCOVERY) {
+        tlv_type = AN_CD_TLV_TYPE_IF_NAME;
+    } else if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+        tlv_type = AN_ND_TLV_TYPE_IF_NAME;
+    }
+
+    
+    an_tlv_compose(buffer, tlv_type, 
+                   1 + an_strnlen_s(if_name, 99), if_name);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_device_ipaddr_and_move (uint8_t *buffer, an_addr_t address)
+an_tlv_compose_device_ipaddr_and_move (uint8_t *buffer, an_addr_t address, 
+                                       uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
     an_v4addr_t v4addr = AN_V4ADDR_ZERO;
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
     uint8_t *addr = NULL;
-    uint8_t stype = 0;
 
     if (!buffer) {
         return (NULL);
@@ -312,26 +361,30 @@ an_tlv_compose_device_ipaddr_and_move (uint8_t *buffer, an_addr_t address)
     if (an_addr_is_v4(address)) {
         v4addr = an_addr_v4ton(address); 
         addr = (uint8_t *)&v4addr;
-        stype = AN_TLV_STYPE_IPV4_ADDR;
-        an_tlv_compose(buffer, AN_TLV_TYPE_DEVICE_IPADDR, stype, 
-                       sizeof(v4addr), addr);
+        if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+            tlv_type = AN_ND_TLV_TYPE_DEVICE_V4ADDR;
+        }
+        
+        an_tlv_compose(buffer, tlv_type, sizeof(v4addr), addr);
     } else {
         v6addr = an_addr_v6ton(address); 
         addr = (uint8_t *)&v6addr;
-        stype = AN_TLV_STYPE_IPV6_ADDR;
-        an_tlv_compose(buffer, AN_TLV_TYPE_DEVICE_IPADDR, stype, 
-                       sizeof(v6addr), addr);
+        if (proto_type == AN_PROTO_ADJACENCY_DISCOVERY) {
+            tlv_type = AN_ND_TLV_TYPE_DEVICE_V6ADDR;
+        }
+        an_tlv_compose(buffer, tlv_type, sizeof(v6addr), addr);
     }
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_anra_ipaddr_and_move (uint8_t *buffer, an_addr_t address)
+an_tlv_compose_anra_ipaddr_and_move (uint8_t *buffer, an_addr_t address, 
+                                     uint8_t proto_type)
 {
+    uint16_t tlv_type = 0;
     an_v4addr_t v4addr = AN_V4ADDR_ZERO;
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
     uint8_t *addr = NULL;
-    uint8_t stype = 0;
 
     if (!buffer) {
         return (NULL);
@@ -340,21 +393,24 @@ an_tlv_compose_anra_ipaddr_and_move (uint8_t *buffer, an_addr_t address)
     if (an_addr_is_v4(address)) {
         v4addr = an_addr_v4ton(address); 
         addr = (uint8_t *)&v4addr;
-        stype = AN_TLV_STYPE_IPV4_ADDR;
-        an_tlv_compose(buffer, AN_TLV_TYPE_ANRA_IPADDR, stype, 
-                       sizeof(v4addr), addr);
+        if (proto_type == AN_PROTO_ACP) {
+            tlv_type = AN_BS_TLV_TYPE_ANRA_V4ADDR;
+        }
+        an_tlv_compose(buffer, tlv_type, sizeof(v4addr), addr);
     } else {
         v6addr = an_addr_v6ton(address); 
         addr = (uint8_t *)&v6addr;
-        stype = AN_TLV_STYPE_IPV6_ADDR;
-        an_tlv_compose(buffer, AN_TLV_TYPE_ANRA_IPADDR, stype, 
-                       sizeof(v6addr), addr);
+        if (proto_type == AN_PROTO_ACP) {
+            tlv_type = AN_BS_TLV_TYPE_ANRA_V6ADDR;
+        }
+        an_tlv_compose(buffer, tlv_type, sizeof(v6addr), addr);
     }
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_anra_sign_and_move (uint8_t *buffer, an_sign_t sign)
+an_tlv_compose_anra_sign_and_move (uint8_t *buffer, an_sign_t sign, 
+                                   uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
@@ -364,12 +420,13 @@ an_tlv_compose_anra_sign_and_move (uint8_t *buffer, an_sign_t sign)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_ANRA_SIGN, 1, sign.len, sign.data);
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_ANRA_SIGN, sign.len, sign.data);
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_masa_sign_and_move (uint8_t *buffer, an_sign_t sign)
+an_tlv_compose_masa_sign_and_move (uint8_t *buffer, an_sign_t sign, 
+                                   uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
@@ -379,12 +436,13 @@ an_tlv_compose_masa_sign_and_move (uint8_t *buffer, an_sign_t sign)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_MASA_SIGN, 1, sign.len, sign.data);
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_MASA_SIGN, sign.len, sign.data);
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_anra_cert_and_move (uint8_t *buffer, an_cert_t anra_cert)
+an_tlv_compose_anra_cert_and_move (uint8_t *buffer, an_cert_t anra_cert, 
+                                   uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
@@ -394,14 +452,34 @@ an_tlv_compose_anra_cert_and_move (uint8_t *buffer, an_cert_t anra_cert)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_CERTIFICATE, AN_TLV_STYPE_ANRA_CERT, 
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_ANRA_CERTIFICATE,
                    anra_cert.len, anra_cert.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_ospf_cfg_and_move (uint8_t *buffer, an_routing_cfg_t routing_info)
+an_tlv_compose_ca_cert_and_move (uint8_t *buffer, an_cert_t ca_cert, 
+                                 uint8_t proto_type)
+{
+    if (!buffer) {
+        return (NULL);
+    }
+    
+    if (!ca_cert.data || !ca_cert.len) {
+        return (buffer);
+    }
+
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_CA_CERTIFICATE,
+                   ca_cert.len, ca_cert.data);
+
+    return (an_tlv_get_next_tlv(buffer));
+}
+
+#if 0
+uint8_t *
+an_tlv_compose_ospf_cfg_and_move (uint8_t *buffer, an_routing_cfg_t routing_info,
+                                  uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
@@ -411,14 +489,16 @@ an_tlv_compose_ospf_cfg_and_move (uint8_t *buffer, an_routing_cfg_t routing_info
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_ROUTING_CFG, AN_TLV_STYPE_OSPF,
+    an_tlv_compose(buffer, AN_TLV_TYPE_ROUTING_CFG,
                    sizeof(an_routing_cfg_t), (uint8_t *)&routing_info);
 
     return (an_tlv_get_next_tlv(buffer));
 }
+#endif
 
 uint8_t *
-an_tlv_compose_cert_request_and_move (uint8_t *buffer, an_cert_req_t cert_req)
+an_tlv_compose_unsigned_cert_request_and_move (uint8_t *buffer, an_cert_req_t cert_req, 
+                                      uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
@@ -428,14 +508,34 @@ an_tlv_compose_cert_request_and_move (uint8_t *buffer, an_cert_req_t cert_req)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_CERT_REQ, 1, 
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_UNSIGNED_CERT_REQ, 
                    cert_req.len, cert_req.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_cert_req_sign_and_move (uint8_t *buffer, an_sign_t cert_req_sign)
+an_tlv_compose_signed_cert_request_and_move (uint8_t *buffer, 
+						an_cert_req_t signed_cert_req, 
+						uint8_t proto_type)
+{
+    if (!buffer) {
+        return (NULL);
+    }
+    
+    if (!signed_cert_req.data || !signed_cert_req.len) {
+        return (buffer);
+    }
+
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_SIGNED_CERT_REQ, 
+                   signed_cert_req.len, signed_cert_req.data);
+
+    return (an_tlv_get_next_tlv(buffer));
+}
+
+uint8_t *
+an_tlv_compose_cert_req_sign_and_move (uint8_t *buffer, an_sign_t cert_req_sign,
+									   uint8_t proto)
 {
     if (!buffer) {
         return (NULL);
@@ -445,14 +545,15 @@ an_tlv_compose_cert_req_sign_and_move (uint8_t *buffer, an_sign_t cert_req_sign)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_CERT_REQ_SIGN, 1, 
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_CERT_REQ_SIGN,
                    cert_req_sign.len, cert_req_sign.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_public_key_and_move (uint8_t *buffer, an_key_t public_key)
+an_tlv_compose_public_key_and_move (uint8_t *buffer, an_key_t public_key, 
+                                    uint8_t proto_type)
 {
     if (!buffer) {
         return (NULL);
@@ -462,14 +563,15 @@ an_tlv_compose_public_key_and_move (uint8_t *buffer, an_key_t public_key)
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_PUBLIC_KEY, 1, 
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_PUBLIC_KEY, 
                    public_key.len, public_key.data);
 
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
-an_tlv_compose_intent_version_and_move (uint8_t *buffer, an_intent_ver_t version)
+an_tlv_compose_intent_version_and_move (uint8_t *buffer, an_intent_ver_t version,
+                                        uint8_t proto_type)
 {
     an_intent_ver_t version_in_nw_order = 0;
 
@@ -481,7 +583,7 @@ an_tlv_compose_intent_version_and_move (uint8_t *buffer, an_intent_ver_t version
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_IDP_VERSION, 1, 
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_IDP_VERSION, 
                    sizeof(an_intent_ver_t), (uint8_t *)&version_in_nw_order);
 
     return (an_tlv_get_next_tlv(buffer));
@@ -489,13 +591,12 @@ an_tlv_compose_intent_version_and_move (uint8_t *buffer, an_intent_ver_t version
 
 uint8_t *
 an_tlv_compose_service_info_data_and_move (uint8_t *buffer, 
-            an_service_info_t *srvc_info)
+            an_service_info_t *srvc_info, uint8_t proto_type)
 {
     an_v4addr_t v4addr = AN_V4ADDR_ZERO;
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
     uint8_t *addr = NULL;
     uint8_t addr_len = 0;
-    uint8_t stype = 0;
 
     if (!buffer) {
         return (NULL);
@@ -506,7 +607,6 @@ an_tlv_compose_service_info_data_and_move (uint8_t *buffer,
         an_log(AN_LOG_SRVC,"\n%sInvalid Service type", an_srvc_prefix);
         return (buffer);
     }
-    stype = AN_TLV_STYPE_AAA + srvc_info->srvc_type;
 
     if (!an_addr_get_len(srvc_info->srvc_ip)) {
          /* Return unchanged buffer */
@@ -525,17 +625,52 @@ an_tlv_compose_service_info_data_and_move (uint8_t *buffer,
         return (buffer);
     }
 
-    an_log(AN_LOG_SRVC,"\n%sComposing tlv for service info stype = %d addr_len = %d", 
-            an_srvc_prefix, stype, addr_len); 
-    an_tlv_compose(buffer, AN_TLV_TYPE_SERVICE, stype,
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_SERVICE,
               addr_len, addr);
     
     return (an_tlv_get_next_tlv(buffer));
 }
 
 uint8_t *
+an_tlv_compose_cnp_error_data_and_move (uint8_t *buffer,
+                                        an_cnp_cap_error_t cnp_error,
+                                        uint8_t proto_type)
+{
+    if (!buffer) {
+        return (NULL);
+    }
+    
+    if (!cnp_error.data || !cnp_error.len) {
+        return (buffer);
+    }
+    
+    an_tlv_compose(buffer, AN_CNP_TLV_TYPE_ERROR, 
+                   cnp_error.len, cnp_error.data);
+
+    return (an_tlv_get_next_tlv(buffer));
+}
+
+uint8_t * 
+an_tlv_compose_cnp_capability_data_and_move (uint8_t *buffer,
+                                             an_cnp_capability_t cnp_capability,
+                                             uint8_t proto_type) 
+{
+    if (!buffer) {
+        return (NULL);
+    }
+    
+    if (!cnp_capability.data || !cnp_capability.len) {
+        return (buffer);
+    }
+    
+    an_tlv_compose(buffer, AN_CNP_TLV_TYPE_CAPABILITY,
+                   cnp_capability.len, cnp_capability.data);
+    return (an_tlv_get_next_tlv(buffer));
+}
+
+uint8_t *
 an_tlv_compose_acp_client_data_and_move (uint8_t *buffer, 
-            an_payload_t payload)
+            an_payload_t payload, uint8_t proto_type)
 {
 
     if (!buffer) {
@@ -546,8 +681,22 @@ an_tlv_compose_acp_client_data_and_move (uint8_t *buffer,
         return (buffer);
     }
 
-    an_tlv_compose(buffer, AN_TLV_TYPE_ACP_PAYLOAD, 1,
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_ACP_PAYLOAD,
                    payload.len, payload.data);
     
+    return (an_tlv_get_next_tlv(buffer));
+}
+
+uint8_t *
+an_tlv_compose_anr_id_and_move(uint8_t *buffer, an_mac_addr *mac_address, 
+                               uint8_t proto_type)
+{
+    if (!buffer) {
+        return (NULL);
+    }
+
+    an_tlv_compose(buffer, AN_BS_TLV_TYPE_ANR_ID,
+                   1+an_strlen(mac_address), mac_address);
+
     return (an_tlv_get_next_tlv(buffer));
 }

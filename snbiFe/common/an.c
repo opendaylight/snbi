@@ -6,13 +6,13 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "../al/an_types.h"
 #include "../al/an_logger.h"
 #include "../al/an_addr.h"
 #include "../al/an_ipv6.h"
 #include "../al/an_if.h"
 #include "../al/an_cert.h"
+#include "../al/an_ntp.h"
 #include "../al/an_sudi.h"
 #include "../al/an_mem.h"
 #include "../al/an_misc.h"
@@ -20,6 +20,7 @@
 #include "../al/an_tunnel.h"
 #include "../al/an_timer.h"
 #include "../al/an_str.h"
+#include "../al/an_aaa.h"
 #include "an.h"
 #include "an_nd.h"
 #include "an_nbr_db.h"
@@ -28,14 +29,18 @@
 #include "an_anra.h"
 #include "an_bs.h"
 #include "an_anra_db.h"
-//#include "an_topo_disc.h"
+#include "an_topo_disc.h"
 #include "an_if_mgr.h"
+#include "an_ni.h"
+/* Need to remove this include */
+//#include "../ios/an_parse_ios.h"
 
-extern boolean global_ike_cli_executed_by_an;
+extern const uint8_t *an_cert_enum_get_string(an_cert_api_ret_enum enum_type);
 
-boolean global_cfg_autonomic_enable = FALSE;
+an_global_cfg_state_e global_cfg_autonomic_enable = AN_GLOBAL_CFG_STATE_DEFAULT;
 
 boolean global_dev_id_set = FALSE;
+boolean global_dev_url_set = FALSE;
 boolean global_dom_id_set = FALSE;
 boolean g_an_rpl_float_root = TRUE;
 
@@ -77,6 +82,7 @@ static const uint8_t *an_msg_name_s[] = {
     "CNP Reject",
     "CNP Error",
     "CNP Ack",
+    "ND KeepAlive"
 };
 
 an_info_t an_info = {{0}};
@@ -125,19 +131,30 @@ an_get_udi (an_udi_t *udi)
 }
 
 boolean
-an_get_domain_cert (an_cert_t *domain_cert)
-{
-    if (an_info.domain_cert.data && 
-        an_info.domain_cert.len) {
-        domain_cert->data = an_info.domain_cert.data;
-        domain_cert->len = an_info.domain_cert.len;
-        return (TRUE);
-
-    } else {
-        domain_cert->data = NULL;
-        domain_cert->len = 0;
+an_get_domain_cert_validity (an_cert_t *domain_cert)
+{    
+    if (domain_cert->data == NULL || domain_cert->len == 0) {
         return (FALSE);
     }
+    return (domain_cert->valid);
+}
+
+boolean
+an_get_domain_cert (an_cert_t *domain_cert)
+{
+
+    if (an_info.domain_cert.data &&
+            an_info.domain_cert.len) {
+            domain_cert->data = an_info.domain_cert.data;
+            domain_cert->len = an_info.domain_cert.len;
+            domain_cert->valid = 
+                an_cert_is_device_cert_valid(&an_info.domain_cert);
+            return (TRUE);
+    } // end of if - an_info.domain_cert is not NULL
+    domain_cert->data = NULL;
+    domain_cert->len = 0;
+    domain_cert->valid = FALSE;    
+    return (FALSE);
 }
 
 uint8_t *
@@ -152,6 +169,17 @@ an_get_domain_id (void)
     return (an_info.domain_id);
 }
 
+an_mac_addr *
+an_get_anr_macaddress (void)
+{
+    if (an_anra_is_configured())
+    {
+        return (an_anra_get_mac_address());
+    }
+
+    return (an_info.anra_mac);
+}
+
 an_addr_t
 an_get_anra_ip (void)
 {
@@ -163,6 +191,13 @@ an_get_aaa_ip (void)
 {
     return (an_info.aaa_ip);
 }
+
+an_addr_t
+an_get_anr_ip_for_cert_renewal (void)
+{
+    return (an_info.cert_renewal_anr_ip);
+}
+
 
 an_addr_t
 an_get_nms_ip (void)
@@ -195,9 +230,9 @@ an_get_anra_if (void)
 }
 
 an_cert_t
-an_get_anra_cert (void)
+an_get_ca_cert (void)
 {
-    return (an_info.anra_cert);
+    return (an_info.ca_cert);
 }
 
 uint16_t
@@ -231,6 +266,18 @@ an_get_rpl_routing_info (void)
 }
 
 void
+an_set_device_enrollment_url (boolean flag)
+{
+    global_dev_url_set = flag;
+}
+
+boolean 
+an_is_device_enrollment_url_set (void)
+{
+    return (global_dev_url_set);
+}
+
+void
 an_set_rpl_float_root_enable_flag (bool enable)
 {
     bool changed = FALSE;
@@ -252,7 +299,7 @@ an_get_rpl_floating_root_enable_flag (void)
 void
 an_reset_rpl_routing_info (void)
 {
-    an_memset(&an_info.routing.an_rpl_info, 0, 
+    an_memset_s(&an_info.routing.an_rpl_info, 0,
                     sizeof(an_info.routing.an_rpl_info));    
     return;
 }
@@ -298,7 +345,7 @@ an_set_udi (an_udi_t udi)
     an_info.udi.len = udi.len;
     an_info.udi.data = (uint8_t *)an_malloc_guard(udi.len, "AN an_info.udi");
     if (an_info.udi.data) {
-        an_memcpy_guard(an_info.udi.data, udi.data, udi.len);
+        an_memcpy_guard_s(an_info.udi.data, udi.len, udi.data, udi.len);
     }
     an_free_guard(udi.data);
 }
@@ -318,9 +365,10 @@ an_set_device_id (uint8_t *device_id)
     an_info.device_id = (uint8_t*)an_malloc_guard(an_strlen(device_id) + 1, 
                                                   "AN an_info.device_id");
     if (an_info.device_id) {
-        an_memcpy_guard(an_info.device_id, device_id, an_strlen(device_id)+1);
+        an_memcpy_guard_s(an_info.device_id, an_strlen(device_id)+1, device_id, an_strlen(device_id)+1);
         global_dev_id_set = TRUE;
     }
+
 }
 
 void
@@ -334,27 +382,54 @@ an_set_domain_id (uint8_t *domain_id)
     if (!domain_id) {
         return;
     }
-
     an_info.domain_id = (uint8_t*)an_malloc_guard(an_strlen(domain_id)+1, 
                                                   "AN an_info.domain_id");
     if (an_info.domain_id) {
-        an_memcpy_guard(an_info.domain_id, domain_id, an_strlen(domain_id)+1);
+        an_memcpy_guard_s(an_info.domain_id, an_strlen(domain_id)+1, 
+                          domain_id, an_strlen(domain_id)+1);
         global_dom_id_set = TRUE;
     }
 }
 
 void
-an_set_domain_cert (an_cert_t domain_cert)
+an_set_anr_macaddress (an_mac_addr *mac_address)
+{
+    if (an_info.anra_mac) {
+        an_free_guard(an_info.anra_mac);
+        an_info.anra_mac = NULL;
+    }
+
+    if(!mac_address) {
+        return;
+    }
+
+    an_info.anra_mac = (an_mac_addr*)an_malloc_guard(an_strlen(mac_address) 
+                                                + 1, "AN an_info.anra_mac");
+    if (an_info.anra_mac) {
+        an_memcpy_guard(an_info.anra_mac, mac_address, 
+                        an_strlen(mac_address)+1);
+    }
+}
+
+void
+an_set_domain_cert (an_cert_t domain_cert, an_cert_type_enum cert_type)
 {
     if (an_info.domain_cert.data) {
         an_free_guard(an_info.domain_cert.data);
     }
+
     an_info.domain_cert.len = 0;
     an_info.domain_cert.data = NULL;
+    an_info.domain_cert.valid = FALSE;
+    an_info.domain_cert.expired_time = 0;
 
     if (!domain_cert.data || !domain_cert.len) {
         return;
     }
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL, 
+             "\n%sSet AN Domain Cert- store certificate from tp to AN",
+             an_bs_event);
 
     an_info.domain_cert.len = domain_cert.len;
     an_info.domain_cert.data = (uint8_t *)an_malloc_guard(
@@ -362,10 +437,23 @@ an_set_domain_cert (an_cert_t domain_cert)
     if (!an_info.domain_cert.data) {
         return;
     }
-    an_memcpy_guard(an_info.domain_cert.data, 
-                                domain_cert.data, an_info.domain_cert.len);
+    an_memcpy_guard_s(an_info.domain_cert.data, an_info.domain_cert.len, 
+                                domain_cert.data, domain_cert.len);
+    an_info.domain_cert.valid = domain_cert.valid;
 
-    an_event_domain_device_cert_learnt();
+    switch (cert_type) {
+         case AN_CERT_TYPE_BOOTSTRAPPED:
+               an_event_domain_device_cert_learnt();
+               break;
+         case AN_CERT_TYPE_RENEWED:
+               an_event_domain_device_cert_renewd();
+               break;
+         case AN_CERT_TYPE_EMPTY:
+               break;
+         default:
+               break;
+    }
+    return;
 }
 
 boolean 
@@ -381,11 +469,11 @@ an_set_service_info (an_service_type_e srvc_type, an_addr_t *srvc_ip)
         case AN_SERVICE_AAA:
              srvc_ip_p = &an_info.aaa_ip; 
              break;
-        case AN_SERVICE_MAX:
+        
+        default:
              return (FALSE);
-    }
-
-    an_memcpy(srvc_ip_p, srvc_ip, sizeof(an_addr_t)); 
+    } 
+    an_memcpy_s(srvc_ip_p, sizeof(an_addr_t), srvc_ip, sizeof(an_addr_t)); 
 
     return (TRUE);
         
@@ -395,6 +483,12 @@ void
 an_set_anra_ip (an_addr_t ip)
 {
     an_info.anra_ip = ip;
+}
+
+void
+an_set_anr_ip_for_cert_renewal (an_addr_t ip)
+{
+    an_info.cert_renewal_anr_ip = ip;
 }
 
 void
@@ -416,39 +510,39 @@ an_set_device_ip (an_addr_t ip)
 }
 
 void
-an_set_anra_cert (an_cert_t cert)
+an_set_ca_cert (an_cert_t cert)
 {
-    if (an_info.anra_cert.data) {
-        an_free_guard(an_info.anra_cert.data);
+    if (an_info.ca_cert.data) {
+        an_free_guard(an_info.ca_cert.data);
     }
-    an_info.anra_cert.len = 0;
-    an_info.anra_cert.data = NULL;
+    an_info.ca_cert.len = 0;
+    an_info.ca_cert.data = NULL;
 
     if (!cert.data || !cert.len) {
         return;
     }
 
-    an_info.anra_cert.len = cert.len;
-    an_info.anra_cert.data = (uint8_t *)an_malloc_guard(
-                             an_info.anra_cert.len, "AN an_info.anra_cert");
-    if (!an_info.anra_cert.data) {
+    an_info.ca_cert.len = cert.len;
+    an_info.ca_cert.data = (uint8_t *)an_malloc_guard(
+                             an_info.ca_cert.len, "AN an_info.ca_cert");
+    if (!an_info.ca_cert.data) {
         return;
     }
-    an_memcpy_guard(an_info.anra_cert.data, cert.data, an_info.anra_cert.len);
+    an_memcpy_guard_s(an_info.ca_cert.data, an_info.ca_cert.len, cert.data, cert.len);
 
     an_event_domain_ca_cert_learnt();
 }
 
 void
-an_reset_anra_cert (void)
+an_reset_ca_cert (void)
 {
-    if (an_info.anra_cert.data) {
-        an_free_guard(an_info.anra_cert.data);
+    if (an_info.ca_cert.data) {
+        an_free_guard(an_info.ca_cert.data);
     }
-    an_info.anra_cert.len = 0;
-    an_info.anra_cert.data = NULL;
+    an_info.ca_cert.len = 0;
+    an_info.ca_cert.data = NULL;
 
-    an_cert_reset_domain_ca_cert();
+    an_cert_reset_domain_ca_cert(AN_DOMAIN_TP_LABEL);
 }
 
 void
@@ -456,6 +550,7 @@ an_set_anra_if (an_if_t ifhndl)
 {
     an_info.anra_ifhndl = ifhndl;
 }
+
 
 void
 an_set_routing_ospf_pid (uint16_t pid)
@@ -478,12 +573,13 @@ an_set_routing_ospf_rid (uint32_t rid)
 void
 an_reset_global_info (void)
 {
-    an_cert_t empty_cert = {};
+    an_cert_t empty_cert = {0};
 
     an_set_device_id(NULL);
     an_set_domain_id(NULL);
-    an_set_domain_cert(empty_cert);
-    an_set_anra_cert(empty_cert);
+    an_set_anr_macaddress(NULL);
+    an_set_domain_cert(empty_cert, AN_CERT_TYPE_EMPTY);
+    an_set_ca_cert(empty_cert);
     an_set_anra_ip(AN_ADDR_ZERO);
     an_set_iptable(0);
     an_set_afi(0);
@@ -498,53 +594,91 @@ an_reset_global_info (void)
 }
 
 void
-an_autonomic_disable (boolean called_from_proc)
+an_autonomic_disable (void)
 {
-    if (!an_is_global_cfg_autonomic_enabled()) {
-        return;
+    //ToDO: Add check here after PD functionality in place
+    switch (global_cfg_autonomic_enable) {
+        case AN_GLOBAL_CFG_STATE_DEFAULT:
+            an_set_global_cfg_autonomic_disable();
+            return;
+        case AN_GLOBAL_CFG_STATE_ENABLED:
+            an_event_autonomics_uninit();
+            an_set_global_cfg_autonomic_disable();
+            an_set_ike_cli_autonomically_created(FALSE);
+            return;
+        case AN_GLOBAL_CFG_STATE_DISABLED: 
+            return;
+        default:
+            break;
     }
-
-    an_event_autonomics_uninit(called_from_proc);
-
-    an_set_global_cfg_autonomic_enable(FALSE);
-    an_set_ike_cli_autonomically_created(FALSE);
+    
+    return;
 }
 
 void
-an_autonomic_enable (boolean called_from_proc)
+an_autonomic_enable (void)
 {
     if (an_is_global_cfg_autonomic_enabled()) {
         return;
     }
-
+    an_set_global_cfg_autonomic_enable();
+    an_aaa_set_new_model(TRUE);
+    an_platform_specific_init();
     an_event_autonomics_init();
-
-    an_set_global_cfg_autonomic_enable(TRUE);
 }
 
 void
 an_reset_an_info (void)
 {
-    boolean from_proc = FALSE;
     boolean an_is_enabled = an_is_global_cfg_autonomic_enabled();
 
-    an_autonomic_disable(from_proc);
+    an_autonomic_disable();
 
     if (an_is_enabled) {
-        an_autonomic_enable(from_proc);
+        an_autonomic_enable();
     }
+
+    return;
+}
+
+an_global_cfg_state_e
+an_get_global_cfg_state (void)
+{
+    return global_cfg_autonomic_enable;
 }
 
 boolean
 an_is_global_cfg_autonomic_enabled (void)
 {
-    return (global_cfg_autonomic_enable);
+    switch (global_cfg_autonomic_enable) {
+        case AN_GLOBAL_CFG_STATE_ENABLED:
+            return (TRUE);
+        case AN_GLOBAL_CFG_STATE_DEFAULT:
+        case AN_GLOBAL_CFG_STATE_DISABLED: 
+            return (FALSE);
+        default:
+            break;
+    }
+
+    return FALSE;
 }
 
 void 
-an_set_global_cfg_autonomic_enable (boolean flag)
+an_set_global_cfg_autonomic_default (void)
 {
-    global_cfg_autonomic_enable = flag;
+    global_cfg_autonomic_enable = AN_GLOBAL_CFG_STATE_DEFAULT;
+}
+
+void 
+an_set_global_cfg_autonomic_disable (void)
+{
+    global_cfg_autonomic_enable = AN_GLOBAL_CFG_STATE_DISABLED;
+}
+
+void 
+an_set_global_cfg_autonomic_enable (void)
+{
+    global_cfg_autonomic_enable = AN_GLOBAL_CFG_STATE_ENABLED;
 }
 
 void 
@@ -605,7 +739,7 @@ an_hton_4_bytes (uint8_t *target, int32_t src)
     } 
 
     target = an_hton_2_bytes_and_move(target, (uint16_t)(src >> 16)); 
-    target = an_hton_2_bytes_and_move(target, (uint16_t)src); 
+    an_hton_2_bytes_and_move(target, (uint16_t)src); 
     return (TRUE);
 }
 
@@ -630,7 +764,7 @@ an_hton_16_bytes (uint8_t *target, int32_t src[4])
     target = an_hton_4_bytes_and_move(target, src[0]);
     target = an_hton_4_bytes_and_move(target, src[1]);
     target = an_hton_4_bytes_and_move(target, src[2]);
-    target = an_hton_4_bytes_and_move(target, src[3]);
+    an_hton_4_bytes_and_move(target, src[3]);
 
     return (TRUE);
 }
@@ -722,7 +856,7 @@ an_ntoh_16_bytes (uint32_t *target, uint8_t *src)
     src = an_ntoh_4_bytes_and_move(target + 0, src);
     src = an_ntoh_4_bytes_and_move(target + 1, src);
     src = an_ntoh_4_bytes_and_move(target + 2, src);
-    src = an_ntoh_4_bytes_and_move(target + 3, src);
+    an_ntoh_4_bytes_and_move(target + 3, src);
 
     return (TRUE);
 }
