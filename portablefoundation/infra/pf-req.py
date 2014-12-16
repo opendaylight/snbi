@@ -10,10 +10,12 @@
 # The current container's name, or "client ID" (such as SNBI_PF0,
 # SNBI_PF1, SNBI_CTRL, etc) is stored in the environment variable CID.
 #
-import requests
 import json
 import os
 import time
+
+import requests
+
 
 #
 # If YANG model changed, for which a YANG tool automatically generates
@@ -25,7 +27,7 @@ cid = os.getenv('CID', 'default')
 r = requests.get('http://127.0.0.1:8080' + PF_HOST_API_PATH + 'UDI?cid=' + cid)
 j = json.loads(r.json())
 
-f = open ('/home/snbi/my_udi', 'w')
+f = open('/home/snbi/my_udi', 'w')
 f.write(json.dumps(j, sort_keys=True, indent=4, separators=(',', ': ')))
 f.flush()
 f.close()
@@ -34,4 +36,4 @@ f.close()
 # Pretend we are a long lived daemon.
 #
 while 1:
-  time.sleep(1000)
+    time.sleep(1000)

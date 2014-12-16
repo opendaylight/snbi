@@ -1,7 +1,7 @@
 #
 # SNBI RestConf Server running on the machine hosting the containers.
 #
-# Liming Wei,  Sept 2, 2014  
+# Liming Wei,  Sept 2, 2014
 #
 # This script reads the Universal Device Identifier (UDI) database
 # from file UDI_DB.json. This file is in JSON encoded from UDI_DB.yang.
@@ -40,22 +40,26 @@
 # Example, GET query from client has path of
 # http://127.0.0.1:8080/restconf/data/SNBI:udi/UDI?cid=SNBI_PF1
 
-import cherrypy
 import json
 
-'''Obtain the UDI element of container_name, if container_name'''
-''' is not found in UDI_DB, return the default bad ID'''
-def OdlSnbiServerGetUdi (container_name):
+import cherrypy
+
+
+def OdlSnbiServerGetUdi(container_name):
+    """Obtain the UDI element of container_name, if container_name
+
+    If not found in UDI_DB, return the default bad ID
+    """
     f = open('UDI_DB.json', 'r')
     t = f.read()
-    '''Decode the JSON string into python data'''
+    # Decode the JSON string into python data
     py = json.loads(t)
     arr = py['UDI_DB']
     f.close()
 
-    '''Find container_name in arr'''
+    # Find container_name in arr
     for x in arr:
-#       print ("Name is %s, UDI is %s" % (x['container_name'], x['UDI']))
+        # print ("Name is %s, UDI is %s" % (x['container_name'], x['UDI']))
         if (x['container_name'] == container_name):
             return x
     return arr[-1]
@@ -64,7 +68,8 @@ def OdlSnbiServerGetUdi (container_name):
 class Root(object):
     @cherrypy.expose
     def index(self):
-        return "This is the SNBI container config server. Please provide a valid path."
+        return ("This is the SNBI container config server. "
+                "Please provide a valid path.")
 
     index.exposed = True
 
@@ -72,7 +77,7 @@ class Root(object):
     @cherrypy.tools.json_out()
     def UDI(self, cid="default"):
         udi_e = OdlSnbiServerGetUdi(cid)
-        udi = {'UDI_DB' : udi_e}
+        udi = {'UDI_DB': udi_e}
         udi_json = json.dumps(udi)
         cherrypy.response.headers['Content-Type'] = "application/json"
         return udi_json
@@ -83,4 +88,4 @@ import os.path
 tutconf = os.path.join(os.path.dirname(__file__), 'tutorial.conf')
 
 if __name__ == '__main__':
-   cherrypy.quickstart(Root(), '/restconf/data/SNBI:udi/', config=tutconf)
+    cherrypy.quickstart(Root(), '/restconf/data/SNBI:udi/', config=tutconf)
