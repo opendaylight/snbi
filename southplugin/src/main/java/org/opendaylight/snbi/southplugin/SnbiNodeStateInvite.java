@@ -44,7 +44,7 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
             log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null domain Name");
             return false;
         }
-        if (CertManager.INSTANCE.getRootCACertificate() == null) {
+        if (CertManager.getInstance().getRootCACertificate() == null) {
             log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null CA certificate");
             return false;
         }   
@@ -68,7 +68,7 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
         pkt.setRegistrarIDTLV(node.getRegistrar().getRegistrarID());
         pkt.setDomainIDTLV(node.getRegistrar().getDomainName());
         pkt.setRegistrarIPaddrTLV(node.getRegistrar().getNodeself().getNodeAddress());
-        pkt.setCACertTLV(CertManager.INSTANCE.getRootCACertificate());
+        pkt.setCACertTLV(CertManager.getInstance().getRootCACertificate());
 
         if (node.getRegistrar().getNodeself().isBootStrapped()) {
             pkt.setRegistrarCertTLV(node.getRegistrar().getNodeself().getCertificate());

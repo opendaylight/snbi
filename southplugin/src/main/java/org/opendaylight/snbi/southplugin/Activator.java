@@ -1,8 +1,14 @@
 package org.opendaylight.snbi.southplugin;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
+import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
+import org.opendaylight.controller.md.sal.common.api.data.LogicalDatastoreType;
+import org.opendaylight.controller.md.sal.common.api.data.AsyncDataBroker.DataChangeScope;
 import org.opendaylight.controller.sal.binding.api.AbstractBindingAwareProvider;
 import org.opendaylight.controller.sal.binding.api.BindingAwareBroker.ProviderContext;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.SnbiDomain;
+import org.opendaylight.yangtools.concepts.ListenerRegistration;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,8 +16,10 @@ import org.slf4j.LoggerFactory;
 // Activator class following the new MD-SAL path
 public class Activator extends AbstractBindingAwareProvider {
 	
-	private DataBroker dataBroker;
+	public DataBroker dataBroker;
 	private static Activator INSTANCE;
+	public static final InstanceIdentifier<SnbiDomain>  SNBIDOMAIN_IID = InstanceIdentifier.builder(SnbiDomain.class).build();
+	private ListenerRegistration<DataChangeListener> dataChangeListenerRegistration = null;
 	
 	public static Activator getInstance() {
         return INSTANCE;
@@ -33,16 +41,22 @@ public class Activator extends AbstractBindingAwareProvider {
         	this.dataBroker = session.getSALService(DataBroker.class);
             SnbiInternal snbi = new SnbiInternal();
             snbi.start();
-            CertManager.INSTANCE.start();
+            CertManager certManager = CertManager.getInstance();
+            certManager.start();
+            this.dataBroker = session.getSALService(DataBroker.class);
+            dataChangeListenerRegistration = 
+            		this.dataBroker.registerDataChangeListener(LogicalDatastoreType.CONFIGURATION,SNBIDOMAIN_IID,certManager,DataChangeScope.SUBTREE);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
+    
     // called durng osgi stop
     @Override
     protected void stopImpl(final BundleContext context) {
         logger.info("SNBI South Plugin Activator clean up completed ");
+        if (dataChangeListenerRegistration != null)
+        	dataChangeListenerRegistration.close();
     }
 
 }
