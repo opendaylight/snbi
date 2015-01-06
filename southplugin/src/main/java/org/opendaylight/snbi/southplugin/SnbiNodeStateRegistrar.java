@@ -28,7 +28,7 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
     private void bootStrapSelf () {
         PKCS10CertificationRequest pkcs10CSR = null;
         try {
-        pkcs10CSR = CertManager.INSTANCE.generateCSRRequest(node.getDeviceID(), 
+        pkcs10CSR = CertManager.getInstance().generateCSRRequest(node.getDeviceID(), 
                                                             node.getRegistrar().getDomainName(), 
                                                             node.getUDI());
         } catch (Exception excpt) {
@@ -37,7 +37,7 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
         
         
         try {
-            node.SetCertificate(CertManager.INSTANCE.generateX509Certificate(pkcs10CSR, null));
+            node.SetCertificate(CertManager.getInstance().generateX509Certificate(pkcs10CSR, null));
         } catch (Exception excpt) {
             log.error(" Encountered exception while generating X509 cert" +excpt);
         }
