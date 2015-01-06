@@ -76,7 +76,7 @@ public abstract class SnbiNodeStateCommonEventHandlers implements ISnbiNodeState
         log.debug("[node: "+node.getUDI()+"] Handle BSReq Pkt Event: "+pkt.getUDITLV());
         SnbiNodeState nextState = bsReqValidateGetNextState();
         if (nextState == SnbiNodeState.SNBI_NODE_STATE_BOOTSTRAP) {
-            node.SetCertificate(CertManager.INSTANCE.generateX509Certificate(pkt.getPKCS10CSRTLV(), null));
+            node.SetCertificate(CertManager.getInstance().generateX509Certificate(pkt.getPKCS10CSRTLV(), null));
             log.debug("Certificate signed "+node.getCertificate().toString());
             node.setBootStrapped(true);
         }
