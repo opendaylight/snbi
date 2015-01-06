@@ -31,7 +31,13 @@
    </properties>
 
    <dependencies>
-
+        <!-- >dependency>
+            <groupId>org.opendaylight.controller</groupId>
+            <artifactId>features-base</artifactId>
+            <version>1.4.2-SNAPSHOT</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+      </dependency -->
         <dependency>
              <groupId>org.opendaylight.snbi</groupId>
              <artifactId>southplugin</artifactId>
@@ -59,7 +65,7 @@
               <type>xml</type>
         </dependency>
 
-<!--
+
         <dependency>
               <groupId>org.opendaylight.controller</groupId>
               <artifactId>features-config</artifactId>
@@ -165,9 +171,6 @@
               <version>1.0.0.v20110506</version>
               <scope>compile</scope>
         </dependency>
-
-
--->
 
         <dependency>
             <groupId>org.bouncycastle</groupId>
