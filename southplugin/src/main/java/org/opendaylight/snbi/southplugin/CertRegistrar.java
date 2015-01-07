@@ -87,9 +87,11 @@ public enum CertRegistrar {
     		    	logger.info("Active = "+device.isActive());
     		    	logger.info("List Type = "+device.getListType().name());
     		    	List<Devices> devices = device.getDevices();
-    		    	logger.info("Devices count = "+devices.size());
-    		    	for (Devices d : devices) {
-    		    		logger.info("UDI = "+d.getDeviceId().getValue()); 
+    		    	if (devices != null) {
+	    		    	logger.info("Devices count = "+devices.size());
+	    		    	for (Devices d : devices) {
+	    		    		logger.info("UDI = "+d.getDeviceId().getValue()); 
+	    		    	}
     		    	}
     		    }
     		     

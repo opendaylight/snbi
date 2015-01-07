@@ -16,17 +16,34 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.eclipse.osgi.framework.console.CommandInterpreter;
 import org.eclipse.osgi.framework.console.CommandProvider;
+import org.opendaylight.controller.md.sal.binding.api.DataChangeListener;
+import org.opendaylight.controller.md.sal.common.api.data.AsyncDataChangeEvent;
+import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.SnbiDomain;
+import org.opendaylight.yangtools.yang.binding.DataObject;
+import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 /**
  * Singleton instance for certificate manager
  */
-public enum CertManager implements ICertManager, CommandProvider {
-    INSTANCE;
+public class CertManager implements ICertManager, CommandProvider ,DataChangeListener {
+
     private static final Logger logger = LoggerFactory.getLogger(CertManager.class);
+    private static CertManager certManager = null;
+    private CertManager() {
+    	
+    }
+    public static CertManager getInstance() {
+    	if (certManager == null) {
+    		synchronized(CertManager.class) {
+    			if (certManager == null)
+    				certManager = new CertManager();
+    		}
+    	}
+    	return certManager;
+    }
 
     // Start method called by Activator
     // Initialize the SNBI registrar
@@ -185,4 +202,35 @@ public enum CertManager implements ICertManager, CommandProvider {
     public void _printCertificateLocation(CommandInterpreter ci) {
         logger.info("\n"+CertManagerConstants.KEY_CERT_PATH+"\n");
     }
+    
+   @Override
+   public void onDataChanged(
+		AsyncDataChangeEvent<InstanceIdentifier<?>, DataObject> change) {
+	logger.info("SNBI Data Change Event received . ");
+	 DataObject dataObject = change.getUpdatedSubtree();
+      if( dataObject instanceof SnbiDomain ) {
+    	  CertRegistrar.INSTANCE.populateWhileListFromStore();
+    	  CertRegistrar.INSTANCE.printWhiteListFromStore();
+    	  /*
+    	  SnbiDomain snbiDomain = (SnbiDomain)dataObject;
+    	  logger.info("SNBI Data Chnage Event :: Domain Name = "+snbiDomain.getDomainName());
+    	  List<DeviceList> deviceList = snbiDomain.getDeviceList();
+    	  if (deviceList != null) {
+    		  for (DeviceList device : deviceList ) {
+    			  logger.info("List Name = "+device.getListName());
+    			  logger.info("List Type = "+device.getListType().name());
+    			  logger.info("Active = "+device.isActive());
+    			  List<Devices> devices = device.getDevices();
+    			  if (devices != null) {
+    				  for (Devices single : devices) {
+    					  logger.info("Device Id = "+single.getDeviceId());
+    					  logger.info("Device Key = "+single.getKey());
+    				  }
+    			  }
+    		  }
+    	  }
+    	  */
+      }
+   }
 }
+
