@@ -13,12 +13,17 @@
           xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0">
 
     <repository>mvn:org.opendaylight.yangtools/features-yangtools/${yangtools.version}/xml/features</repository>
-    <repository>mvn:org.opendaylight.controller/features-mdsal/1.2.0-SNAPSHOT/xml/features</repository>
+    <!-- repository>mvn:org.opendaylight.controller/features-mdsal/1.2.0-SNAPSHOT/xml/features</repository-->
     <repository>mvn:org.opendaylight.controller/features-restconf/1.2.0-SNAPSHOT/xml/features</repository>
+    <repository>mvn:org.opendaylight.dlux/features-dlux/0.2.0-SNAPSHOT/xml/features</repository>
+	<repository>mvn:org.opendaylight.l2switch/features-l2switch/0.2.0-SNAPSHOT/xml/features</repository>
+	<repository>mvn:org.opendaylight.controller/features-mdsal/${mdsal.version}/xml/features</repository>
+	<!-- repository>mvn:org.opendaylight.controller/features-nsf/${nsf.version}/xml/features</repository-->
 
     <feature name='odl-snbi-all' version='${project.version}' description='OpenDaylight :: snbi :: All'>
         <feature version='${project.version}'>odl-snbi-southplugin</feature>
         <feature version='${project.version}'>odl-snbi-shellplugin</feature>
+        <feature version='${project.version}'>odl-snbi-dlux</feature> 
     </feature>
 
     <feature name='odl-snbi-southplugin' description='OpenDaylight :: SNBI :: SouthPlugin' version='${project.version}'>
@@ -53,5 +58,14 @@
         <feature version='${project.version}'>odl-snbi-southplugin</feature>
         <bundle>mvn:org.opendaylight.snbi/shellplugin/${project.version}</bundle>
     </feature>
+    <feature name='odl-snbi-dlux' description='OpenDaylight :: SNBI :: Dlux' version='${project.version}'>	
+			<!-- feature version='${commons.opendaylight.version}'>odl-base-all</feature>	
+			<feature version='${mdsal.version}'>odl-mdsal-apidocs</feature>	
+			<feature version='${nsf.version}'>odl-nsf-all</feature-->	
+			<feature version='${mdsal.version}'>odl-restconf</feature>	
+			<feature version='0.2.0-SNAPSHOT'>odl-l2switch-switch</feature>
+			<feature version='${mdsal.version}'>odl-mdsal-apidocs</feature>		
+			<feature version='0.2.0-SNAPSHOT'>odl-dlux-core</feature>	
+	</feature>
 
 </features>
