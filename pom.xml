@@ -11,6 +11,7 @@
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
     <version>1.0.2-SNAPSHOT</version>
+    <name>snbi</name> <!-- Used by Sonar to set project name -->
     <packaging>pom</packaging>
     <prerequisites>
         <maven>3.0.4</maven>
