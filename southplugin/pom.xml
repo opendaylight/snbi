@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.opendaylight.snbi</groupId>
     <artifactId>snbi</artifactId>
-    <version>1.0.2-Helium-SR2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
