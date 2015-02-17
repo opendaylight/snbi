@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_FILE_H__
 #define __AN_FILE_H__
 
@@ -57,7 +56,8 @@ an_file_seek(an_file_descr_t fd, uint32_t offset, an_file_seek_ref_e seek_ref);
 an_file_api_ret_enum
 an_file_read_next_char(an_file_descr_t fd, int8_t *ch);
 
-boolean an_file_read_next_byte(an_file_descr_t fd, uint8_t *byte);
+an_file_api_ret_enum
+an_file_read_next_byte(an_file_descr_t fd, uint8_t *ch);
 
 an_file_api_ret_enum
 an_file_read_next_word(an_file_descr_t fd, an_buffer_t *word, uint32_t max_len);
@@ -72,7 +72,7 @@ an_file_api_ret_enum
 an_file_write_char(an_file_descr_t fd, int8_t *ch);
 
 an_file_api_ret_enum
-an_file_write_byte(an_file_descr_t fd, uint8_t *byte);
+an_file_write_byte(an_file_descr_t fd, uint8_t *ch);
 
 an_file_api_ret_enum
 an_file_write_word(an_file_descr_t fd, an_buffer_t *word);
@@ -82,6 +82,9 @@ an_file_write_line(an_file_descr_t fd, an_buffer_t *line);
 
 an_file_api_ret_enum 
 an_file_write_line_terminator(an_file_descr_t fd);
-
 boolean an_file_copy_to_standby(uint8_t *src_file);
+void an_file_delete_from_standby(uint8_t *src_file);
+void an_file_copy_to_stby_later(uint8_t *filename);
+void an_write_device_from_db_to_local_file(void *device, 
+                                                uint8_t file_identifier);
 #endif

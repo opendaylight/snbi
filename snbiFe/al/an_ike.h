@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_IKE_H__
 #define __AN_IKE_H__
 
@@ -28,6 +27,8 @@ extern char an_ikev2_profile_name[AN_IKEV2_PROFILE_NAME_BUF_SIZE];
 
 
 //IKE
+void an_ikev2_define_profile_names(uint32_t unit);
+void an_ikev2_clear_profile_names(void);
 void an_ikev2_profile_init(void);
 void an_ikev2_profile_uninit(void);
 char* an_ikev2_get_profile_name(void);

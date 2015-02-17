@@ -6,28 +6,33 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_SIGN_H__
 #define __AN_SIGN_H__
 
 #include "an_types.h"
 
 typedef enum an_sign_digest_type_e_ {
-    AN_SIGN_DIGEST_NONE,
+    AN_SIGN_DIGEST_NONE = 0,
+    AN_SIGN_DIGEST_AUTO,
     AN_SIGN_DIGEST_MD5,
     AN_SIGN_DIGEST_SHA1,
+    AN_SIGN_DIGEST_SHA256,
+    AN_SIGN_DIGEST_SHA384,
+    AN_SIGN_DIGEST_SHA512,
 } an_sign_digest_type_e;
     
 typedef enum an_sign_api_ret_enum_ {
     AN_SIGN_API_SUCCESS,
+	AN_SIGN_API_FAIL,
     
     AN_SIGN_INPUT_PARAM_INVALID,
     AN_SIGN_PKI_SES_START_FAIL, 
     AN_SIGN_MEM_ALLOC_FAIL,
 
     AN_SIGN_INPUT_DATA_FAIL,
+	AN_SIGN_KEYPAIR_FETCH_FAIL,
     AN_SIGN_VERIFY_FAIL,
-    
+
     AN_SIGN_ENUM_MAX,
      
 } an_sign_api_ret_enum;
@@ -39,8 +44,10 @@ typedef struct an_sign_t_ {
 
 an_sign_api_ret_enum
 an_sign_data(uint8_t *data, uint16_t data_len, an_sign_digest_type_e digest_type,
-             an_sign_t *sign, uint8_t *tp_label);
-
+              an_sign_t *sign, uint8_t *tp_label, uint8_t *key_label);
+an_sign_api_ret_enum
+an_sign_verify_using_key(uint8_t *key_label, uint8_t *data, uint16_t data_len,
+						 uint8_t *sign, uint16_t sign_len);
 an_sign_api_ret_enum
 an_verify_signature(uint8_t *data, uint16_t data_len, an_sign_digest_type_e digest_type,
                     an_cert_t cert, an_sign_t sign);

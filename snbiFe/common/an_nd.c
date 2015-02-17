@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "../al/an_addr.h"
 #include "../al/an_cert.h"
 #include "../al/an_ether.h"
@@ -29,23 +28,28 @@
 #include "an_event_mgr.h"
 #include "an_if_mgr.h"
 #include "an_anra.h"
+#include "an_ni.h"
 #include "../al/an_tunnel.h"
 #include "../al/an_list.h"
-
-static an_cerrno an_nbr_link_lost_cb(an_list_t *list,
-        const an_list_element_t *current,
-        an_list_element_t *next, void *context);
+//#include "../ios/an_parse_ios.h"
+#include "../al/an_ntp.h"
 
 an_timer an_nd_hello_timer;
 uint16_t an_nd_if_count = 0;
+an_nd_oper_e an_nd_global_oper = AN_ND_OPER_DOWN;
+an_nd_config_state_e an_nd_global_state = AN_ND_CFG_DEFAULT;
+
+extern an_avl_tree an_nbr_tree;
+
+an_msg_package *
+an_nd_get_keep_alive_msg_package (an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
+static an_cerrno an_nbr_link_lost_cb(an_list_t *list,
+        const an_list_element_t *current,
+        an_list_element_t *next, void *context);
 an_nd_client_t an_nd_global_client_db[AN_ND_CLIENT_MAX] = {
                         {AN_ND_CLIENT_CLI, AN_ND_CFG_DEFAULT},
                         {AN_ND_CLIENT_CONNECT, AN_ND_CFG_DEFAULT},
                         {AN_ND_CLIENT_INTERFACE_TYPE, AN_ND_CFG_DEFAULT}};
-
-an_nd_oper_e an_nd_global_oper = AN_ND_OPER_DOWN;
-an_nd_config_state_e an_nd_global_state = AN_ND_CFG_DEFAULT;
-extern an_avl_tree an_nbr_tree;
 an_avl_compare_e an_nbr_compare(an_avl_node_t *node1, an_avl_node_t *node2);
 
 void
@@ -241,7 +245,9 @@ an_nd_start_on_interface (an_if_t ifhndl)
 {
     uint8_t *sudi_keypair_label = NULL;
     an_if_info_t *an_if_info = NULL;
-    
+	an_v6addr_t an_ll_scope_all_node_mcast_v6addr = AN_V6ADDR_ZERO;
+    printf("\n******** Inside func an_nd_start_on_interface");
+
     if (an_if_is_loopback(ifhndl)) {
         return (FALSE);
     }
@@ -282,7 +288,7 @@ an_nd_start_on_interface (an_if_t ifhndl)
         return (TRUE);
     }
 
-    if (an_if_is_layer2(ifhndl)) {
+    if (an_if_set_and_get_type(ifhndl, AN_IF_INVALID, FALSE) == AN_IF_L2) {
         an_if_info->nd_oper = AN_ND_OPER_DOWN;
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                       "\n%sInterface %s is an L2 interface hence not starting " 
@@ -311,7 +317,12 @@ an_nd_start_on_interface (an_if_t ifhndl)
         }
     }
 
+	an_ll_scope_all_node_mcast_v6addr = 
+					an_addr_get_v6addr(an_ll_scope_all_node_mcast);
+    an_ipv6_join_mld_group(ifhndl, 
+                           (an_v6addr_t *)&an_ll_scope_all_node_mcast_v6addr);
     an_if_info->nd_oper = AN_ND_OPER_UP;
+
 
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                  "\n%sEnabled Nbr Discovery on the interface %s", an_nd_event,
@@ -328,6 +339,8 @@ an_nd_stop_on_interface (an_if_t ifhndl)
 {
     uint8_t *sudi_keypair_label = NULL;
     an_if_info_t *an_if_info = NULL;
+	an_v6addr_t an_ll_scope_all_node_mcast_v6addr = AN_V6ADDR_ZERO;
+    printf("\n **** Inside func an_nd_stop_on_interface");
 
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                  "\n%sDisabling Nbr Discovery on an interface %s", an_nd_event, 
@@ -337,7 +350,7 @@ an_nd_stop_on_interface (an_if_t ifhndl)
     if (!an_if_info) {
         return (FALSE);
     }
-    if (an_if_is_layer2(ifhndl)) {
+    if (an_if_set_and_get_type(ifhndl, AN_IF_INVALID, FALSE) == AN_IF_L2) {
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                      "\n%sInterface %s is an L2 interface hence Stopping VTI",
                      an_nd_event, an_if_get_name(ifhndl)); 
@@ -358,10 +371,16 @@ an_nd_stop_on_interface (an_if_t ifhndl)
 
     if (an_nd_delivery == AN_ND_DELIVERY_IPV6_ND) {
         an_ipv6_send_uninit_on_interface(ifhndl, sudi_keypair_label); 
-        an_ipv6_disable_on_interface(ifhndl);
     }
     
     an_if_info->nd_oper = AN_ND_OPER_DOWN;
+
+    an_ipv6_disable_on_interface(ifhndl);
+
+	an_ll_scope_all_node_mcast_v6addr = 
+					an_addr_get_v6addr(an_ll_scope_all_node_mcast);
+    an_ipv6_leave_mld_group(ifhndl, 
+                            (an_v6addr_t *)&an_ll_scope_all_node_mcast_v6addr);
 
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                  "\n%sDisabled Nbr Discovery on the interface %s", an_nd_event, 
@@ -396,7 +415,7 @@ an_nd_activate_interface_cb (an_if_t ifhndl, void *data)
     }
 
     if (AN_ND_CFG_ENABLED == an_nd_state_get(ifhndl)) { 
-        an_event_interface_activated(ifhndl);
+        an_event_interface_activated(an_if_info);
     }
 
     return (TRUE);
@@ -497,14 +516,15 @@ an_nd_trigger_hello_on_if_over_udp (an_if_info_t *an_if_info)
 {
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
     an_msg_package *msg_package = NULL;
-
+    int indicator = 0;
     if (!an_if_info) {
         return (FALSE);
     }
 
-    v6addr = an_ipv6_get_ll(an_if_info->ifhndl);    
-    if (!an_memcmp(&v6addr, (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
-        return (TRUE);
+    v6addr = an_ipv6_get_ll(an_if_info->ifhndl);   
+    an_memcmp_s(&v6addr, sizeof(an_v6addr_t), (void *)&AN_V6ADDR_ZERO, 
+                                           sizeof(an_v6addr_t), &indicator);
+    if (!indicator) {
     }     
 
     //DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
@@ -521,13 +541,16 @@ boolean
 an_nd_trigger_hello_on_if_over_ipv6_nd (an_if_info_t *an_if_info)
 {
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
+    int indicator = 0;
 
     if (!an_if_info) {
         return (FALSE);
     }
 
     v6addr = an_ipv6_get_ll(an_if_info->ifhndl);    
-    if (!an_memcmp(&v6addr, (void *)&AN_V6ADDR_ZERO, sizeof(an_v6addr_t))) {
+    an_memcmp_s(&v6addr, sizeof(an_v6addr_t), (void *)&AN_V6ADDR_ZERO, 
+                                           sizeof(an_v6addr_t), &indicator);
+    if (!indicator) {
         return (TRUE);
     }
 
@@ -551,11 +574,11 @@ an_nd_trigger_hello_on_if (an_if_info_t *an_if_info)
     if (!an_if_is_up(an_if_info->ifhndl)) {
         return (TRUE);
     }     
-
+#if 0
     if (!an_nd_is_operating(an_if_info->ifhndl)) {
         return (TRUE);
     }
-
+#endif
     if (an_nd_delivery == AN_ND_DELIVERY_IPV6_ND) {
         an_nd_trigger_hello_on_if_over_ipv6_nd(an_if_info);
 
@@ -565,31 +588,84 @@ an_nd_trigger_hello_on_if (an_if_info_t *an_if_info)
     return (TRUE);
 }
 
-an_walk_e
+boolean 
+an_nd_trigger_keep_alive_per_nbr_link (an_nbr_t *nbr, 
+                                       an_nbr_link_spec_t *nbr_link_data)
+{
+    an_msg_package *msg_package = NULL;
+    if (!nbr || !nbr_link_data) {
+        return (FALSE);
+    }
+    
+    if (an_acp_is_up_on_nbr_link(nbr_link_data)) {
+        msg_package = an_nd_get_keep_alive_msg_package(nbr, nbr_link_data);
+        an_msg_mgr_send_message(msg_package);
+        return (TRUE);
+    }
+    return (FALSE);
+}   
+
+boolean
+an_nd_trigger_keep_alive_per_all_nbr_links (an_nbr_t *nbr) 
+{
+    an_list_element_t *elem = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+    int i = 0;
+
+    AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
+        if (nbr_link_data != NULL) {
+            i++;
+            an_nd_trigger_keep_alive_per_nbr_link(nbr, nbr_link_data);
+        }
+    }
+    return (TRUE);
+}
+
+an_avl_walk_e	
 an_nd_trigger_hello_cb (an_avl_node_t *node, void *data)
 {
     an_if_info_t *an_if_info = NULL;
 
     if (!node) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
     an_if_info = (an_if_info_t *)node;
 
     an_nd_trigger_hello_on_if(an_if_info);
 
     an_thread_check_and_suspend();
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
+}
+
+an_avl_walk_e
+an_nd_trigger_keep_alive_cb (an_avl_node_t *node, void *args)
+{
+    an_nbr_t *nbr = (an_nbr_t *)node;
+    
+    if (!nbr) {
+        return (AN_AVL_WALK_FAIL);
+    }
+    
+    if (!an_ni_is_nbr_inside(nbr)) {
+        return (AN_AVL_WALK_FAIL);
+    }
+    
+    if (an_acp_is_up_on_nbr(nbr)) {
+        an_nd_trigger_keep_alive_per_all_nbr_links(nbr);
+    }
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
 an_nbr_refresh_hello ()
 {
-
+#if 0
     if (!an_nd_is_operating(0)) {
         return;
     }
-
+#endif
     an_if_info_db_walk(an_nd_trigger_hello_cb, NULL);
+    an_nbr_db_walk(an_nd_trigger_keep_alive_cb, NULL); 
     an_timer_start(&an_nd_hello_timer, AN_ND_HELLO_REFRESH_INTERVAL);
 }
 
@@ -606,6 +682,8 @@ an_nd_convert_message_to_nbr (an_msg_package *message)
     nbr = an_nbr_alloc();    
 
     if (!nbr) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                     "\n%s Memory allocation failed to nbr", an_nd_event);
         return (NULL);
     }
 
@@ -619,54 +697,49 @@ an_nd_convert_message_to_nbr (an_msg_package *message)
 
     nbr->domain_id = message->domain_id;
     message->domain_id = NULL; 
-    
-        return (nbr);
+
+    nbr->device_ipaddr = message->device_ipaddr;
+    message->device_ipaddr = AN_ADDR_ZERO;
+    return (nbr);
 }
 
 /* return TRUE if params changed */
 an_msg_interest_e
 an_nbr_check_params (an_msg_package *message, an_nbr_t *nbr,
-                     an_if_t local_ifhndl)
+                     an_if_t local_ifhndl,
+                     an_nbr_link_spec_t *link_data)
 {
     an_msg_interest_e changed = 0;
-    an_nbr_link_spec_t *link_data = NULL;
+    int indicator1 = 0;
+    int indicator2 = 0;
 
     if (!message || !nbr) {
-        return (FALSE);
+        return (changed);
     }
-
+    an_memcmp_s(message->device_id, an_strlen(message->device_id), 
+                nbr->device_id, an_strlen(nbr->device_id), &indicator1);
     if ((an_strlen(message->device_id) != an_strlen(nbr->device_id)) ||
-        (an_memcmp(message->device_id, nbr->device_id,
-                   an_strlen(nbr->device_id)))) {
+        (indicator1)) {
         AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_ID);
     }
 
+    an_memcmp_s(message->domain_id, an_strlen(message->domain_id), 
+                nbr->domain_id, an_strlen(nbr->domain_id), &indicator2);
+
     if ((an_strlen(message->domain_id) != an_strlen(nbr->domain_id)) ||
-        (an_memcmp(message->domain_id, nbr->domain_id,
-                   an_strlen(nbr->domain_id)))) {
+        (indicator2)) {
         AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DOMAIN_ID);
+    }
+
+    if (an_memcmp(&message->device_ipaddr, &nbr->device_ipaddr,
+                   sizeof(an_addr_t))) {
+       AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_IPADDR);
     }
 
     if (!nbr->an_nbr_link_list) { 
         /* something is wrong, should not reach here */
         return(changed);
     }
-/*
-    an_log(AN_LOG_NBR_LINK, "\n%sNBR_FOUND List Recvd on Local_ifhndl %s "
-                                       "msg->if_name %s"
-                                       "msg->ifaddr %s," 
-                                       "msg->local_ifhndl %s"
-                                       "msg->ipaddr %s",
-                                       an_nbr_link_prefix,
-                                       an_if_get_name(local_ifhndl),
-                                       message->if_name,
-                                       an_addr_get_string(&message->if_ipaddr),
-                                       an_if_get_name(message->ifhndl),
-                                       an_addr_get_string(&message->if_ipaddr));
-*/     
-     link_data = an_nbr_link_db_search(nbr->an_nbr_link_list,
-                                         local_ifhndl,
-                                         message->if_ipaddr);
      
      if (!link_data) {        
          DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
@@ -689,9 +762,12 @@ boolean
 an_nbr_update_params (an_msg_package *message,
                       an_nbr_t *nbr,
                       an_if_t local_ifhndl,
+                      an_nbr_link_spec_t *link_data,
                       an_msg_interest_e new_nbr_link_flag)
 {
     an_msg_interest_e changed = 0;
+    int indicator1 = 0;
+    int indicator2 = 0;
 
     if (!message || !nbr) {
         return (FALSE);
@@ -720,10 +796,12 @@ an_nbr_update_params (an_msg_package *message,
             nbr->domain_id = NULL;
         }
     }
+    an_memcmp_s(message->device_id, an_strlen(message->device_id), 
+                nbr->device_id, an_strlen(nbr->device_id), &indicator1);
 
     if (message->device_id && 
         ((an_strlen(message->device_id) != an_strlen(nbr->device_id)) ||
-         (an_memcmp(message->device_id, nbr->device_id, an_strlen(nbr->device_id))))) {
+         (indicator1))) {
 
         AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_ID);
 
@@ -737,14 +815,16 @@ an_nbr_update_params (an_msg_package *message,
             if (!nbr->device_id) {
                 return (FALSE);
             }
-            an_memcpy_guard(nbr->device_id, message->device_id, 
-                           an_strlen(message->device_id));
+            an_memcpy_guard_s(nbr->device_id, an_strlen(message->device_id), 
+                            message->device_id, an_strlen(message->device_id));
         }
     }
+    an_memcmp_s(message->domain_id, an_strlen(message->domain_id), 
+                nbr->domain_id, an_strlen(nbr->domain_id), &indicator2);
 
     if (message->domain_id && 
         ((an_strlen(message->domain_id) != an_strlen(nbr->domain_id)) ||
-         (an_memcmp(message->domain_id, nbr->domain_id, an_strlen(nbr->domain_id))))) {
+         (indicator2))) {
 
         AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DOMAIN_ID);
 
@@ -758,25 +838,41 @@ an_nbr_update_params (an_msg_package *message,
             if (!nbr->domain_id) {
                 return (FALSE);
             }
-            an_memcpy_guard(nbr->domain_id, message->domain_id, 
-                             an_strlen(message->domain_id));
+            an_memcpy_guard_s(nbr->domain_id, an_strlen(message->domain_id), 
+                        message->domain_id, an_strlen(message->domain_id));
         }
     }
 
+     if (an_memcmp(&message->device_ipaddr, &nbr->device_ipaddr,
+                   sizeof(an_addr_t))) {
+       AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_IPADDR);
+       nbr->device_ipaddr = message->device_ipaddr;
+
+    }
+
+
+
     if (AN_CHECK_BIT_FLAGS(new_nbr_link_flag, AN_MSG_INT_NEW_NBR_LINK)) {
-        an_nbr_update_link_to_nbr(message, nbr, local_ifhndl);
+        link_data = an_nbr_update_link_to_nbr(message, nbr, local_ifhndl);
     }
 
     if (changed) {
+        if (an_acp_is_up_on_nbr(nbr)) { 
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                         "\n%s Nbr Params changed when ACP is up on the nbr," 
+                            " hence ignore the message", an_nd_event); 
+            return (FALSE);
+        }
         an_event_nbr_params_changed(nbr, changed);
     } 
-
-    an_event_nbr_refreshed(nbr);
-
-    return (changed);
+    
+    link_data->last_refreshed_time=
+                             an_unix_time_get_current_timestamp(); 
+    an_event_nbr_refreshed(nbr, link_data);
+    return (TRUE);
 }
 
-void
+an_nbr_link_spec_t *
 an_nbr_update_link_to_nbr (an_msg_package *message,
                            an_nbr_t *nbr,
                            an_if_t local_ifhndl)
@@ -796,7 +892,7 @@ an_nbr_update_link_to_nbr (an_msg_package *message,
     {
        DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
       "\n%sMalloc for Nbr Link data failed, not updating Nbr Link DB", an_nd_db);
-       return;
+       return (NULL);
     }
 
     success = an_nbr_link_db_insert(nbr->an_nbr_link_list, nbr_link_data,
@@ -812,12 +908,84 @@ an_nbr_update_link_to_nbr (an_msg_package *message,
            an_free_guard(nbr_link_data->nbr_if_name);
        }
        an_free_guard(nbr_link_data);
-       return;
+       return (NULL);
     }
-    an_nbr_link_init_cleanup_timer(nbr, nbr_link_data);
+      if (!an_nbr_link_init_cleanup_timer(nbr, nbr_link_data)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT,  AN_DEBUG_MODERATE, NULL,
+                "\n%s Nbr Link Cleanup Initiation Failed", an_nd_event);
+        return (NULL);
+    }
     nbr->num_of_links = nbr->num_of_links + 1;
 
     an_event_nbr_link_add(nbr, nbr_link_data);
+    nbr_link_data->added_time =
+                  an_unix_time_get_current_timestamp();
+    nbr_link_data->keep_alive_received = FALSE; 
+
+    return (nbr_link_data);
+}
+
+boolean channel_exist = FALSE;
+
+an_avl_walk_e
+an_nd_does_channel_exist_to_nbr_cb (an_avl_node_t *node, void *data)
+{
+	an_if_info_t *an_if_info = NULL;
+	an_cd_info_t *an_seed_cd_info = NULL;	
+
+	if (!node || !data) {
+		return (AN_AVL_WALK_FAIL);
+	}
+
+	an_if_info = (an_if_info_t *)node;
+	an_seed_cd_info = (an_cd_info_t *)data;
+	
+	return (AN_AVL_WALK_SUCCESS);
+}
+
+boolean
+an_nd_does_channel_exist_to_nbr (an_msg_package *message) 
+{
+    if (!message->udi.data || !message->udi.len) {
+        return (FALSE);
+    }
+	channel_exist = FALSE;
+
+	if (channel_exist) {
+		channel_exist = FALSE;
+
+		return (TRUE);
+	}
+
+	return (FALSE);
+}
+
+boolean
+an_nd_incoming_keep_alive (an_msg_package *message, an_if_t tunn_ifhndl) 
+{
+    an_nbr_t *nbr = NULL;
+    an_list_element_t *elem = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+
+    nbr = an_nbr_db_search(message->udi);
+    
+    if (!nbr) {
+        return (FALSE);
+    }
+    
+    AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
+        if (tunn_ifhndl == nbr_link_data->acp_info.sec_channel_spec.sec_gre_info.gre_channel.ifhndl) {
+            nbr_link_data->keep_alive_received = TRUE;
+            an_timer_reset(&nbr_link_data->cleanup_timer,
+                           AN_NBR_LINK_CLEAN_INTERVAL);
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                         "\n%sResetting Timer Type [Nbr Per Link Cleanup] for the "
+                         "Nbr Link DB entry %s", an_nd_event, an_if_get_name(tunn_ifhndl));
+            break;
+        } 
+    }
+    an_msg_mgr_free_message_package(message);
+    return (TRUE);
 }
 
 boolean
@@ -826,37 +994,67 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
 {
     an_nbr_t *nbr = NULL;
     boolean res = FALSE;
+    an_if_info_t *an_if_info;
     an_msg_interest_e changed = 0;
     an_nbr_link_spec_t *nbr_link_data = NULL;
+    an_if_info = an_if_info_db_search(local_ifhndl, FALSE);
 
-    if (!pak || !message || !local_ifhndl) {
+    if (!pak || !message || !local_ifhndl || !an_if_info) {
+        an_msg_mgr_free_message_package(message);
         return (FALSE);
     }
 
     if (!message->udi.data || !message->udi.len) {
+        an_msg_mgr_free_message_package(message);
         return (FALSE);
     }
 
+#if 0    
     if (!an_nd_is_operating(message->ifhndl)) {
+        an_msg_mgr_free_message_package(message); 
         return (FALSE);
     }
-
+#endif
+    //Check if the remote LL addr and my LL addr are different
+    //If same, drop the HELLO
+    if (!an_nd_check_if_nbr_on_valid_link(local_ifhndl, message->if_ipaddr)) {
+        an_msg_mgr_free_message_package(message); 
+        return (FALSE);
+    }
     nbr = an_nbr_db_search(message->udi);
     if (nbr) {
-        changed = an_nbr_check_params(message, nbr, local_ifhndl);
+        nbr_link_data = an_nbr_link_db_search(nbr->an_nbr_link_list,
+                                              local_ifhndl,
+                                              message->if_ipaddr);
+     
+        changed = an_nbr_check_params(message, nbr, local_ifhndl, nbr_link_data);
 
         if (changed) {
-           an_nbr_update_params(message, nbr, local_ifhndl, changed);
+           an_nbr_update_params(message, nbr, local_ifhndl, nbr_link_data, changed);
 
         } else {
             DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
                          "\n%sNeighbor [%s] entry already exists in Nbr DB, "
                          "refreshing the Nbr in Nbr DB", 
                          an_nd_db, nbr->udi.data);    
-            an_event_nbr_refreshed(nbr);
+            nbr_link_data->last_refreshed_time=
+                                 an_unix_time_get_current_timestamp(); 
+            an_event_nbr_refreshed(nbr, nbr_link_data);
         }
 
     } else {
+#if 0
+		if (AN_ND_CFG_ENABLED != an_nd_get_preference(an_if_info->ifhndl, AN_ND_CLIENT_CLI)) {
+            if (!an_nd_does_channel_exist_to_nbr(message)) {
+                DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
+                        "\n%sNbr[%s] Not found in the L2 data base"
+                        "(Not directly connected) hence not creating Adjacency",
+                        an_nd_db, message->udi.data)
+                    an_msg_mgr_free_message_package(message);
+                return (FALSE);
+            }
+        }
+#endif        
          /*
          * Create a New Neighbor
          */
@@ -864,6 +1062,9 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
                      "\n%sNbr[%s] not found in Nbr DB, hence creating new nbr",
                      an_nd_db, message->udi.data)
         nbr = an_nd_convert_message_to_nbr(message);
+        if (!nbr) {
+            return (FALSE);
+        }
         
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                     "\n%sNew nbr found on interface %s, Remote Interface %s "
@@ -879,6 +1080,8 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
                              "hence Nbr link [%s] not inserted in the "
                              "Nbr link DB", an_nd_db, 
                              an_if_get_name(local_ifhndl));
+                an_nbr_free(nbr);
+                an_msg_mgr_free_message_package(message);
                 return (FALSE);
             }
             res = an_nbr_link_db_insert(nbr->an_nbr_link_list, nbr_link_data,
@@ -894,16 +1097,30 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
                     an_free_guard(nbr_link_data->nbr_if_name);
                 }
                 an_free_guard(nbr_link_data);
+                an_nbr_free(nbr);
+                an_msg_mgr_free_message_package(message);
                 return (FALSE);
             }            
-            an_nbr_link_init_cleanup_timer(nbr, nbr_link_data);
+            if (!an_nbr_link_init_cleanup_timer(nbr, nbr_link_data)) {
+                DEBUG_AN_LOG(AN_LOG_ND_EVENT,  AN_DEBUG_MODERATE, NULL,
+                        "\n%s Nbr Link Cleanup Initiation Failed", an_nd_event);
+                an_nbr_free(nbr);
+                an_msg_mgr_free_message_package(message);
+                return (FALSE);
+            }
             nbr->num_of_links = nbr->num_of_links + 1;
-        
+            nbr_link_data->added_time =
+                         an_unix_time_get_current_timestamp();
+            nbr->selected_anr_reference_time = 
+                         an_unix_time_get_current_timestamp();
+            nbr->selected_anr_addr = AN_ADDR_ZERO ;
         } else {
             DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL,
                          "%sNbr [%s] Link DB creation failed, "
                          "not able to add the nbr to Nbr DB", an_nd_db, 
                          nbr->udi.data);
+            an_nbr_free(nbr);
+            an_msg_mgr_free_message_package(message);
             return (FALSE);
         }
 
@@ -911,33 +1128,47 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
         an_event_nbr_add(nbr);
     }
 
-    an_nbr_link_reset_cleanup_timer(nbr->an_nbr_link_list, 
-                                    message->if_ipaddr, local_ifhndl);
-    an_msg_mgr_free_message_package(message);
+    nbr_link_data = an_nbr_link_db_search(nbr->an_nbr_link_list, 
+                                          local_ifhndl, message->if_ipaddr);
+    if (nbr_link_data != NULL && nbr_link_data->keep_alive_received != TRUE)
+    {
+        an_timer_reset(&nbr_link_data->cleanup_timer,
+                       AN_NBR_LINK_CLEAN_INTERVAL);
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sResetting Timer Type [Nbr Per Link Cleanup] for the "
+                     "Nbr Link DB entry %s", an_nd_event, 
+                     an_if_get_name(local_ifhndl));
+    }
 
+    an_msg_mgr_free_message_package(message);
     return (TRUE);
 }
 
 an_msg_package *
-an_nd_get_hello (an_if_t ifhndl)
+an_nd_get_keep_alive_msg_package (an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data) 
 {
     an_msg_package *message = NULL;
     an_v6addr_t v6addr = AN_V6ADDR_ZERO; 
     an_udi_t udi = {};
     uint8_t *if_name = NULL;
     an_cert_t domain_device_cert = {};
+    an_addr_t device_ip;
     
-    message = an_msg_mgr_get_empty_message_package();    
+    message = an_msg_mgr_get_empty_message_package();
+    if (!message) {
+        return (NULL);
+    }    
 
     an_msg_mgr_init_header(message, AN_PROTO_ADJACENCY_DISCOVERY, 
-                           AN_ADJACENCY_DISCOVERY_HELLO);
+                           AN_MSG_ND_KEEP_ALIVE);
 
-    message->ifhndl = ifhndl;
+    message->ifhndl = nbr_link_data->acp_info.sec_channel_spec.sec_gre_info.gre_channel.ifhndl;
     an_addr_set_from_v6addr(&message->src, an_ipv6_get_ll(message->ifhndl)); 
     message->dest = an_ll_scope_all_node_mcast;
+    message->iptable = an_get_iptable();
 
-    an_get_udi(&udi);
-    if (!udi.data || !udi.len) {
+    if (!an_get_udi(&udi)) {
+        an_msg_mgr_free_message_package(message);
         return (NULL);
     }
  
@@ -948,7 +1179,7 @@ an_nd_get_hello (an_if_t ifhndl)
             return (NULL);
         }
         message->udi.len = udi.len;
-        an_memcpy_guard(message->udi.data, udi.data, udi.len);
+        an_memcpy_guard_s(message->udi.data, udi.len, udi.data, udi.len);
         AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_UDI);
     }
 
@@ -959,8 +1190,8 @@ an_nd_get_hello (an_if_t ifhndl)
             an_msg_mgr_free_message_package(message);
             return (NULL);
         }
-        an_memcpy_guard(message->device_id, an_get_device_id(), 
-                1+an_strlen(an_get_device_id()));
+        an_memcpy_guard_s(message->device_id, 1+an_strlen(an_get_device_id()), 
+                     an_get_device_id(), 1+an_strlen(an_get_device_id()));
         AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_DEVICE_ID);
 
         message->domain_id = (uint8_t *)an_malloc_guard(
@@ -969,9 +1200,105 @@ an_nd_get_hello (an_if_t ifhndl)
             an_msg_mgr_free_message_package(message);
             return (NULL);
         }
-        an_memcpy_guard(message->domain_id, an_get_domain_id(), 
-                1+an_strlen(an_get_domain_id()));
+        an_memcpy_guard_s(message->domain_id, 1+an_strlen(an_get_domain_id()), 
+                     an_get_domain_id(), 1+an_strlen(an_get_domain_id()));
         AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_DOMAIN_ID);
+
+        device_ip = an_get_device_ip();
+        if (!an_addr_is_zero(device_ip)) {
+            message->device_ipaddr = an_get_device_ip();
+            AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_DEVICE_IPADDR);
+        }
+
+    }
+
+    v6addr = an_ipv6_get_ll(nbr_link_data->local_ifhndl);
+    an_addr_set_from_v6addr(&message->if_ipaddr, v6addr); 
+    AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_IF_IPADDR);
+
+    if_name = (uint8_t *)an_if_get_name(message->ifhndl);
+    message->if_name = (uint8_t *)an_malloc_guard(1+an_strlen(if_name), 
+                                  "AN MSG IF Name");
+    if (!message->if_name) {
+        an_msg_mgr_free_message_package(message);
+        return (NULL);
+    }
+    an_memcpy_guard_s(message->if_name, 1+an_strlen(if_name), if_name, 
+                                                1+an_strlen(if_name));
+    AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_IF_NAME);
+    
+    return (message);
+
+}
+
+an_msg_package *
+an_nd_get_hello (an_if_t ifhndl)
+{
+    an_msg_package *message = NULL;
+    an_v6addr_t v6addr = AN_V6ADDR_ZERO; 
+    an_udi_t udi = {};
+    uint8_t *if_name = NULL;
+    an_cert_t domain_device_cert = {};
+    an_addr_t device_ip;
+    
+    message = an_msg_mgr_get_empty_message_package();    
+    if (!message) {
+        return (NULL);
+    }    
+
+    an_msg_mgr_init_header(message, AN_PROTO_ADJACENCY_DISCOVERY, 
+                           AN_ADJACENCY_DISCOVERY_HELLO);
+
+    message->ifhndl = ifhndl;
+    an_addr_set_from_v6addr(&message->src, an_ipv6_get_ll(message->ifhndl)); 
+    message->dest = an_ll_scope_all_node_mcast;
+
+    if (!an_get_udi(&udi)) {
+        an_msg_mgr_free_message_package(message);
+        return (NULL);
+    }
+ 
+    if (udi.len) {
+        message->udi.data = (uint8_t *)an_malloc_guard(1+udi.len, "AN MSG UDI");
+        if (!message->udi.data) {
+            an_msg_mgr_free_message_package(message);
+            return (NULL);
+        }
+        message->udi.len = udi.len;
+        memset(message->udi.data, 0, 1+udi.len);
+    //[TO_DO]: malloced 1_udi.len, memcopied 1+udi.len.
+//        an_memcpy_guard_s(message->udi.data, 1+udi.len, udi.data, 1+udi.len);
+        an_strncpy_s(message->udi.data, udi.len, udi.data, udi.len);
+        AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_UDI);
+    }
+
+    if (an_get_domain_cert(&domain_device_cert)) {
+        message->device_id = (uint8_t *)an_malloc_guard(
+                1+an_strlen(an_get_device_id()), "AN MSG Device ID");
+        if (!message->device_id) {
+            an_msg_mgr_free_message_package(message);
+            return (NULL);
+        }
+        an_memcpy_guard_s(message->device_id, 1+an_strlen(an_get_device_id()), 
+                     an_get_device_id(), 1+an_strlen(an_get_device_id()));
+        AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_DEVICE_ID);
+
+        message->domain_id = (uint8_t *)an_malloc_guard(
+                1+an_strlen(an_get_domain_id()), "AN MSG Domain ID");
+        if (!message->domain_id) {
+            an_msg_mgr_free_message_package(message);
+            return (NULL);
+        }
+        an_memcpy_guard_s(message->domain_id, 1+an_strlen(an_get_domain_id()), 
+                     an_get_domain_id(), 1+an_strlen(an_get_domain_id()));
+        AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_DOMAIN_ID);
+
+        device_ip = an_get_device_ip();
+        if (!an_addr_is_zero(device_ip)) {
+            message->device_ipaddr = an_get_device_ip();
+            AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_DEVICE_IPADDR);
+        }
+
     }
 
     v6addr = an_ipv6_get_ll(ifhndl);
@@ -985,13 +1312,14 @@ an_nd_get_hello (an_if_t ifhndl)
         an_msg_mgr_free_message_package(message);
         return (NULL);
     }
-    an_memcpy_guard(message->if_name, if_name, 1+an_strlen(if_name));
+    an_memcpy_guard_s(message->if_name, 1+an_strlen(if_name), if_name, 
+                                                1+an_strlen(if_name));
     AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_IF_NAME);
 
     return(message);
 }
 
-void
+boolean
 an_nbr_link_init_cleanup_timer (an_nbr_t *nbr,
                                 an_nbr_link_spec_t *nbr_link_data)
 {
@@ -1008,7 +1336,7 @@ an_nbr_link_init_cleanup_timer (an_nbr_t *nbr,
            an_free_guard(nbr_link_data->nbr_if_name);
         }
         an_free_guard(nbr_link_data);
-        return;
+        return FALSE;
     }
 
     link_ctx->nbr = nbr;
@@ -1018,6 +1346,8 @@ an_nbr_link_init_cleanup_timer (an_nbr_t *nbr,
                  "\n%s Nbr Link Cleanup Initiated", an_nd_event);
     an_timer_init(&nbr_link_data->cleanup_timer,
                   AN_TIMER_TYPE_PER_NBR_LINK_CLEANUP, link_ctx, FALSE);
+	an_timer_start(&nbr_link_data->cleanup_timer, AN_NBR_LINK_CLEAN_INTERVAL);
+    return TRUE;
 }
 
 void
@@ -1074,7 +1404,7 @@ an_nbr_link_lost_cb (an_list_t *list,
    return (AN_CERR_SUCCESS);
 }
 
-an_walk_e
+an_avl_walk_e
 an_nbr_walk_link_lost_cb (an_avl_node_t *node, void *args)
 {
    an_nbr_t *nbr = (an_nbr_t *)node;
@@ -1084,7 +1414,7 @@ an_nbr_walk_link_lost_cb (an_avl_node_t *node, void *args)
    an_cerrno ret;
    
    if (!nbr || !args) {
-      return (AN_WALK_FAIL);
+      return (AN_AVL_WALK_FAIL);
    }
    
    nbr_link_data.local_ifhndl = *ifhndl;
@@ -1093,7 +1423,7 @@ an_nbr_walk_link_lost_cb (an_avl_node_t *node, void *args)
    ret = an_nbr_link_db_walk(nbr->an_nbr_link_list, an_nbr_link_lost_cb, 
                              &nbr_link);
    
-   return (AN_WALK_SUCCESS);
+   return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -1115,4 +1445,24 @@ an_nbr_remove_nbr_link (an_nbr_t *nbr, an_nbr_link_spec_t* nbr_link_data)
                      "\n%sRemaining Links after Nbr[%s] link removal [%d]", 
                      an_nd_db, nbr->udi.data, nbr->num_of_links);
     }
+}
+
+boolean
+an_nd_check_if_nbr_on_valid_link (an_if_t my_ifhndl,  an_addr_t remote_ipaddr)
+{
+    an_addr_t my_ll_addr = AN_ADDR_ZERO;
+    int indicator = 0;
+
+    an_addr_set_from_v6addr(&my_ll_addr,
+                            an_ipv6_get_ll(my_ifhndl));
+
+    an_memcmp_s(&my_ll_addr, sizeof(an_addr_t), &remote_ipaddr, 
+                                           sizeof(an_addr_t), &indicator);
+    //My ll addr and remote nbr ll address are same- DONT accept this ND Hello
+    //indicator = 0 : means both address are same
+    if (!indicator) {
+        return (FALSE);
+    }
+
+    return (TRUE);
 }

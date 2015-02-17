@@ -6,12 +6,13 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_IF_H__
 #define __AN_IF_H__
 
 #include "an_types.h"
 #include "../common/an_if_mgr.h"
+
+#define AN_IF_NAME_MAX_LEN 99
 
 extern uint32_t an_loopback_id;
 typedef boolean (*an_if_walk_func)(an_if_t ifhndl, void *data);
@@ -42,6 +43,7 @@ an_idbtype * an_if_number_to_swidb(an_if_t ifhndl);
 void clear_idb_subblocks (an_idbtype *idb);
 boolean an_if_recycle_matcher (an_idbtype *idb);
 void an_if_platform_specific_cfg(an_if_t ifhndl);
+void an_if_platform_specific_cfg_after_cd_rcvd(an_if_t ifhndl);
 void an_platform_specific_init(void);
 uint8_t* an_if_get_l2_mac_addr(an_hwidbtype *hwidb);
 void an_if_set_svi_mac_addr(an_hwidbtype *hwidb, uint8_t* l2_mac);
@@ -52,10 +54,13 @@ boolean an_l2_check_probe_possible(an_if_t ifhndl);
 void an_l2_reuse_startup_config(an_if_t ifhndl);
 boolean an_cd_start_probing_on_interface_cb(an_if_t ifhndl, void *data);
 void an_cd_start_probing_on_interfaces(void);
-an_walk_e an_cd_refresh_probe_cb(an_avl_node_t *node, void *data);
+an_avl_walk_e an_cd_refresh_probe_cb(an_avl_node_t *node, void *data);
 boolean an_should_bring_up_interfaces(void);
 inline void an_set_if_vlanid(an_if_info_t *an_if_info, ushort vlanid);
 inline void an_set_if_inner_vlanid(an_if_info_t *an_if_info, ushort inner_vlanid);  
-
-
+uint8_t* an_if_get_l2_mac_addr(an_hwidbtype *hwidb);
+void an_if_set_svi_mac_addr(an_hwidbtype *hwidb, uint8_t* l2_mac);
+boolean an_if_is_internal(an_if_t ifhndl);
+inline boolean an_if_is_mgmt(an_if_t ifhndl);
+boolean an_if_is_media_type_supported(an_if_t ifhndl);
 #endif

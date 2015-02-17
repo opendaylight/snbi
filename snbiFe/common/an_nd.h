@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_ND_H__
 #define __AN_ND_H__
 
@@ -15,17 +14,19 @@
 #include "an_nbr_db.h"
 #include "../al/an_list.h"
  
-#define AN_NBR_LINK_CLEAN_INTERVAL (40*1000)
+#define AN_NBR_LINK_EXPIRE_IMMEDIATE 10
+
 //#define AN_FOR_ALL_DATA_IN_LIST XOS_FOR_ALL_DATA_IN_LIST
 
 #define AN_ND_HELLO 136 
 #define AN_ND_OPT 17
 
 #define AN_ND_HELLO_REFRESH_INTERVAL (10*1000)
+#define AN_NBR_LINK_CLEAN_INTERVAL (4 * AN_ND_HELLO_REFRESH_INTERVAL)
 
 typedef enum an_nd_oper_e_ {
     AN_ND_OPER_DOWN  =   0,
-    AN_ND_OPER_UP       =   1,
+    AN_ND_OPER_UP    =   1,
 } an_nd_oper_e;
 
 typedef enum an_nd_config_state_e_ {
@@ -63,20 +64,24 @@ boolean an_nd_uninit(void);
 
 boolean an_nd_incoming_hello(an_msg_package *msg_package, 
                              an_pak_t *pak, an_if_t ifhndl); 
+boolean an_nd_incoming_keep_alive(an_msg_package *msg_package, 
+                                  an_if_t ifhndl); 
 an_msg_package* an_nd_get_hello(an_if_t ifhndl);
 
 
 void an_nbr_refresh_hello(void);
 
 //Functions for multiple link to nbr implementation
-void an_nbr_update_link_to_nbr(an_msg_package *message, an_nbr_t *nbr,
+an_nbr_link_spec_t * an_nbr_update_link_to_nbr(an_msg_package *message, an_nbr_t *nbr,
                                 an_if_t local_ifhndl); 
 void an_nbr_link_reset_cleanup_timer(an_list_t *an_nbr_link_list,
                                     an_addr_t if_ipaddr, an_if_t ifhndl);
-void an_nbr_link_init_cleanup_timer(an_nbr_t *nbr, 
+boolean an_nbr_link_init_cleanup_timer(an_nbr_t *nbr, 
                                 an_nbr_link_spec_t *nbr_link_data);
 void an_nbr_remove_nbr_link(an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
 
-an_walk_e an_nbr_walk_link_lost_cb(an_avl_node_t *node, void *args);
+boolean an_nbr_walk_link_lost_cb(an_avl_node_t *node, void *args);
+boolean an_nd_check_if_nbr_on_valid_link(an_if_t my_ifhndl, 
+                                         an_addr_t remote_ipaddr);
 
 #endif

@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #ifndef __AN_AVL_H__
 #define __AN_AVL_H__
 
@@ -19,7 +18,7 @@ typedef enum an_avl_compare_e_ {
 } an_avl_compare_e;
 
 typedef an_avl_compare_e (*an_avl_compare_f)(an_avl_node_t *node1, an_avl_node_t *node2);
-typedef boolean (*an_avl_walk_f)(an_avl_node_t *node, void *args);
+typedef an_avl_walk_e (*an_avl_walk_f)(an_avl_node_t *node, void *args);
 
 boolean an_avl_insert_node(an_avl_top_p *top_node, an_avl_node_t *node, 
                       an_avl_compare_f compare_func, an_avl_tree *tree);

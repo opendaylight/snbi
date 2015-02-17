@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "an_nbr_db.h"
 #include "an_event_mgr.h"
 #include "../al/an_timer.h"
@@ -32,15 +31,16 @@ an_nbr_alloc_init (an_nbr_t *nbr)
     
     an_timer_init(&nbr->cert_request_timer, AN_TIMER_TYPE_NI_CERT_REQUEST, 
                   nbr, FALSE);
-    an_timer_init(&nbr->idp_info.cleanup_timer, AN_TIMER_TYPE_IDP_REFRESH, 
+    an_timer_init(&nbr->cert_revalidate_timer, AN_TIMER_TYPE_REVALIDATE_CERT, 
+                  nbr, FALSE);
+    an_timer_init(&nbr->cert_expire_timer, AN_TIMER_TYPE_NBR_CERT_EXPIRE,
                   nbr, FALSE);
     nbr->num_of_links = 0;
-    for(index = AN_SERVICE_AAA; index<AN_SERVICE_MAX; index++) {
-        nbr->an_nbr_srvc_list[index].srvc_ip = AN_ADDR_ZERO;
-        nbr->an_nbr_srvc_list[index].sync_done = FALSE;
-        an_timer_init(&nbr->an_nbr_srvc_list[index].cleanup_timer, 
-                      AN_TIMER_TYPE_AAA_INFO_SYNC + index, nbr, FALSE);
-    }
+    nbr->renew_cert_poll_count = 0;
+    nbr->my_cert_expired_time = 0;
+    nbr->renew_cert_5perc_poll_timer = 0;
+    nbr->renew_cert_1perc_poll_timer = 0;
+    nbr->validation.result = AN_CERT_VALIDITY_UNKNOWN;
 }
 
 an_nbr_t* 
@@ -98,10 +98,8 @@ an_nbr_free_cleanup (an_nbr_t *nbr)
     }
     
     an_timer_stop(&nbr->cert_request_timer);
-    an_timer_stop(&nbr->idp_info.cleanup_timer);
-    for(index = AN_SERVICE_AAA; index<AN_SERVICE_MAX; index++) {
-        an_timer_stop(&nbr->an_nbr_srvc_list[index].cleanup_timer);
-    }
+    an_timer_stop(&nbr->cert_revalidate_timer);
+    an_timer_stop(&nbr->cert_expire_timer);
 }
 
 void
@@ -120,7 +118,7 @@ an_nbr_compare (an_avl_node_t *node1, an_avl_node_t *node2)
 {
     an_nbr_t *nbr1 = (an_nbr_t *)node1;
     an_nbr_t *nbr2 = (an_nbr_t *)node2;
-    int32_t comp = 0;
+    int comp = 0;
 
     if (!nbr1 && !nbr2) {
         return (AN_AVL_COMPARE_EQ);
@@ -135,7 +133,7 @@ an_nbr_compare (an_avl_node_t *node1, an_avl_node_t *node2)
     } else if (nbr1->udi.len > nbr2->udi.len) {
         return (AN_AVL_COMPARE_GT);
     } else { 
-        comp = an_strcmp(nbr1->udi.data, nbr2->udi.data);
+        an_strcmp_s(nbr1->udi.data, AN_UDI_MAX_LEN, nbr2->udi.data, &comp);
         if (comp < 0) {
             return (AN_AVL_COMPARE_LT);
         } else if (comp > 0) {
@@ -179,6 +177,28 @@ an_nbr_db_remove (an_nbr_t *nbr)
     return (TRUE);
 }
 
+static an_cerrno
+an_nbr_expire_link (an_list_t *list,
+        const an_list_element_t *current,
+        an_list_element_t *next, void *context)
+{
+    an_nbr_link_spec_t *current_link = NULL;
+
+    if (!current) {
+        DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
+                     "\n%sInvalid input params to expire the link in the Nbr " 
+                     "Link DB", an_nd_db);
+        return (AN_CERR_V_FATAL(0, 0, EINVAL));
+    }
+
+    current_link = (an_nbr_link_spec_t *)current->data;
+
+    if (!an_timer_is_expired(&current_link->cleanup_timer)) {
+        an_timer_start(&current_link->cleanup_timer, AN_NBR_LINK_EXPIRE_IMMEDIATE);
+    }
+    return (AN_CERR_SUCCESS);
+}
+
 void
 an_nbr_expire_nbr (an_nbr_t *nbr)
 {
@@ -193,9 +213,8 @@ an_nbr_expire_nbr (an_nbr_t *nbr)
 
     DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, "\n%sExpiring Nbr[%s] "
                  "Entry from the Nbr DB", an_nd_db, nbr->udi.data); 
-    //topo_nbr_disconnect(nbr);
-    an_event_nbr_lost(nbr);
-    an_nbr_remove_and_free_nbr(nbr);
+   
+    an_nbr_link_db_walk(nbr->an_nbr_link_list, an_nbr_expire_link, NULL); 
 }
 
 void 
@@ -223,7 +242,7 @@ an_nbr_db_search (an_udi_t udi)
     DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_INFO, NULL, 
                  "\n%sSearching Nbr [%s] in Nbr DB", an_nd_db, udi.data);
    
-    an_memcpy(&goal_nbr.udi, &udi, sizeof(an_udi_t));
+    an_memcpy_s(&goal_nbr.udi, sizeof(an_udi_t), &udi, sizeof(an_udi_t));
     nbr = (an_nbr_t *)
           an_avl_search_node((an_avl_top_p)an_nbr_database,
                              avl_type, an_nbr_compare, &an_nbr_tree); 
@@ -237,18 +256,18 @@ an_nbr_db_walk (an_avl_walk_f walk_func, void *args)
                           an_nbr_compare, args, &an_nbr_tree);    
 }
 
-an_walk_e
+an_avl_walk_e
 an_nbr_db_init_cb (an_avl_node_t *node, void *args)
 {
     an_nbr_t *nbr = (an_nbr_t *)node;
 
     if (!nbr) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
 
     an_nbr_expire_nbr(nbr);
 
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -271,7 +290,7 @@ an_nbr_set_service_info (an_nbr_t *nbr, an_service_info_t *srvc_info)
      }
 
      nbr_srvc_info = &nbr->an_nbr_srvc_list[srvc_type]; 
-     an_memcpy((uint8_t *)&nbr_srvc_info->srvc_ip,
+     an_memcpy_s((uint8_t *)&nbr_srvc_info->srvc_ip, sizeof(an_addr_t),
                     (uint8_t *)&srvc_info->srvc_ip, sizeof(an_addr_t));
      nbr_srvc_info->sync_done = TRUE;
      nbr_srvc_info->retries_done = 0;
@@ -323,8 +342,8 @@ an_nbr_link_spec_t* an_nbr_link_db_alloc_node (void)
                      "\n%sMemory Alloc failed for the Nbr Link DB entry", an_nd_db);
         return (FALSE);
     }
-
-    an_memset_guard(nbr_link_data, 0 , sizeof(an_nbr_link_spec_t));
+    
+    an_memset_guard_s(nbr_link_data, 0 , sizeof(an_nbr_link_spec_t));
     return (nbr_link_data);
 }
 
@@ -369,7 +388,7 @@ an_nbr_link_db_stop_timer_and_remove_node (an_list_t *list,
 boolean
 an_nbr_link_db_create (an_nbr_t *nbr)
 {
-    if (!nbr->an_nbr_link_list) {
+   // if (!nbr->an_nbr_link_list) {
         if (AN_CERR_SUCCESS != an_list_create(&nbr->an_nbr_link_list,
                               "AN Nbr Link DB")) {
             DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
@@ -383,7 +402,7 @@ an_nbr_link_db_create (an_nbr_t *nbr)
                          an_nd_db, nbr->udi.data);
             return (TRUE);
         }
-    }
+//    }
     return (TRUE);
 }
 
@@ -467,8 +486,8 @@ an_nbr_link_db_insert (an_list_t *list, an_nbr_link_spec_t *nbr_link_data,
                      an_nd_db);
         return (FALSE);
     }
-    an_memcpy_guard(nbr_link_data->nbr_if_name, remote_if_name,     
-                    remote_if_name_len);
+    an_memcpy_guard_s(nbr_link_data->nbr_if_name, remote_if_name_len, remote_if_name,     
+                                                           remote_if_name_len);
    
     nbr_link_data->ipaddr = if_ipaddr;
     nbr_link_data->local_ifhndl = local_ifhndl;
@@ -502,8 +521,8 @@ an_nbr_link_search_cb (void *data1, void *data2)
     ctx1 = (an_nbr_link_spec_t *)data1;
     ctx2 = (an_nbr_link_spec_t *)data2;
 
-    res = an_memcmp(&ctx1->ipaddr,
-                              &ctx2->ipaddr,sizeof(an_addr_t));
+    an_memcmp_s(&ctx1->ipaddr,sizeof(an_addr_t),
+                              &ctx2->ipaddr, sizeof(an_addr_t), &res);
 
 /*    an_log(AN_LOG_NBR_LINK,"\n%scomparing the interfaces %s and %s",
             an_nbr_link_prefix, an_if_get_name(ctx1->local_ifhndl), 
@@ -526,7 +545,7 @@ an_nbr_link_db_search (an_list_t *list, an_if_t ifhndl, an_addr_t addr)
     an_nbr_link_spec_t goal;
     an_nbr_link_spec_t *found_data = NULL;
 
-    an_memset(&goal, 0, sizeof(an_nbr_link_spec_t));
+    an_memset_s(&goal, 0, sizeof(an_nbr_link_spec_t));
     
     goal.local_ifhndl= ifhndl;
     goal.ipaddr = addr;

@@ -16,13 +16,14 @@
  * If the packet is double tagged, the channel discovery
  * packet would contain both the tags.
  */
+#if 0
 typedef struct an_l2_info_t_ {
 
     uint32_t outer_vlan_id;
     uint32_t inner_vlan_id;
 
 } an_l2_info_t;
-
+#endif
 /**
   * an_enqueue_l2_pkt
   *

@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "../al/an_types.h"
 #include "../al/an_mem.h"
 #include "../al/an_str.h"
@@ -91,7 +90,7 @@ an_accepted_device_compare (an_avl_node_t *node1, an_avl_node_t *node2)
     } else if (member1->udi.len > member2->udi.len) {
         return (AN_AVL_COMPARE_GT);
     } else { 
-        comp = an_strcmp(member1->udi.data, member2->udi.data);
+        an_strcmp_s(member1->udi.data, AN_UDI_MAX_LEN, member2->udi.data, (int *)&comp);
         if (comp < 0) {
             return (AN_AVL_COMPARE_LT);
         } else if (comp > 0) {
@@ -142,9 +141,10 @@ an_accepted_device_db_search (an_udi_t udi)
 
     an_avl_node_t *avl_type  = (an_avl_node_t *)&goal_member;
     DEBUG_AN_LOG(AN_LOG_RA_DB, AN_DEBUG_MODERATE, NULL, 
-                 "\n%sAN Registrar searching device [%s] in accepted device DB", 
+                 "\n%sAutonomic Registrar searching device [%s] in accepted"
+                 " device DB", 
                  an_ra_db, udi.data);
-    an_memcpy(&goal_member.udi, &udi, sizeof(an_udi_t));
+    an_memcpy_s(&goal_member.udi, sizeof(an_udi_t), &udi, sizeof(an_udi_t));
     member = (an_accepted_device_t *)
           an_avl_search_node((an_avl_top_p)an_accepted_device_db,
                         avl_type, an_accepted_device_compare, 
@@ -164,13 +164,13 @@ an_accepted_device_db_walk (an_avl_walk_f walk_func, void *args)
                           &an_accepted_device_tree);
 }
 
-an_walk_e
+an_avl_walk_e	
 an_accepted_device_db_init_cb (an_avl_node_t *node, void *args)
 {
     an_accepted_device_t *member = (an_accepted_device_t *)node;
 
     if (!member) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
 
     if (member->udi.data) {
@@ -186,7 +186,7 @@ an_accepted_device_db_init_cb (an_avl_node_t *node, void *args)
     an_accepted_device_db_remove(member);
     an_accepted_device_free(member);
 
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -241,7 +241,7 @@ an_anra_color_device_compare (an_avl_node_t *node1, an_avl_node_t *node2)
 {
     an_anra_color_device_t *member1 = (an_anra_color_device_t *)node1;
     an_anra_color_device_t *member2 = (an_anra_color_device_t *)node2;
-    int32_t comp = 0;
+    int comp = 0;
 
     if (!member1 && !member2) {
         return (AN_AVL_COMPARE_EQ);
@@ -256,7 +256,7 @@ an_anra_color_device_compare (an_avl_node_t *node1, an_avl_node_t *node2)
     } else if (member1->udi.len > member2->udi.len) {
         return (AN_AVL_COMPARE_GT);
     } else {
-        comp = an_strcmp(member1->udi.data, member2->udi.data);
+        an_strcmp_s(member1->udi.data, AN_UDI_MAX_LEN, member2->udi.data, &comp);
         if (comp < 0) {
             return (AN_AVL_COMPARE_LT);
         } else if (comp > 0) {
@@ -311,7 +311,7 @@ an_anra_color_device_db_search (an_udi_t udi)
     DEBUG_AN_LOG(AN_LOG_RA_DB, AN_DEBUG_MODERATE, NULL, 
                  "\n%sSearching device [%s] in color device DB", 
                  an_ra_db, udi.data);
-    an_memcpy(&goal_member.udi, &udi, sizeof(an_udi_t));
+    an_memcpy_s(&goal_member.udi, sizeof(an_udi_t), &udi, sizeof(an_udi_t));
     color_device = (an_anra_color_device_t *)
           an_avl_search_node((an_avl_top_p)an_anra_color_device_db,
                         avl_type, an_anra_color_device_compare, 
@@ -329,7 +329,7 @@ an_anra_color_device_db_walk (an_avl_walk_f walk_func, void *args)
                           &an_anra_color_device_tree);    
 }
 
-an_walk_e
+an_avl_walk_e
 an_anra_color_device_db_init_cb (an_avl_node_t *node, void *args)
 {
     an_anra_color_device_t *color_device = 
@@ -337,12 +337,12 @@ an_anra_color_device_db_init_cb (an_avl_node_t *node, void *args)
     an_anra_color_device_label *label = NULL;
 
     if (!color_device || !args) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
     
     label = (an_anra_color_device_label *)args;
     if (*label && (color_device->label !=  *label)) {
-        return (AN_WALK_SUCCESS);
+        return (AN_AVL_WALK_SUCCESS);
     }  
 
     if (color_device->udi.data) {
@@ -353,7 +353,7 @@ an_anra_color_device_db_init_cb (an_avl_node_t *node, void *args)
     an_anra_color_device_db_remove(color_device);
     an_anra_color_device_free (color_device);
     
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
@@ -410,7 +410,7 @@ an_quarantine_device_compare (an_avl_node_t *node1, an_avl_node_t *node2)
 {
     an_anra_quarantine_device_t *member1 = (an_anra_quarantine_device_t *)node1;
     an_anra_quarantine_device_t *member2 = (an_anra_quarantine_device_t *)node2;
-    int32_t comp = 0;
+    int comp = 0;
 
     if (!member1 && !member2) {
         return (AN_AVL_COMPARE_EQ);
@@ -425,7 +425,7 @@ an_quarantine_device_compare (an_avl_node_t *node1, an_avl_node_t *node2)
     } else if (member1->udi.len > member2->udi.len) {
         return (AN_AVL_COMPARE_GT);
     } else {
-        comp = an_strcmp(member1->udi.data, member2->udi.data);
+        an_strcmp_s(member1->udi.data, AN_UDI_MAX_LEN, member2->udi.data, &comp);
         if (comp < 0) {
             return (AN_AVL_COMPARE_LT);
     } else if (comp > 0) {
@@ -484,7 +484,7 @@ an_anra_quarantine_device_db_search (an_udi_t udi)
     DEBUG_AN_LOG(AN_LOG_RA_DB, AN_DEBUG_MODERATE, NULL, 
                  "\n%sSearching device %s in quarantine device DB",
                  an_ra_db, udi.data);
-    an_memcpy(&goal_member.udi, &udi, sizeof(an_udi_t));
+    an_memcpy_s(&goal_member.udi, sizeof(an_udi_t), &udi, sizeof(an_udi_t));
     quarantine_device = (an_anra_quarantine_device_t *)
           an_avl_search_node((an_avl_top_p)an_anra_quarantine_device_db,
                         avl_type, an_quarantine_device_compare,
@@ -504,14 +504,14 @@ an_anra_quarantine_device_db_walk (an_avl_walk_f walk_func, void *args)
                           &an_anra_quarantine_device_tree);
 }
 
-an_walk_e
+an_avl_walk_e
 an_anra_quarantine_device_db_init_cb (an_avl_node_t *node, void *args)
 {
     an_anra_quarantine_device_t *quarantine_device =
                 (an_anra_quarantine_device_t *)node;
 
     if (!quarantine_device) {
-        return (AN_WALK_FAIL);
+        return (AN_AVL_WALK_FAIL);
     }
 
     if (quarantine_device->udi.data) {
@@ -522,7 +522,7 @@ an_anra_quarantine_device_db_init_cb (an_avl_node_t *node, void *args)
     an_anra_quarantine_device_db_remove(quarantine_device);
     an_anra_quarantine_device_free(quarantine_device);
 
-    return (AN_WALK_SUCCESS);
+    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
