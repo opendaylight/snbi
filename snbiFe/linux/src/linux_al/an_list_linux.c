@@ -16,7 +16,6 @@ an_cerrno
 an_list_create (an_list_t **list, 
                            const char *list_name)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return  (0);
 }
 
