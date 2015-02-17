@@ -6,13 +6,12 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#ifndef __AN_AVL_LINUX_H__
-#define __AN_AVL_LINUX_H__
+#ifndef __AN_DIKE_H__
+#define __AN_DIKE_H__
 
-#include "avl.h"
-
-typedef avl an_avl_node_t;
-typedef avl* an_avl_top_p;
-typedef avl_tree an_avl_tree;
-
+boolean an_dike_profile_apply_on_tunnel(an_if_t tunn_ifhndl, 
+                    uint16_t ll_dike_port, uint16_t remote_dike_port);
+void an_dike_profile_remove_on_tunnel(an_if_t tunn_ifhndl);
 #endif
+
+
