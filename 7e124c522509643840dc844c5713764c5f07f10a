@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a93c517_669edf58",
+        "filename": "snbiFe/infra/lib/libavl/libavl.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T08:23:54Z",
+      "side": 1,
+      "message": "please change the copyright, it should not be Cisco Systems.",
+      "revId": "7e124c522509643840dc844c5713764c5f07f10a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_2651b762",
+        "filename": "snbiFe/infra/lib/libavl/libavl.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T08:23:54Z",
+      "side": 1,
+      "message": "can we please follow some naming convention..\n\navl_node_create ()\n\navl_get_height()",
+      "revId": "7e124c522509643840dc844c5713764c5f07f10a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_c64d73c6",
+        "filename": "snbiFe/infra/lib/libavl/libavl.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T08:23:54Z",
+      "side": 1,
+      "message": "space between function name and braces.",
+      "revId": "7e124c522509643840dc844c5713764c5f07f10a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_e64aefab",
+        "filename": "snbiFe/infra/lib/libavl/libavl.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T08:23:54Z",
+      "side": 1,
+      "message": "no check for cmp_function ?",
+      "revId": "7e124c522509643840dc844c5713764c5f07f10a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
