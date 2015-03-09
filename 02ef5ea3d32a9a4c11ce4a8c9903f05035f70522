@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a93c517_46e8837c",
+        "filename": "snbiFe/al/an_addr.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "please remove this white space.. and please remove an_aaa.h from the commit set.",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_66ed7f8b",
+        "filename": "snbiFe/al/an_avl.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "extra space...",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_06b03b8a",
+        "filename": "snbiFe/al/an_dike.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "space",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_c680138e",
+        "filename": "snbiFe/al/an_icmp6.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "space",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_e67d0fb3",
+        "filename": "snbiFe/al/an_misc.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "why do we have #includes here ?",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_864a0b82",
+        "filename": "snbiFe/al/an_types.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "pls remove these includes...",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_8631ab0d",
+        "filename": "snbiFe/common/an_anra.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "why are these not static, shouldnt this be false always ?\nwe shouldn\u0027t be able to reference anra_info ideally.",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_690eb036",
+        "filename": "snbiFe/common/an_intent.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "can you create a dummy_struct ?\n\ntypedef int an_dummy_struct\n\nand then typedef this to that ?\n\ntypedef an_idp_info_t an_dummy_struct",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_e919607a",
+        "filename": "snbiFe/common/an_nbr_db.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "I think it would be good to remove this dependency and write a wrapper ?",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_293748e5",
+        "filename": "snbiFe/infra/impl/an_if_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "why is this if 0 ? and not removed ?",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_c93344f5",
+        "filename": "snbiFe/infra/impl/an_pak_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "why if 0 ?",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_e93080ea",
+        "filename": "snbiFe/infra/impl/an_sudi_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "for now this is hard coded we will replace these APIs in the next phase.",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "5a93c517_a9527811",
+        "filename": "snbiFe/infra/impl/an_types_linux.h",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-03-09T09:57:24Z",
+      "side": 1,
+      "message": "let us pls remove these dot1q tag things...",
+      "revId": "02ef5ea3d32a9a4c11ce4a8c9903f05035f70522",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
