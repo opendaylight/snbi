@@ -14,6 +14,7 @@
 #include "an_nbr_db.h"
 #include "an_if_mgr.h"
 #include "../al/an_cert.h"
+#include "an_event_mgr_db.h"
 
 void an_event_autonomics_init(void);
 void an_event_autonomics_uninit(void);
@@ -28,20 +29,16 @@ void an_event_interface_down(an_if_t ifhndl);
 void an_event_interface_erased(an_if_t ifhndl);
 
 void an_event_nbr_link_cleanup_timer_expired(an_nbr_link_context_t *link_ctx);
-void an_event_ni_cert_request_timer_expired(an_nbr_t *nbr);
+void an_event_ni_cert_request_timer_expired(void *nbr);
 
 void an_event_hello_refresh_timer_expired(void);
 
-void an_event_nbr_inside_domain(an_nbr_t *nbr);
+void an_event_nbr_inside_domain(void *nbr);
 void an_event_nbr_outside_domain(an_nbr_t *nbr);
-void an_event_nbr_add(an_nbr_t *nbr);
-void an_event_nbr_lost(an_nbr_t *nbr);
-void an_event_nbr_link_lost(an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
-void an_event_nbr_link_add(an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
-void an_event_remove_and_free_nbr(an_nbr_t *nbr);
-void an_event_nbr_params_changed(an_nbr_t *nbr, an_msg_interest_e changed);
+void an_event_nbr_add(void *nbr);
+void an_event_nbr_link_add(void *nbr, void *nbr_link_data);
+void an_event_nbr_params_changed(an_nbr_t *nbr);
 void an_event_nbr_refreshed(an_nbr_t *nbr, an_nbr_link_spec_t *link_data);
-void an_event_nbr_domain_cert_validated(an_nbr_t *nbr);
 
 void an_event_device_bootstrapped(void);
 void an_event_device_cert_enroll_success(uchar * cert_der,
@@ -79,18 +76,12 @@ void an_event_acp_pre_uninitialization(void);
 
 void an_event_generic_timer_expired(void);
 void an_event_my_cert_renew_timer_expired(void);
-void an_event_nbr_cert_renew_timer_expired(an_nbr_t *nbr);
-void an_event_clean_and_refresh_nbr_cert(an_nbr_t *nbr);
+void an_event_nbr_cert_renew_timer_expired(void *nbr);
 void an_event_nbr_cert_in_validity_expired_state(an_nbr_t *nbr);
 
-void an_event_nbr_cert_revalidate_timer_expired(an_nbr_t *nbr);
-void an_event_start_revoke_check_timer(void);
-void an_event_restart_revoke_check_timer(an_unix_time_t revoke_interval);
-void an_event_set_revoke_timer_interval(uint16_t interval_in_mins);
+void an_event_nbr_cert_revalidate_timer_expired(void *nbr);
 void an_event_cert_revoke_check_timer_expired(void);
 
-void an_event_update_nbr_cert_validation_result(
-            an_cert_validation_result_e result, an_nbr_t *nbr);
 void
 an_event_validation_cert_response_obtained(an_cert_validation_result_e status, 
                                            void *device_ctx);

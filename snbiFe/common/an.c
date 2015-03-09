@@ -27,11 +27,14 @@
 #include "an_acp.h"
 #include "an_event_mgr.h"
 #include "an_anra.h"
+#include "an_idp.h"
 #include "an_bs.h"
 #include "an_anra_db.h"
-#include "an_topo_disc.h"
+//#include "an_topo_disc.h"
 #include "an_if_mgr.h"
 #include "an_ni.h"
+#include "an_cd.h"
+#include "../al/an_syslog.h"
 /* Need to remove this include */
 //#include "../ios/an_parse_ios.h"
 
@@ -543,6 +546,7 @@ an_reset_ca_cert (void)
     an_info.ca_cert.data = NULL;
 
     an_cert_reset_domain_ca_cert(AN_DOMAIN_TP_LABEL);
+    an_key_remove_keypair(AN_DOMAIN_TP_LABEL);
 }
 
 void
@@ -597,6 +601,7 @@ void
 an_autonomic_disable (void)
 {
     //ToDO: Add check here after PD functionality in place
+    an_cd_stop_punt(an_multicast,AN_CD_IEEE_ETHERTYPE,0);
     switch (global_cfg_autonomic_enable) {
         case AN_GLOBAL_CFG_STATE_DEFAULT:
             an_set_global_cfg_autonomic_disable();
@@ -605,6 +610,7 @@ an_autonomic_disable (void)
             an_event_autonomics_uninit();
             an_set_global_cfg_autonomic_disable();
             an_set_ike_cli_autonomically_created(FALSE);
+            an_intent_delete();
             return;
         case AN_GLOBAL_CFG_STATE_DISABLED: 
             return;
@@ -621,10 +627,11 @@ an_autonomic_enable (void)
     if (an_is_global_cfg_autonomic_enabled()) {
         return;
     }
-    an_set_global_cfg_autonomic_enable();
     an_aaa_set_new_model(TRUE);
     an_platform_specific_init();
     an_event_autonomics_init();
+    an_intent_parse_file_if_available();
+    an_set_global_cfg_autonomic_enable();
 }
 
 void
@@ -870,3 +877,36 @@ an_ntoh_16_bytes_and_move (uint32_t *target, uint8_t *src)
 
     return (src + 16);
 }
+
+void
+an_udi_available_event_handler (void *info_ptr)
+{
+    an_udi_t my_udi = {};
+
+    if (!an_get_udi(&my_udi)) {
+        return;
+    }
+    if (an_is_global_cfg_autonomic_enabled()) {
+        an_syslog_create_an_discriminator();
+    }
+}
+
+void
+an_system_configured_event_handler (void *info_ptr)
+{
+   if (an_is_global_cfg_autonomic_enabled()) {
+        an_sudi_init();
+    }
+}
+
+/*-----------------AN Generic register for event handlers -------------------*/
+void
+an_generic_register_for_events (void) {
+
+    an_event_register_consumer(AN_MODULE_GENERIC,
+                        AN_EVENT_UDI_AVAILABLE, an_udi_available_event_handler);
+    an_event_register_consumer(AN_MODULE_GENERIC,
+                        AN_EVENT_SYSTEM_CONFIGURED, 
+                        an_system_configured_event_handler);
+}
+

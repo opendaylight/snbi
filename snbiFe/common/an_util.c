@@ -5,12 +5,14 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 #include "../al/an_types.h"
 #include "an.h"
 #include "an_acp.h"
 #include "an_event_mgr.h"
 #include "an_if_mgr.h"
+#include "an_idp.h"
+#include "an_srvc.h"
+#include "an_config_download.h"
 #include "../al/an_mem.h"
 #include "../al/an_pak.h"
 #include "../al/an_routing.h"
@@ -39,6 +41,7 @@ int  fac_includes_drops_flag = 1;
 char *facility_name = "AN";
 boolean an_syslog_server_set = FALSE;
 uint16_t an_setup_wait_count = 0;
+extern void an_parser_init(void);
 
 const uint8_t * an_cert_debug_enum_string [] = {
     "AN cert API success",
@@ -233,7 +236,7 @@ an_cert_validate_subject_cn (an_cert_t cert, uint8_t *cn_string)
        return FALSE;
     }
 
-    if (an_memcmp_s(subject_cn, an_strlen(subject_cn), cn_string,
+    if (an_memcmp_s(subject_cn, AN_STR_MAX_LEN, cn_string,
                     an_strlen(cn_string), &indicator) != 0) {
         an_free_guard(subject_cn);
         return (FALSE);
@@ -269,7 +272,7 @@ an_cert_validate_subject_ou (an_cert_t cert, uint8_t *ou_string)
        return FALSE;
     }
 
-    if (an_memcmp_s(subject_ou, an_strlen(subject_ou), ou_string,
+    if (an_memcmp_s(subject_ou, AN_STR_MAX_LEN, ou_string,
                     an_strlen(ou_string), &indicator) != 0) {
         an_free_guard(subject_ou);
         return (FALSE);
@@ -410,6 +413,9 @@ const uint8_t *an_file_debug_enum_string [] = {
     "failed to read from file",
     "filename doesn't exist",
     "AN file enum max",
+    "Read char success",
+    "Read char failure",
+    "Read EOF",
 };
 
 const uint8_t *an_file_enum_get_string (an_file_api_ret_enum enum_type)
@@ -444,7 +450,7 @@ an_file_read_next_word (an_file_descr_t fd, an_buffer_t *word, uint32_t max_len)
 
     for (i = 0, j = 0; i < max_len; i++) {
         retval = an_file_read_next_char(fd, &ch);
-        if (retval != AN_FILE_API_SUCCESS) {
+        if (retval == AN_FILE_READ_CHAR_FAIL) {
             return (retval);
         }
 
@@ -466,9 +472,10 @@ an_file_read_next_word (an_file_descr_t fd, an_buffer_t *word, uint32_t max_len)
                 str[j++] = '\0';
                 word_end = TRUE;
             }
-
-        } else if ((ch == '\n') || (ch == -1)) {
-            break;
+        } else if (ch == EOF) {
+            return (AN_FILE_READ_EOF);
+        } else if (ch == '\n') {
+            continue;
         }
     }
 
@@ -813,8 +820,7 @@ an_mem_show_cb (an_avl_node_t *node, void *args)
         return (AN_AVL_WALK_FAIL);
     }
 
-    //[VIJAY TODO]printf("\n%50s %10u %10d", elem->name, (unsigned int)elem->buffer, 
-    //        elem->buffer_size);
+    printf("\n%50s %10u %10d", elem->name, elem->buffer, elem->buffer_size);
 
     return (AN_AVL_WALK_SUCCESS);
 }
@@ -909,6 +915,9 @@ an_pow (uint32_t num, uint32_t pow)
 void
 an_ntp_clock_sync_from_ntp (void)
 {
+    DEBUG_AN_LOG(AN_LOG_SRVC_NTP, AN_DEBUG_MODERATE, NULL,
+                 "\n%sClock got synchronized", an_srvc_ntp);
+    an_ntp_do_calendar_update();
     an_event_clock_synchronized();
 }
 
@@ -1104,21 +1113,25 @@ an_process_timer_events (an_timer *expired_timer)
         case AN_TIMER_TYPE_IDP_REQUEST:
             an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
+            an_idp_nbr_retransmit_timer_expired();
             break;
              
         case AN_TIMER_TYPE_IDP_REFRESH:
             context = an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
+            an_idp_nbr_ack_timer_expired_v2(context);
             break;
 #else
         case AN_TIMER_TYPE_IDP_REFRESH:
             context = an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
+            an_idp_nbr_ack_timer_expired(context);
             break;
 #endif
         case AN_TIMER_TYPE_AAA_INFO_SYNC:
             context = an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
+            an_srvc_nbr_ack_timer_expired(context,timer_type);
             break;
 
         case AN_TIMER_TYPE_ANR_CS_CHECK:
@@ -1127,7 +1140,7 @@ an_process_timer_events (an_timer *expired_timer)
             break;
 
         case AN_TIMER_TYPE_GENERIC:
-            context = an_mgd_timer_context(expired_timer);
+            an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
             an_event_generic_timer_expired();
             break;
@@ -1156,6 +1169,10 @@ an_process_timer_events (an_timer *expired_timer)
 
         case AN_TIMER_TYPE_CONFIG_DOWNLOAD:
             an_timer_stop(expired_timer);
+            result = an_config_download();
+            if (!result) {
+                 an_config_download_reset_timer();
+            }
             break;
         case AN_TIMER_TYPE_ANRA_BS_THYSELF_RETRY:
             an_timer_stop(expired_timer);

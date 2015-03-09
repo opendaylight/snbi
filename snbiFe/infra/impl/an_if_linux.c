@@ -7,14 +7,14 @@
  */
 
 
-#include "an_types.h"
+#include "an_if_linux.h"
 #include "an_if.h"
 #include "an.h"
 #include "an_logger.h"
 #include "an_timer.h"
 #include "an_l2_linux.h"
 #include "an_if_mgr.h"
-#include "an_if_linux.h"
+//#include "an_if_linux.h"
 //#include "an_parse_linux.h" 
 
 #define AN_LOOP_VIS_BW 8000000
@@ -32,11 +32,12 @@ const uint8_t *an_cd_state_str [] = {
      "Inactive",
 };
 
+#if 0
 const uint8_t * an_get_cd_state_str (an_cd_state_e state)
 {
     return (an_cd_state_str[state]);
 }
-
+#endif
 inline const uint8_t * an_if_get_short_name (an_if_t ifhndl)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
@@ -218,13 +219,11 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 void an_set_if_vlanid (an_if_info_t *an_if_info, ushort vlanid)
 {
-    an_if_info->vlan_info.vlanid = vlanid;
     return;
 }
 
 void an_set_if_inner_vlanid (an_if_info_t *an_if_info, ushort inner_vlanid)
 {
-    an_if_info->vlan_info.inner_vlanid = inner_vlanid;
     return;
 }
 /*
@@ -235,7 +234,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (FALSE);
 }
 */
-
 void
 an_if_services_init (void)
 {
@@ -255,4 +253,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
    return;
 }
 
-
+boolean
+an_if_is_acp_interface (an_if_t an_ifhndl)
+{
+printf("\n[SINO_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    return (FALSE);
+}

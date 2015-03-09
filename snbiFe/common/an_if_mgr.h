@@ -10,7 +10,9 @@
 #define __AN_IF_MGR_H__
 
 #include "an_nd.h"
+#include "an_cd.h"
 #include "an_acp.h"
+#include "an_srvc_db.h"
 #include "../al/an_types.h"
 #include "../al/an_logger.h"
 
@@ -72,6 +74,7 @@ typedef struct an_if_info_t_ {
     an_if_type_e an_if_type;
     boolean an_reuse_startup_config;
     uint32_t index;
+	an_cd_intf_state_e cd_intf_state;
 
 } an_if_info_t;
 
@@ -111,4 +114,5 @@ boolean an_if_set_routing_required(an_if_info_t *an_if_info);
 boolean an_if_unset_routing_required(an_if_info_t *an_if_info);
 
 boolean an_if_platform_specific_media_type_cfg_cb(an_if_t ifhndl, void *data);
+void an_if_mgr_register_for_events(void);
 #endif

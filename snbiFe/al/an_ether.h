@@ -6,10 +6,12 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
+
 #ifndef __AN_ETHER_H__
 #define __AN_ETHER_H__
 
 #include "an_types.h"
+#include "../common/an_cd.h"
 
 inline uint8_t *an_ether_hdr_get_src(an_ether_hdr_t *ether_hdr);
 inline uint8_t *an_ether_hdr_get_dest(an_ether_hdr_t *ether_hdr);

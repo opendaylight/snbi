@@ -6,10 +6,13 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
+
 #ifndef __AN_SUDI_H__
 #define __AN_SUDI_H__
 
 #include "an_types.h"
+
+#define AN_PID_PREFIX "PID:"
 
 extern uint8_t check_count;
 extern boolean udi_available;

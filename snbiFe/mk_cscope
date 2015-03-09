@@ -1,0 +1,7 @@
+#!/bin/sh
+set -x
+find . \( -name "*.[ch]" -or -name "*.pm" \) > cscope.files
+# find ../raidv2 \( -name "*.[ch]" -or -name "*.pm" \) >> cscope.files
+# find ../rsm \( -name "*.[ch]" -or -name "*.pm" \) >> cscope.files
+cscope -b
+/usr/bin/ctags -R

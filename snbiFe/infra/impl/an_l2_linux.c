@@ -144,11 +144,11 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
-void
+boolean
 an_l2_reuse_startup_config (an_if_t ifhndl)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
+    return (FALSE);
 }
 
 void

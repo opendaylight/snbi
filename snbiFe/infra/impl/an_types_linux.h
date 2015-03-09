@@ -19,7 +19,7 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 #include "an_timer_linux.h"
-#include "an_if_linux.h"
+//#include "an_if_linux.h"
 #include "an_pak_linux.h"
 #include "an_avl_linux.h"
 #include "stdbool.h"
@@ -116,13 +116,13 @@ typedef unsigned char uint8;
 typedef unsigned char uchar;
 typedef unsigned int uint32_t;
 typedef unsigned int uint32;
-typedef unsigned int uint;
+//typedef unsigned int uint;
 typedef signed int int32_t;
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef unsigned short uint16;
 typedef unsigned short uint16_t; 
-typedef unsigned short ushort; 
+//typedef unsigned short ushort; 
 typedef unsigned long ulong; 
 //typedef unsigned long long uint64_t; 
 typedef long time_t; 
@@ -130,7 +130,7 @@ typedef ulong an_thread_t;
 typedef bool an_avl_walk_e;
 //typedef an_dummy_t an_dummy_list_element_t;
 //typedef an_dummy_t an_dummy_list_t;
-typedef linux_dot1q_qinq_vlan_id_t dot1q_qinq_vlan_id_t; 
+//typedef linux_dot1q_qinq_vlan_id_t dot1q_qinq_vlan_id_t; 
 typedef an_dummy_t httpc_session_id_t;
 typedef an_dummy_t httpc_api_status_t;
 typedef an_dummy_t httpc_res_app_data_t;
@@ -156,12 +156,8 @@ typedef an_dummy_t an_DNSServiceRef;
 typedef an_dummy_t an_cd_oper_e;
 typedef an_dummy_t an_cd_info_t;
 typedef an_dummy_t an_intent_ver_t;
-typedef an_dummy_t an_idp_info_t;
-typedef an_dummy_t an_cd_state_e;
-typedef an_dummy_t an_service_type_t;
-typedef an_dummy_t an_srvc_srv_ctx_t;
-typedef an_dummy_t an_srvc_host_t;
-typedef an_dummy_t an_srvc_srv_t;
+//typedef an_dummy_t an_idp_info_t;
+//typedef an_dummy_t an_cd_state_e;
 typedef uint8_t an_mac_addr;
 #define AN_IEEEBYTES 6
 #define AN_AVL_WALK_SUCCESS TRUE
@@ -401,7 +397,8 @@ typedef an_linux_chunk_t an_mem_chunkpool_t;
 typedef ulong aaa_mlist_handle;
 typedef uint32_t aaa_server_handle;
 typedef uint32_t aaa_sg_handle;
-typedef dot1q_qinq_vlan_id_t an_dot1q_qinq_vlan_id_t;
+//typedef dot1q_qinq_vlan_id_t an_dot1q_qinq_vlan_id_t;
+typedef an_dummy_t an_dot1q_qinq_vlan_id_t;
 typedef uint32_t an_idbtype;
 typedef uint32_t an_hwidbtype;
 typedef uint32_t an_crypto_ss_event_msg;

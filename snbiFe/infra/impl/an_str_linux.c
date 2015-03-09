@@ -6,10 +6,9 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
-#include "an_types.h"
-#include "an_mem.h"
-#include "an_str.h"
+#include "../../al/an_types.h"
+#include "../../al/an_mem.h"
+#include "../../al/an_str.h"
 
 
 uint8_t buffer0[AN_STR_MAX_LEN] = {};

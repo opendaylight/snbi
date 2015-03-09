@@ -14,6 +14,8 @@
 #include "an_tlv.h"
 #include "an_http_linux.h"
 
+#define AN_SHA1_LENGTH 20
+uint16_t an_sha1_length = AN_SHA1_LENGTH + 1;  
 
 const uint8_t *an_sign_debug_enum_string [] = {
     "AN signature API success",
@@ -67,3 +69,22 @@ boolean an_smime_reply_verify_and_extract (uint8_t* pkcs7_data, uint8_t* pki_lab
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
+
+an_sign_api_ret_enum
+an_sign_gen_hash (uint8_t *in_data, uint32_t in_data_len, uint8_t *hash)
+{
+	#if 0
+    SHA1_CTX ctx;
+
+    SHA1Init(&ctx);
+    SHA1Update(&ctx, in_data, in_data_len);
+    SHA1Final(hash, &ctx);
+    DEBUG_AN_LOG(AN_LOG_SRVC_EVENT, AN_DEBUG_INFO, NULL,
+                 "\n%sANR IP hash calculated", an_srvc_event);
+
+    hash[an_sha1_length-1] = '\0';
+	#endif
+     //SINDHU TO-DO
+    return (AN_SIGN_API_SUCCESS);
+}
+

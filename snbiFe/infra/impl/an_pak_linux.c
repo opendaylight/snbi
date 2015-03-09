@@ -14,7 +14,6 @@
 #include "an_pak.h"
 #include "an_str.h"
 #include "an_pak_linux.h"
-#include "autonomic_networking.h"
 #include <net/if.h>
 
 
@@ -170,14 +169,14 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
-
+#if 0
 boolean
 an_enqueue_l2_pkt (an_pak_t *an_pak, an_l2_info_t *l2_info)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
-
+#endif
 inline size_t
 an_pak_subblock_getsize (an_pak_subblock_index_t idx)
 {

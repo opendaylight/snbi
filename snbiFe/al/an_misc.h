@@ -6,12 +6,12 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
+
 #ifndef __AN_MISC_H__
 #define __AN_MISC_H__
 
 #include "../common/an_anra.h"
 #include "../common/an_if_mgr.h"
-#include "an_types.h"
 
 #define AN_VLAN_START     4000
 #define AN_NO_INNER_VLAN_TAG 0
@@ -38,6 +38,10 @@ typedef enum an_proc_messages_ {
     AN_PMSG_CONFIG_DNLD_STATUS,
     AN_PMSG_MAX,
 } an_proc_messages;
+
+
+#include "../common/an_srvc_db.h"
+#include "an_types.h"
 
 #define AN_IPSEC_MSG_ID 0x0
 #define AN_SPI 265
@@ -136,5 +140,4 @@ boolean an_get_device_base_mac_addr(an_mac_addr chassis_mac[AN_IEEEBYTES]);
 //boolean an_get_device_system_hostname(uint8_t *name);
 an_platform_types an_get_platform_type(void);
 boolean an_platform_is_media_type_supported(void);
-
 #endif

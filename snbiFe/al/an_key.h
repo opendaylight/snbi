@@ -6,10 +6,13 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
+
 #include "an_types.h"
+#define AN_RSA_KEY_MODULUS 3072
 
 boolean an_key_generate_keypair(uint8_t *key_label);
 boolean an_key_remove_keypair(uint8_t *key_label);
 boolean an_key_check(uint8_t *key_label);
 boolean an_key_get_public_key(uint8_t *key_label, an_key_t *key);
 boolean an_key_get_private_key(uint8_t *key_label, an_key_t *key);
+boolean an_key_equal(an_key_t *key1, an_key_t *key2);

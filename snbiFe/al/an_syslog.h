@@ -6,6 +6,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
+
 #ifndef __AN_SYSLOG_H__
 #define __AN_SYSLOG_H__
 #include "../al/an_logger.h"

@@ -6,6 +6,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
+
 #ifndef __AN_TYPES_H__
 #define __AN_TYPES_H__
 
@@ -34,22 +35,29 @@
    comp_autonomic-networking_native-ios --- for ios functionality of platform 
                                             specific AN code
  */
-//#ifndef AN_NATIVE_IOS
-//#define AN_NATIVE_IOS
-//#endif /* AN_NATIVE_IOS */
+#if 0
+#ifndef AN_NATIVE_IOS
+#define AN_NATIVE_IOS
+#endif /* AN_NATIVE_IOS */
+#endif
 
-//#if defined(AN_DUMMY)
-//#include "../dummy/an_types_dummy.h"
-//#elif defined(AN_IOS)
-//#include "../ios/an_types_ios.h"
-//#include "../xos/an_types_xos.h"
-//#elif defined(AN_NATIVE_IOS)
-//#include "../ios/an_types_ios.h"
-//#include "../native-ios/an_types_native.h"
-//#elif defined(AN_IOSXR)
-//#include "../xr/include/an_types_xr.h"
-//#endif
-#include "an_types_linux.h"
+#ifndef AN_LINUX
+#define AN_LINUX
+#endif /* AN_NATIVE_IOS */
+
+#if defined(AN_DUMMY)
+#include "../dummy/an_types_dummy.h"
+#elif defined(AN_IOS)
+#include "../ios/an_types_ios.h"
+#include "../xos/an_types_xos.h"
+#elif defined(AN_NATIVE_IOS)
+#include "../ios/an_types_ios.h"
+#include "../native-ios/an_types_native.h"
+#elif defined(AN_IOSXR)
+#include "../xr/include/an_types_xr.h"
+#elif defined(AN_LINUX)
+#include "../infra/impl/an_types_linux.h"
+#endif
 
 #define AN_HOSTSIZE 256
 #define AN_LABELSIZE 64

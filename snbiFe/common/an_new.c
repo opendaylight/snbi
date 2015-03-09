@@ -16,6 +16,7 @@
 #include "../al/an_mem.h"
 #include "an_nbr_db.h"
 #include "an.h"
+#include "an_cnp.h"
 
 //extern typedef struct cs_cfg;
 //extern cs_cfg* crypto_cs_new_cfg(uchar *);

@@ -33,6 +33,7 @@
 #include "../al/an_list.h"
 //#include "../ios/an_parse_ios.h"
 #include "../al/an_ntp.h"
+#include "an_cd.h"
 
 an_timer an_nd_hello_timer;
 uint16_t an_nd_if_count = 0;
@@ -51,6 +52,9 @@ an_nd_client_t an_nd_global_client_db[AN_ND_CLIENT_MAX] = {
                         {AN_ND_CLIENT_CONNECT, AN_ND_CFG_DEFAULT},
                         {AN_ND_CLIENT_INTERFACE_TYPE, AN_ND_CFG_DEFAULT}};
 an_avl_compare_e an_nbr_compare(an_avl_node_t *node1, an_avl_node_t *node2);
+extern an_cd_info_t *
+an_cd_info_db_search_udi_only(an_if_info_t *an_phy_info, 
+                              an_cd_info_t *goal_an_cd_info);
 
 void
 an_nd_set_client_db_init (an_if_info_t *an_if_info)
@@ -246,7 +250,6 @@ an_nd_start_on_interface (an_if_t ifhndl)
     uint8_t *sudi_keypair_label = NULL;
     an_if_info_t *an_if_info = NULL;
 	an_v6addr_t an_ll_scope_all_node_mcast_v6addr = AN_V6ADDR_ZERO;
-    printf("\n******** Inside func an_nd_start_on_interface");
 
     if (an_if_is_loopback(ifhndl)) {
         return (FALSE);
@@ -340,7 +343,6 @@ an_nd_stop_on_interface (an_if_t ifhndl)
     uint8_t *sudi_keypair_label = NULL;
     an_if_info_t *an_if_info = NULL;
 	an_v6addr_t an_ll_scope_all_node_mcast_v6addr = AN_V6ADDR_ZERO;
-    printf("\n **** Inside func an_nd_stop_on_interface");
 
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                  "\n%sDisabling Nbr Discovery on an interface %s", an_nd_event, 
@@ -517,14 +519,16 @@ an_nd_trigger_hello_on_if_over_udp (an_if_info_t *an_if_info)
     an_v6addr_t v6addr = AN_V6ADDR_ZERO;
     an_msg_package *msg_package = NULL;
     int indicator = 0;
+
     if (!an_if_info) {
         return (FALSE);
     }
 
-    v6addr = an_ipv6_get_ll(an_if_info->ifhndl);   
+    v6addr = an_ipv6_get_ll(an_if_info->ifhndl);    
     an_memcmp_s(&v6addr, sizeof(an_v6addr_t), (void *)&AN_V6ADDR_ZERO, 
                                            sizeof(an_v6addr_t), &indicator);
     if (!indicator) {
+        return (TRUE);
     }     
 
     //DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
@@ -574,11 +578,11 @@ an_nd_trigger_hello_on_if (an_if_info_t *an_if_info)
     if (!an_if_is_up(an_if_info->ifhndl)) {
         return (TRUE);
     }     
-#if 0
+
     if (!an_nd_is_operating(an_if_info->ifhndl)) {
         return (TRUE);
     }
-#endif
+
     if (an_nd_delivery == AN_ND_DELIVERY_IPV6_ND) {
         an_nd_trigger_hello_on_if_over_ipv6_nd(an_if_info);
 
@@ -659,11 +663,11 @@ an_nd_trigger_keep_alive_cb (an_avl_node_t *node, void *args)
 void
 an_nbr_refresh_hello ()
 {
-#if 0
+
     if (!an_nd_is_operating(0)) {
         return;
     }
-#endif
+
     an_if_info_db_walk(an_nd_trigger_hello_cb, NULL);
     an_nbr_db_walk(an_nd_trigger_keep_alive_cb, NULL); 
     an_timer_start(&an_nd_hello_timer, AN_ND_HELLO_REFRESH_INTERVAL);
@@ -716,14 +720,14 @@ an_nbr_check_params (an_msg_package *message, an_nbr_t *nbr,
     if (!message || !nbr) {
         return (changed);
     }
-    an_memcmp_s(message->device_id, an_strlen(message->device_id), 
+    an_memcmp_s(message->device_id, AN_STR_MAX_LEN, 
                 nbr->device_id, an_strlen(nbr->device_id), &indicator1);
     if ((an_strlen(message->device_id) != an_strlen(nbr->device_id)) ||
         (indicator1)) {
         AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_ID);
     }
 
-    an_memcmp_s(message->domain_id, an_strlen(message->domain_id), 
+    an_memcmp_s(message->domain_id, AN_STR_MAX_LEN, 
                 nbr->domain_id, an_strlen(nbr->domain_id), &indicator2);
 
     if ((an_strlen(message->domain_id) != an_strlen(nbr->domain_id)) ||
@@ -757,6 +761,29 @@ an_nbr_check_params (an_msg_package *message, an_nbr_t *nbr,
 
     return (changed);
 }
+
+void
+an_nd_nbr_params_changed (an_nbr_t *nbr, an_msg_interest_e changed)
+{
+    if (!nbr || !changed) {
+        return;
+    }
+
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sNbr params", an_nd_event)
+    if (AN_CHECK_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_ID) ||
+        AN_CHECK_BIT_FLAGS(changed, AN_MSG_INT_DOMAIN_ID)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_INFO, NULL,
+                     " %s%s  changed, trigger cert request to Nbr [%s]",
+                     AN_CHECK_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_ID) ?
+                     "[device_id]" : "",
+                     AN_CHECK_BIT_FLAGS(changed, AN_MSG_INT_DOMAIN_ID) ?
+                     ", [domain_id]" : "", nbr->udi.data);
+
+        an_event_nbr_params_changed(nbr);
+    }
+}
+
 
 boolean
 an_nbr_update_params (an_msg_package *message,
@@ -796,7 +823,7 @@ an_nbr_update_params (an_msg_package *message,
             nbr->domain_id = NULL;
         }
     }
-    an_memcmp_s(message->device_id, an_strlen(message->device_id), 
+    an_memcmp_s(message->device_id, AN_STR_MAX_LEN, 
                 nbr->device_id, an_strlen(nbr->device_id), &indicator1);
 
     if (message->device_id && 
@@ -819,7 +846,7 @@ an_nbr_update_params (an_msg_package *message,
                             message->device_id, an_strlen(message->device_id));
         }
     }
-    an_memcmp_s(message->domain_id, an_strlen(message->domain_id), 
+    an_memcmp_s(message->domain_id, AN_STR_MAX_LEN, 
                 nbr->domain_id, an_strlen(nbr->domain_id), &indicator2);
 
     if (message->domain_id && 
@@ -843,14 +870,11 @@ an_nbr_update_params (an_msg_package *message,
         }
     }
 
-     if (an_memcmp(&message->device_ipaddr, &nbr->device_ipaddr,
+    if (an_memcmp(&message->device_ipaddr, &nbr->device_ipaddr,
                    sizeof(an_addr_t))) {
-       AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_IPADDR);
-       nbr->device_ipaddr = message->device_ipaddr;
-
+        AN_SET_BIT_FLAGS(changed, AN_MSG_INT_DEVICE_IPADDR);
+        nbr->device_ipaddr = message->device_ipaddr;
     }
-
-
 
     if (AN_CHECK_BIT_FLAGS(new_nbr_link_flag, AN_MSG_INT_NEW_NBR_LINK)) {
         link_data = an_nbr_update_link_to_nbr(message, nbr, local_ifhndl);
@@ -863,7 +887,7 @@ an_nbr_update_params (an_msg_package *message,
                             " hence ignore the message", an_nd_event); 
             return (FALSE);
         }
-        an_event_nbr_params_changed(nbr, changed);
+        an_nd_nbr_params_changed(nbr, changed);
     } 
     
     link_data->last_refreshed_time=
@@ -927,39 +951,6 @@ an_nbr_update_link_to_nbr (an_msg_package *message,
 
 boolean channel_exist = FALSE;
 
-an_avl_walk_e
-an_nd_does_channel_exist_to_nbr_cb (an_avl_node_t *node, void *data)
-{
-	an_if_info_t *an_if_info = NULL;
-	an_cd_info_t *an_seed_cd_info = NULL;	
-
-	if (!node || !data) {
-		return (AN_AVL_WALK_FAIL);
-	}
-
-	an_if_info = (an_if_info_t *)node;
-	an_seed_cd_info = (an_cd_info_t *)data;
-	
-	return (AN_AVL_WALK_SUCCESS);
-}
-
-boolean
-an_nd_does_channel_exist_to_nbr (an_msg_package *message) 
-{
-    if (!message->udi.data || !message->udi.len) {
-        return (FALSE);
-    }
-	channel_exist = FALSE;
-
-	if (channel_exist) {
-		channel_exist = FALSE;
-
-		return (TRUE);
-	}
-
-	return (FALSE);
-}
-
 boolean
 an_nd_incoming_keep_alive (an_msg_package *message, an_if_t tunn_ifhndl) 
 {
@@ -972,6 +963,14 @@ an_nd_incoming_keep_alive (an_msg_package *message, an_if_t tunn_ifhndl)
     if (!nbr) {
         return (FALSE);
     }
+    
+    if (!an_acp_is_initialized()) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%s,ACP not initialised, not supposed to receive"
+                     " Keep Alive message", an_nd_event);
+        return (FALSE);
+    }
+
     
     AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
         if (tunn_ifhndl == nbr_link_data->acp_info.sec_channel_spec.sec_gre_info.gre_channel.ifhndl) {
@@ -993,10 +992,12 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
                       an_if_t local_ifhndl)
 {
     an_nbr_t *nbr = NULL;
+	an_udi_t my_udi = {};
     boolean res = FALSE;
     an_if_info_t *an_if_info;
     an_msg_interest_e changed = 0;
     an_nbr_link_spec_t *nbr_link_data = NULL;
+	int indicator = 0;
     an_if_info = an_if_info_db_search(local_ifhndl, FALSE);
 
     if (!pak || !message || !local_ifhndl || !an_if_info) {
@@ -1009,24 +1010,40 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
         return (FALSE);
     }
 
-#if 0    
     if (!an_nd_is_operating(message->ifhndl)) {
         an_msg_mgr_free_message_package(message); 
         return (FALSE);
     }
-#endif
+    
+    if (!an_get_udi(&my_udi)) {
+        an_msg_mgr_free_message_package(message);
+        return (FALSE);
+    }  
+    
+    an_memcmp_s(my_udi.data, AN_UDI_MAX_LEN, message->udi.data, 
+                message->udi.len, &indicator);
+    if(!indicator) {
+       an_msg_mgr_free_message_package(message);
+       return (FALSE);
+    }
+
     //Check if the remote LL addr and my LL addr are different
     //If same, drop the HELLO
     if (!an_nd_check_if_nbr_on_valid_link(local_ifhndl, message->if_ipaddr)) {
         an_msg_mgr_free_message_package(message); 
         return (FALSE);
     }
+
     nbr = an_nbr_db_search(message->udi);
     if (nbr) {
         nbr_link_data = an_nbr_link_db_search(nbr->an_nbr_link_list,
                                               local_ifhndl,
                                               message->if_ipaddr);
-     
+        if (nbr_link_data != NULL && nbr_link_data->keep_alive_received == TRUE) {
+            an_msg_mgr_free_message_package(message);
+            return (FALSE);
+        }
+
         changed = an_nbr_check_params(message, nbr, local_ifhndl, nbr_link_data);
 
         if (changed) {
@@ -1043,9 +1060,8 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
         }
 
     } else {
-#if 0
 		if (AN_ND_CFG_ENABLED != an_nd_get_preference(an_if_info->ifhndl, AN_ND_CLIENT_CLI)) {
-            if (!an_nd_does_channel_exist_to_nbr(message)) {
+            if (!an_cd_does_channel_exist_to_nbr(message)) {
                 DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
                         "\n%sNbr[%s] Not found in the L2 data base"
                         "(Not directly connected) hence not creating Adjacency",
@@ -1054,7 +1070,6 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
                 return (FALSE);
             }
         }
-#endif        
          /*
          * Create a New Neighbor
          */
@@ -1111,9 +1126,6 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
             nbr->num_of_links = nbr->num_of_links + 1;
             nbr_link_data->added_time =
                          an_unix_time_get_current_timestamp();
-            nbr->selected_anr_reference_time = 
-                         an_unix_time_get_current_timestamp();
-            nbr->selected_anr_addr = AN_ADDR_ZERO ;
         } else {
             DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL,
                          "%sNbr [%s] Link DB creation failed, "
@@ -1128,18 +1140,8 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
         an_event_nbr_add(nbr);
     }
 
-    nbr_link_data = an_nbr_link_db_search(nbr->an_nbr_link_list, 
-                                          local_ifhndl, message->if_ipaddr);
-    if (nbr_link_data != NULL && nbr_link_data->keep_alive_received != TRUE)
-    {
-        an_timer_reset(&nbr_link_data->cleanup_timer,
-                       AN_NBR_LINK_CLEAN_INTERVAL);
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                     "\n%sResetting Timer Type [Nbr Per Link Cleanup] for the "
-                     "Nbr Link DB entry %s", an_nd_event, 
-                     an_if_get_name(local_ifhndl));
-    }
-
+    an_nbr_link_reset_cleanup_timer(nbr->an_nbr_link_list, 
+                                    message->if_ipaddr, local_ifhndl);
     an_msg_mgr_free_message_package(message);
     return (TRUE);
 }
@@ -1165,7 +1167,6 @@ an_nd_get_keep_alive_msg_package (an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_da
     message->ifhndl = nbr_link_data->acp_info.sec_channel_spec.sec_gre_info.gre_channel.ifhndl;
     an_addr_set_from_v6addr(&message->src, an_ipv6_get_ll(message->ifhndl)); 
     message->dest = an_ll_scope_all_node_mcast;
-    message->iptable = an_get_iptable();
 
     if (!an_get_udi(&udi)) {
         an_msg_mgr_free_message_package(message);
@@ -1259,16 +1260,13 @@ an_nd_get_hello (an_if_t ifhndl)
     }
  
     if (udi.len) {
-        message->udi.data = (uint8_t *)an_malloc_guard(1+udi.len, "AN MSG UDI");
+        message->udi.data = (uint8_t *)an_malloc_guard(udi.len, "AN MSG UDI");
         if (!message->udi.data) {
             an_msg_mgr_free_message_package(message);
             return (NULL);
         }
         message->udi.len = udi.len;
-        memset(message->udi.data, 0, 1+udi.len);
-    //[TO_DO]: malloced 1_udi.len, memcopied 1+udi.len.
-//        an_memcpy_guard_s(message->udi.data, 1+udi.len, udi.data, 1+udi.len);
-        an_strncpy_s(message->udi.data, udi.len, udi.data, udi.len);
+        an_memcpy_guard_s(message->udi.data, udi.len, udi.data, udi.len);
         AN_SET_BIT_FLAGS(message->interest, AN_MSG_INT_UDI);
     }
 
@@ -1387,18 +1385,18 @@ an_nbr_link_lost_cb (an_list_t *list,
 {
     an_nbr_link_context_t *if_data = NULL;
     an_nbr_link_spec_t *curr_data = NULL;
+    an_nbr_link_context_t link_info;
 
     if_data = (an_nbr_link_context_t *) context;
-
     if (current == NULL || if_data == NULL)    {
         return (AN_CERR_V_FATAL(0, 0, EINVAL));
     }
-    
     curr_data = (an_nbr_link_spec_t *) current->data;
-    
     if (if_data->nbr_link_data->local_ifhndl == curr_data->local_ifhndl) {
-          an_event_nbr_link_lost(if_data->nbr, curr_data);
-          an_event_remove_and_free_nbr(if_data->nbr);
+          link_info.nbr = if_data->nbr; 
+          link_info.nbr_link_data = curr_data;
+          an_acp_nbr_link_cleanup(&link_info);
+          an_nd_nbr_link_cleanup_event_handler(&link_info);
     }
   
    return (AN_CERR_SUCCESS);
@@ -1466,3 +1464,288 @@ an_nd_check_if_nbr_on_valid_link (an_if_t my_ifhndl,  an_addr_t remote_ipaddr)
 
     return (TRUE);
 }
+
+/*-------------------------AN ND event handlers -------------------------*/
+void
+an_nd_interface_up_event_handler (void *if_info_ptr)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+    if (!an_if_info) {
+        return;
+    }
+    /*
+     * On autonomically created or configured interfaces start Adjacency discovery
+     */
+    if ((an_if_info->autonomically_created) ||
+        (AN_ND_CFG_ENABLED == an_nd_state_get(ifhndl))) {
+        an_event_interface_activated(an_if_info);
+        return ;
+    }
+}
+
+void
+an_nd_interface_activate_event_handler (void *if_info_ptr)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface Activate event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+
+    if (!an_if_info) {
+        return;
+    }
+
+    if (an_nd_is_operating(ifhndl)) {
+        return;
+    }
+
+    an_nd_start_on_interface(ifhndl);
+    return;
+}
+
+void
+an_nd_interface_deactivate_event_handler (void *if_info_ptr)
+{
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface Deactivate event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+    an_nd_stop_on_interface(ifhndl);
+}
+
+void
+an_nd_hello_refresh_timer_expired_event_handler (void *info_ptr)
+{
+    an_nbr_refresh_hello();
+}
+
+void an_nd_nbr_add_event_handler (void *nbr_info_ptr)
+{
+    an_if_t nbr_ifhndl = 0;
+    an_nbr_t *nbr = NULL;
+
+    if(!nbr_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle nbr add event ");
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+    
+    if (!nbr || !nbr->udi.data) {
+        return;
+    }
+
+    if (!an_nbr_get_addr_and_ifs(nbr, NULL, &nbr_ifhndl, NULL)) {
+        return;
+    }
+
+    an_syslog(AN_SYSLOG_NBR_ADDED,
+             nbr->udi.data,an_if_get_name(nbr_ifhndl));
+
+    an_nbr_refresh_hello();
+}
+
+void
+an_nd_remove_and_free_nbr (an_nbr_t *nbr)
+{
+     if (an_nbr_link_db_is_empty(nbr))
+     {
+         //If all the interfaces to this nbr are down- expire the nbr entry
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_INFO, NULL,
+                      "\n%sNbr [%s] Link DB is empty, triggering "
+                      "nbr delete", an_nd_event, nbr->udi.data);
+         an_nbr_remove_and_free_nbr(nbr);
+     }
+}
+
+void
+an_nd_nbr_link_cleanup_event_handler (void *link_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+    an_nbr_link_context_t *nbr_link_ctx = NULL;
+
+    if (!link_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr link info is NULL, Cant handle acp link removal event",
+                 an_bs_event);
+        return;
+    }
+
+    nbr_link_ctx = (an_nbr_link_context_t *)link_info_ptr;
+    if (nbr_link_ctx == NULL)
+    {
+       DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL", an_nd_event);
+       return;
+    }
+
+    nbr = nbr_link_ctx->nbr;
+    nbr_link_data = nbr_link_ctx->nbr_link_data;
+
+    if (!nbr_link_data || !nbr)
+    {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                     "\n%sNull Input Nbr Link data", an_nd_event);
+        return;
+    }
+
+    an_nbr_remove_nbr_link(nbr, nbr_link_data);
+
+    an_nd_remove_and_free_nbr(nbr); 
+}
+
+void
+an_nd_nbr_link_cleanup_timer_expired_event_handler (void *link_info_ptr)
+{
+    an_nbr_link_context_t *nbr_link_ctx = NULL;
+
+    if (!link_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr link info is NULL, Cant handle acp link removal event",
+                 an_bs_event);
+        return;
+    }
+
+    nbr_link_ctx = (an_nbr_link_context_t *)link_info_ptr;
+    an_acp_nbr_link_cleanup(nbr_link_ctx);
+    an_nd_nbr_link_cleanup_event_handler(nbr_link_ctx);
+    //free the context - allocated when per link cleanup timer was init
+    an_free_guard(nbr_link_ctx);
+}
+
+void
+an_nd_if_autonomic_init_event_handler (void *if_info_ptr)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface autonomic init"
+                    " event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+    if (!an_if_info) {
+       return;
+    }
+    an_nd_startorstop(ifhndl);
+}
+
+void
+an_nd_if_autonomic_uninit_event_handler (void *if_info_ptr)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface autonomic uninit" 
+                    " event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+    if (!an_if_info) {
+       return;
+    }
+    an_nbr_db_walk(an_nbr_walk_link_lost_cb, &ifhndl);
+}
+
+void
+an_nd_device_bootstrap_event_handler (void *info_ptr)
+{
+    an_nbr_refresh_hello();
+}
+
+void
+an_nd_sudi_available_event_handler (void *info_ptr)
+{
+    /* uninit ND first, so that any ND using sUDI is removed */
+    if (an_is_global_cfg_autonomic_enabled()) {
+        an_nd_uninit();
+        an_nd_init();
+    }
+}
+
+void
+an_nd_udi_available_event_handler (void *info_ptr)
+{
+    an_udi_t my_udi = {};
+
+    if (!an_get_udi(&my_udi)) {
+        return;
+    }
+    /* uninit ND first, so that any ND using sUDI is removed */
+    if (an_is_global_cfg_autonomic_enabled()) {
+        an_nd_uninit();
+        an_nd_init();
+    }
+}
+
+/*---------------AN ND register for event handlers -------------------------*/
+void
+an_nd_register_for_events (void) 
+{
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_INTERFACE_UP, an_nd_interface_up_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_INTERFACE_ACTIVATE, 
+                        an_nd_interface_activate_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_INTERFACE_DEACTIVATE, 
+                        an_nd_interface_deactivate_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_TIMER_HELLO_REFRESH_EXPIRED, 
+                        an_nd_hello_refresh_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_NBR_ADD, an_nd_nbr_add_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_TIMER_NBR_LINK_CLEANUP_EXPIRED, 
+                        an_nd_nbr_link_cleanup_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_INTF_AUTONOMIC_ENABLE, 
+                        an_nd_if_autonomic_init_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_INTF_AUTONOMIC_DISABLE, 
+                        an_nd_if_autonomic_uninit_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_DEVICE_BOOTSTRAP, 
+                        an_nd_device_bootstrap_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_SUDI_AVAILABLE, 
+                        an_nd_sudi_available_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_UDI_AVAILABLE, 
+                        an_nd_udi_available_event_handler);
+}
+
