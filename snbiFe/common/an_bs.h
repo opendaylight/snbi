@@ -33,5 +33,6 @@ void an_bs_incoming_reject_message(an_msg_package *message);
 void an_bs_incoming_response_message(an_msg_package *response);
 an_nbr_t *an_bs_forward_message_to_nbr(an_msg_package *message);
 boolean an_bs_forward_message_to_anra(an_msg_package *message);
-
+void an_bs_set_revoke_timer_interval(uint16_t interval_in_mins);
+void an_bs_register_for_events(void);
 #endif

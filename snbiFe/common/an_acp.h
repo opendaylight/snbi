@@ -5,7 +5,6 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 #ifndef __AN_ACP_H__
 #define __AN_ACP_H__
 
@@ -13,24 +12,9 @@
 #include "../al/an_avl.h"
 #include "an_msg_mgr.h"
 #include "an_nbr_db.h"
-
+#include "an_acp_cnp.h"
+#include "an_acp_ntp.h"
 #define AN_UNIX_TIME_ACP_RETRY_SECONDS 30
-
-typedef enum an_acp_cnp_param_e_ {
-    AN_ACP_CNP_PARAM_NONE,
-    AN_ACP_CNP_PARAM_SECURE_CHANNEL,
-} an_acp_cnp_param_e;
-
-typedef struct an_acp_negotiated_info_t_ {
-    an_avl_node_t avlnode;
-        
-    an_addr_t nbr_addr;
-    an_iptable_t ip_table;
-    an_if_t local_ifhndl;
-    an_cnp_capability_set_t cap_set;
-    
-} an_acp_negotiated_info_t;
-
 
 /**************** ACP Client Section *********************/
 
@@ -52,9 +36,13 @@ typedef enum an_acp_client_status_e_ {
     AN_ACP_CLIENT_HANDLE_MISMATCH,
     AN_ACP_CLIENT_MEM_FAILURE,
     AN_ACP_CLIENT_DB_FULL,
-    
+    AN_ACP_CLIENT_INVALID_IF,
+ 
     AN_ACP_CLIENT_STATUS_LIMITER,
 } an_acp_client_status_e;
+
+extern const uint8_t *
+an_acp_client_status_enum_get_string (an_acp_client_status_e enum_type);
 
 typedef enum an_acp_ext_conn_e_ {
     AN_EXT_CONNECT_STATE_NO    =   0,
@@ -137,31 +125,9 @@ boolean an_acp_is_up_on_nbr_link(an_nbr_link_spec_t *nbr_link_data);
 boolean an_acp_channel_is_up_on_nbr_link(an_nbr_link_spec_t *nbr_link_data);
 boolean an_acp_security_is_up_on_nbr_link(an_nbr_link_spec_t *nbr_link_data);
 
-//NTP calls
-void an_acp_ntp_peer_remove_global(an_nbr_t *nbr);
 void an_acp_routing_enable_on_required_interfaces (an_routing_cfg_t *routing_info);
-
-//ACP CNP
-void an_acp_update_negotiated_nbr_acp_info(an_acp_negotiated_info_t nego_info);
-void an_acp_negotiate_secure_channel_per_nbr_link(an_nbr_t *nbr,
-                                                  an_nbr_link_spec_t *nbr_link_data);
-
-//ACP Test
-void an_test_acp_set_cap_values_from_param (uint16_t param_id, uint8_t value1, 
-                                            uint8_t value2, uint8_t value3, 
-                                            uint8_t value4);
-void an_test_acp_set_cap_default (void);
-
-//NTP over acp
-an_addr_t g_ntp_ra_address;
-void an_acp_start_ntp_with_ra(an_addr_t address);
-void an_acp_enable_clock_sync_with_ra(an_addr_t address);
-void an_acp_start_ntp_with_nbrs(void);
-void an_acp_remove_clock_sync_with_nbr(an_nbr_t *nbr);
-boolean an_acp_enable_clock_sync_with_nbr(an_nbr_t *nbr);
-boolean an_acp_remove_clock_sync_with_nbrs(an_avl_node_t *node, void *args);
-void an_acp_remove_clock_sync_with_server (an_addr_t address);
-
+void an_acp_nbr_link_cleanup(an_nbr_link_context_t *nbr_link_ctx);
+void an_acp_register_for_events(void);
 #endif
 
 

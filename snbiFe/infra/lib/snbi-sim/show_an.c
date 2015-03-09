@@ -41,9 +41,9 @@ an_show_nbr_list_name_cb (an_list_t *list,
 
 void 
 an_show_auton(bool no, int a, char *av[]) {
- //   uuid_t an_uuid = {0};
+
     int i;
-//    uuid_generate(an_uuid);
+
     printf("\n%80s", an_show_header);
     printf ("\n UDI    %s ", an_info.udi.data);
     printf("\n%80s", an_show_trailer); 

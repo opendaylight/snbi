@@ -19,6 +19,8 @@ an_if_info_t* an_if_info_database = NULL;
 static an_mem_chunkpool_t *an_if_info_pool = NULL;
 static const uint16_t AN_IF_INFO_POOL_SIZE = 64;
 static boolean an_if_initialized = FALSE;
+//an_avl_compare_e an_cd_info_compare_vlan(an_avl_node_t *node1, an_avl_node_t *node2);
+//an_avl_compare_e an_cd_info_compare(an_avl_node_t *node1, an_avl_node_t *node2);
 
 #define AN_TIMER_IF_BRING_UP_INTERVAL (10*1*1000)
 #define AN_TIMER_IF_BRING_UP_RETRY 3
@@ -138,7 +140,6 @@ an_if_set_nd_client_db_init (an_if_info_t *an_if_info)
 an_if_info_t *
 an_if_info_db_search (an_if_t ifhndl, boolean force)
 {
-    an_cerrno rc = EOK;
     an_if_info_t goal_an_if_info = {}; 
     an_if_info_t *an_if_info = NULL;
     an_avl_node_t *avl_type = (an_avl_node_t *)&goal_an_if_info;
@@ -177,30 +178,13 @@ an_if_info_db_search (an_if_t ifhndl, boolean force)
          */
         an_if_info->autonomically_created = FALSE;
 
-        an_set_if_vlanid(an_if_info, 0);
-        an_set_if_inner_vlanid(an_if_info, 0);
-
-        an_if_info->an_reuse_startup_config = TRUE;
-
-        an_if_info->an_cd_info_database = NULL;
-
-        if (CERR_IS_NOTOK(rc)) {
-            printf("\nAN CD Info DB Init Failed");
-            DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL,
-                  "\n%sAN CD Info DB Init Failed", an_nd_db);
-        }
-        if (CERR_IS_NOTOK(rc)) {
-            printf("\nAN CD Vlan DB Init Failed");
-            DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL,
-                  "\n%sAN CD Vlan DB Init Failed", an_nd_db);
-        }
-
         an_if_info->an_if_sd_info.an_syslog_sdRef = 0;
         an_if_info->an_if_sd_info.an_aaa_sdRef = 0;
         an_if_info->an_if_sd_info.an_config_sdRef = 0;
         an_if_info->an_if_sd_info.an_anr_sdRef = 0;
 
         an_if_info_db_insert(an_if_info);
+	an_cd_init_cd_if_info(an_if_info->ifhndl);
     }
     return (an_if_info);
 }
@@ -448,4 +432,59 @@ an_if_unset_routing_required (an_if_info_t *an_if_info)
     an_if_info->an_if_acp_info.is_routing_required = FALSE;
     return TRUE;
 }
-                 
+                
+void
+an_if_interface_erased_event_handler (void *if_info_ptr)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+    if (!an_if_info) {
+        return;
+    }
+
+    an_if_info_db_remove(an_if_info);
+    an_if_info_free(an_if_info);
+}
+
+void
+an_if_sudi_available_event_handler (void *info_ptr)
+{
+    an_if_init();
+}
+
+void
+an_if_udi_available_event_handler (void *info_ptr)
+{
+    an_udi_t my_udi = {};
+
+    if (!an_get_udi(&my_udi)) {
+        return;
+    }
+    an_if_init();
+}
+
+/*-----------------AN INTF MGR register for event handlers -------------------*/
+void
+an_if_mgr_register_for_events (void) 
+{
+    an_event_register_consumer(AN_MODULE_INTF_MGR,
+                        AN_EVENT_INTERFACE_ERASED, 
+                        an_if_interface_erased_event_handler);
+    an_event_register_consumer(AN_MODULE_INTF_MGR,
+                        AN_EVENT_SUDI_AVAILABLE, 
+                        an_if_sudi_available_event_handler);
+    an_event_register_consumer(AN_MODULE_INTF_MGR,
+                        AN_EVENT_UDI_AVAILABLE, 
+                        an_if_udi_available_event_handler);
+}
+
+ 

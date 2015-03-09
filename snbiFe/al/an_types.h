@@ -9,47 +9,7 @@
 #ifndef __AN_TYPES_H__
 #define __AN_TYPES_H__
 
-/* AN IOS uses xos for available functionality and ios fucntionality for the
-   rest. makesubsys to include the following for AN subsys
-   comp_autonomic-networking_an.o  --- for common AN code
-   comp_autonomic-networking_xos   --- for xos implemntation of platform 
-                                       specific AN code
-   comp_autonomic-networking_ios   --- for ios functionality for which xos 
-                                       implementation is not available 
- */
-//#ifndef AN_IOS
-//#define AN_IOS
-//#endif /* AN_IOS */  
-
-/* AN Dummy defines dummy platform to ensure common AN code has no platform 
-  dependencies*/
-//#ifndef AN_DUMMY
-//#define AN_DUMMY
-//#endif /* AN_DUMMY */ 
-
-/* AN Native IOS uses only native ios functionality.
-   makesubsys to include the following for AN subsys
-   comp_autonomic-networking_an.o       --- for common AN code
-   comp_autonomic-networking_ios  &
-   comp_autonomic-networking_native-ios --- for ios functionality of platform 
-                                            specific AN code
- */
-//#ifndef AN_NATIVE_IOS
-//#define AN_NATIVE_IOS
-//#endif /* AN_NATIVE_IOS */
-
-//#if defined(AN_DUMMY)
-//#include "../dummy/an_types_dummy.h"
-//#elif defined(AN_IOS)
-//#include "../ios/an_types_ios.h"
-//#include "../xos/an_types_xos.h"
-//#elif defined(AN_NATIVE_IOS)
-//#include "../ios/an_types_ios.h"
-//#include "../native-ios/an_types_native.h"
-//#elif defined(AN_IOSXR)
-//#include "../xr/include/an_types_xr.h"
-//#endif
-#include "an_types_linux.h"
+#include "../infra/impl/an_types_linux.h"
 
 #define AN_HOSTSIZE 256
 #define AN_LABELSIZE 64

@@ -91,7 +91,6 @@ void an_cert_short_print(const an_cert_t cert);
 void an_cert_serial_num_print(const an_cert_t cert);
 int32_t an_cert_compare(const an_cert_t cert1, const an_cert_t cert2);
 boolean an_cert_equal(const an_cert_t cert1, const an_cert_t cert2);
-
 boolean an_cert_get_udi(const an_cert_t cert, an_udi_t *udi);
 an_cert_api_ret_enum 
 an_cert_get_subject_name(an_cert_t cert, uint8_t **subject, uint16_t *len);

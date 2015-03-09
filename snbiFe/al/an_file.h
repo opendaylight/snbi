@@ -29,6 +29,7 @@ typedef enum an_file_api_ret_enum_ {
     AN_FILE_ENUM_MAX,
     AN_FILE_READ_CHAR_SUCCESS,
     AN_FILE_READ_CHAR_FAIL,
+    AN_FILE_READ_EOF,
 
 } an_file_api_ret_enum;
 
@@ -56,11 +57,18 @@ an_file_seek(an_file_descr_t fd, uint32_t offset, an_file_seek_ref_e seek_ref);
 an_file_api_ret_enum
 an_file_read_next_char(an_file_descr_t fd, int8_t *ch);
 
+boolean
+an_file_is_next_word_udi(an_file_descr_t fd);
+
 an_file_api_ret_enum
 an_file_read_next_byte(an_file_descr_t fd, uint8_t *ch);
 
 an_file_api_ret_enum
 an_file_read_next_word(an_file_descr_t fd, an_buffer_t *word, uint32_t max_len);
+
+an_file_api_ret_enum
+an_file_read_next_pub_key(an_file_descr_t fd, an_buffer_t *word, 
+                          uint16_t to_read_len);
 
 an_file_api_ret_enum 
 an_file_read_next_udi(an_file_descr_t fd, an_udi_t *udi, uint32_t max_len);
@@ -73,6 +81,9 @@ an_file_write_char(an_file_descr_t fd, int8_t *ch);
 
 an_file_api_ret_enum
 an_file_write_byte(an_file_descr_t fd, uint8_t *ch);
+
+an_file_api_ret_enum
+an_file_write_pub_key(an_file_descr_t fd, an_key_t *key);
 
 an_file_api_ret_enum
 an_file_write_word(an_file_descr_t fd, an_buffer_t *word);

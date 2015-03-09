@@ -11,6 +11,7 @@
 
 #include "an_types.h"
 #include "../common/an_if_mgr.h"
+#include "../common/an_cd.h"
 
 #define AN_IF_NAME_MAX_LEN 99
 
@@ -51,7 +52,7 @@ boolean an_if_is_layer2(an_if_t ifhndl);
 void an_l2_nd_trigger_hello(an_if_t ifhndl, boolean request, an_dot1q_qinq_vlan_id_t *vlan_sb, an_udi_t *dest_udi);
 void an_l2_disable_channel(an_if_t ifhndl, an_cd_info_t *an_cd_info);
 boolean an_l2_check_probe_possible(an_if_t ifhndl);
-void an_l2_reuse_startup_config(an_if_t ifhndl);
+boolean an_l2_reuse_startup_config(an_if_t ifhndl);
 boolean an_cd_start_probing_on_interface_cb(an_if_t ifhndl, void *data);
 void an_cd_start_probing_on_interfaces(void);
 an_avl_walk_e an_cd_refresh_probe_cb(an_avl_node_t *node, void *data);
@@ -63,4 +64,5 @@ void an_if_set_svi_mac_addr(an_hwidbtype *hwidb, uint8_t* l2_mac);
 boolean an_if_is_internal(an_if_t ifhndl);
 inline boolean an_if_is_mgmt(an_if_t ifhndl);
 boolean an_if_is_media_type_supported(an_if_t ifhndl);
+boolean an_if_is_acp_interface(an_if_t ifhndl);
 #endif

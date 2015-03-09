@@ -9,6 +9,7 @@
 #include "an.h"
 #include "an_tlv.h"
 #include "an_acp.h"
+#include "an_idp.h"
 #include "../al/an_addr.h"
 #include "../al/an_logger.h"
 #include "../al/an_mem.h"
@@ -582,6 +583,8 @@ an_tlv_compose_intent_version_and_move (uint8_t *buffer, an_intent_ver_t version
     if (!version) {
         return (buffer);
     }
+
+    an_idp_hton_version(&version_in_nw_order, version);
 
     an_tlv_compose(buffer, AN_BS_TLV_TYPE_IDP_VERSION, 
                    sizeof(an_intent_ver_t), (uint8_t *)&version_in_nw_order);

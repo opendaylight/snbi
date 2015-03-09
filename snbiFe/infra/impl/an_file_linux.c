@@ -7,15 +7,15 @@
  */
 
 
-#include "an_types.h"
-#include "an_logger.h"
-#include "an_addr.h"
-#include "an_mem.h"
-#include "an_str.h"
-#include "an_sudi.h"
-#include "an_file.h"
+#include "../../al/an_types.h"
+#include "../../al/an_logger.h"
+#include "../../al/an_addr.h"
+#include "../../al/an_mem.h"
+#include "../../al/an_str.h"
+#include "../../al/an_sudi.h"
+#include "../../al/an_file.h"
 #include "an_file_linux.h"
-#include "an_acp.h"
+#include "../../common/an_acp.h"
 
 
 const an_file_descr_t AN_FILE_DESCR_INVALID = -1;

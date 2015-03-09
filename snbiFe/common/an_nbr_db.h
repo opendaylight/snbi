@@ -14,14 +14,15 @@
 #include "../al/an_cert.h"
 #include "../al/an_list.h"
 #include "an.h"
+#include "an_intent.h"
 
 typedef enum an_acp_secure_channel_type_e_ {
     AN_ACP_NONE         = 0,
-    AN_ACP_NOSEC_ON_PHY = (1 << 0),
-    AN_ACP_IPSEC_ON_PHY = (1 << 1),   
-    AN_ACP_IPSEC_ON_GRE = (1 << 2),         
-    AN_ACP_NOSEC_ON_GRE = (1 << 3),             
-    AN_ACP_DIKE_ON_GRE = (1 << 4),         
+    AN_ACP_NOSEC_ON_PHY,
+    AN_ACP_IPSEC_ON_PHY,   
+    AN_ACP_IPSEC_ON_GRE,         
+    AN_ACP_NOSEC_ON_GRE,             
+    AN_ACP_DIKE_ON_GRE,         
 } an_acp_secure_channel_type_e;
 
 typedef enum an_acp_tunn_state_e_ {
@@ -225,6 +226,7 @@ typedef struct an_nbr_t_ {
     an_list_t *an_nbr_link_list;
 
     an_unix_time_t selected_anr_reference_time;
+    uint16_t select_anr_retry_count;
     an_addr_t selected_anr_addr;
 } an_nbr_t;
 

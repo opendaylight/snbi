@@ -80,8 +80,11 @@ boolean an_nbr_link_init_cleanup_timer(an_nbr_t *nbr,
                                 an_nbr_link_spec_t *nbr_link_data);
 void an_nbr_remove_nbr_link(an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
 
-boolean an_nbr_walk_link_lost_cb(an_avl_node_t *node, void *args);
+an_avl_walk_e an_nbr_walk_link_lost_cb(an_avl_node_t *node, void *args);
 boolean an_nd_check_if_nbr_on_valid_link(an_if_t my_ifhndl, 
                                          an_addr_t remote_ipaddr);
+void an_nd_remove_and_free_nbr(an_nbr_t *nbr);
+void an_nd_nbr_link_cleanup_event_handler(void *info_ptr);
+void an_nd_register_for_events(void);
 
 #endif
