@@ -12,6 +12,7 @@
 void 
 an_conf_auton (bool no, int a, char *av[]) {
     printf ("\n*********Starting Autonomic Process************\n");
+    an_event_db_init();
     an_autonomic_enable();
     return;
 }

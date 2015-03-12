@@ -11,6 +11,8 @@
 
 #include "an_types.h"
 
+#define AN_PID_PREFIX "PID:"
+
 extern uint8_t check_count;
 extern boolean udi_available;
 extern boolean an_sudi_available;

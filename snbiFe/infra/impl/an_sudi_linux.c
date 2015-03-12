@@ -12,8 +12,8 @@
 #include "an_cert.h"
 #include "an_timer.h"
 #include "an_logger.h"
-#include "an_mem.h"
-#include "an_str.h"
+#include "../../al/an_mem.h"
+#include "../../al/an_str.h"
 #include "an_ipv6.h"
 #include "show_an.h"
 
@@ -47,8 +47,7 @@ boolean udi_available = FALSE;
 boolean
 an_udi_get_from_platform (an_udi_t *udi)
 {
-#if 0
-    uuid_t an_uuid = {0};
+
     uint32_t i;
 
     udi->data = NULL;
@@ -77,7 +76,7 @@ an_udi_get_from_platform (an_udi_t *udi)
         cli_print (cli,"%x",udi->data[i]);
     }
 */
-#endif
+
 
     return TRUE;
 

@@ -14,6 +14,9 @@
 #include "an_bs.h"
 #include "an_anra.h"
 #include "an_acp.h"
+#include "an_idp.h"
+#include "an_srvc.h"
+#include "an_cnp.h"
 #include "../al/an_types.h"
 #include "../al/an_icmp6.h"
 #include "../al/an_pak.h"
@@ -578,8 +581,8 @@ an_msg_mgr_parse_message (uint8_t *msg_block, an_pak_t *pak,
 
             if (an_msg_mgr_copy_parsed_value((uint8_t *)&msg_package->intent_version,
                                              AN_BS_TLV_TYPE_IDP_VERSION)) {
-//                msg_package->intent_version = an_idp_ntoh_version((uint8_t *)
-  //                                                                 &msg_package->intent_version);
+                msg_package->intent_version = an_idp_ntoh_version((uint8_t *)
+                                                                   &msg_package->intent_version);
                 AN_SET_BIT_FLAGS(msg_package->interest, AN_MSG_INT_IDP_VERSION);
             }
 
@@ -932,6 +935,218 @@ an_msg_mgr_close_message_block_in_icmp (an_pak_t *pak, uint8_t *msg_block,
     return (TRUE);
 }
 
+boolean 
+an_msg_mgr_check_incoming_message_on_global_acp (an_msg_package *msg_package) 
+{
+    an_log_type_e log;
+
+    if (!msg_package) {
+        return (FALSE);
+    }
+
+    log = an_get_log_type((an_header *)&msg_package->header);
+    
+    if (an_if_is_autonomic_tunnel(msg_package->ifhndl)) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sReceived %s message on ACP interface %s",
+                     an_get_log_str(log), 
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_if_get_name(msg_package->ifhndl));
+     } else if (an_if_is_autonomic_loopback(msg_package->ifhndl)) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sReceived %s message on ACP interface %s",
+                     an_get_log_str(log), 
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_if_get_name(msg_package->ifhndl));
+    } else {
+        
+        /* we are dropping all AN messages on autonomic connect interface today*/
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sReceiving %s Message on non ACP"
+                     "interface %s, dropping it",  an_get_log_str(log),
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_if_get_name(msg_package->ifhndl));
+
+        return (FALSE);
+    }
+
+    if (msg_package->iptable != an_get_iptable()) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sReceiving %s Message on non AN vrf interface %s, "
+                     "dropping it",an_get_log_str(log),
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_if_get_name(msg_package->ifhndl));
+        return (FALSE);
+    }
+    
+    if (an_addr_is_ipv6_linklocal(msg_package->dest) ||
+        an_addr_is_ipv6_linklocal(msg_package->src)) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sMessage %s received through "
+                     "AN VRF, but the addresses src %s/dest %s are "
+                     "link local  addresses, dropping it", an_get_log_str(log),
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_addr_get_string(&msg_package->src),
+                     an_addr_get_string(&msg_package->dest));
+        return (FALSE);
+    }
+    
+    return (TRUE);
+}
+ 
+boolean 
+an_msg_mgr_check_incoming_message_on_local_physical (an_msg_package *msg_package)
+{
+    an_log_type_e log;
+    
+    if (!msg_package) {
+        return (FALSE);
+    }
+    
+    log = an_get_log_type((an_header *)&msg_package->header);
+
+    if (an_addr_is_ipv6_linklocal(msg_package->dest) &&
+        an_addr_is_ipv6_linklocal(msg_package->src)) {
+        return (TRUE);
+    } else if (an_addr_is_ipv6_linklocal(msg_package->src) && 
+               an_addr_is_ipv6_multicast(msg_package->dest)) {
+        return (TRUE);
+    }
+
+    DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                 "\n%sDestination %s / Source %s "
+                 " for incoming %s message are not Link Local addresses,"
+                 " dropping it", an_get_log_str(log),
+                 an_addr_get_string(&msg_package->dest),
+                 an_addr_get_string(&msg_package->src),
+                 an_get_msg_name(msg_package->header.msg_type));
+
+    return (FALSE);
+}
+
+boolean 
+an_msg_mgr_check_incoming_message_on_link_local_acp (an_msg_package *msg_package)
+{
+    an_log_type_e log;
+
+    if (!msg_package) {
+        return (FALSE);
+    }
+
+    log = an_get_log_type((an_header *)&msg_package->header);
+
+    if (!an_if_is_autonomic_tunnel(msg_package->ifhndl)) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sReceiving %s Message on interface %s, dropping it", 
+                     an_get_log_str(log),
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_if_get_name(msg_package->ifhndl));
+        return (FALSE);
+    }
+
+    if (an_addr_is_ipv6_multicast(msg_package->dest) &&
+        an_addr_is_ipv6_linklocal(msg_package->src)) {
+        return (TRUE);
+    }
+
+    DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                 "\n%sMessage %s is received on interface "
+                 "%s, but the addresses src %s/dest %s are "
+                 " not link local  addresses, dropping it", 
+                 an_get_log_str(log),
+                 an_get_msg_name(msg_package->header.msg_type),
+                 an_if_get_name(msg_package->ifhndl),
+                 an_addr_get_string(&msg_package->src),
+                 an_addr_get_string(&msg_package->dest));
+    return (FALSE);
+}
+
+boolean
+an_msg_mgr_check_gtsm_ll_and_vrf_for_incoming_messages (an_pak_t *pak, 
+                                                        an_msg_package *msg_package)
+{
+    an_log_type_e log;
+    
+    if (!msg_package || !pak) {
+        return (FALSE);
+    }
+
+    log = an_get_log_type((an_header *)&msg_package->header);
+    
+    if (an_addr_is_zero(msg_package->src) || 
+        an_addr_is_zero(msg_package->dest)) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sDestination or the src is zero",
+                     an_get_log_str(log));
+        return (FALSE);
+    }
+    
+
+    switch(msg_package->header.msg_type) {
+
+        /* Messages that are exchanged outside of ACP exclusive*/
+        case AN_MSG_ND_HELLO:
+        case AN_MSG_ND_CERT_REQUEST:
+        case AN_MSG_ND_CERT_RESPONSE:
+        case AN_MSG_CNP_SOLICIT:
+        case AN_MSG_CNP_ADVERTISEMENT:
+        case AN_MSG_CNP_PROPOSAL:
+        case AN_MSG_CNP_ACCEPT:
+        case AN_MSG_CNP_REJECT:
+        case AN_MSG_CNP_ERROR:
+        case AN_MSG_CNP_ACK:
+           
+            if (!an_msg_mgr_check_incoming_message_on_local_physical(msg_package)) {
+                return (FALSE);
+            }
+
+            return (TRUE);
+
+
+        /*Messages that are exchanged inside of ACP exclusively*/ 
+        case AN_MSG_BS_REJECT:
+        case AN_MSG_BS_ENROLL_QUARANTINE:
+        case AN_MSG_NBR_CONNECT:
+        case AN_MSG_IDP_INTENT:
+        case AN_MSG_IDP_INTENT_VERSION:
+        case AN_MSG_IDP_INTENT_REQUEST:
+        case AN_MSG_IDP_ACK:
+        case AN_MSG_ACP_DATA:
+            
+            if (!an_msg_mgr_check_incoming_message_on_global_acp(msg_package)) {
+                return (FALSE);
+            }
+
+            return (TRUE);
+   
+        /* Messages that are exchanged in and out of ACP */
+        case AN_MSG_BS_INVITE:
+        case AN_MSG_BS_RESPONSE:
+        case AN_MSG_BS_REQUEST:
+            
+            if (an_msg_mgr_check_incoming_message_on_local_physical(msg_package)) {
+                return (TRUE);
+            } else if (an_msg_mgr_check_incoming_message_on_global_acp(msg_package)) {
+                return (TRUE);
+            } else {
+                return (FALSE);
+            }
+            
+            return (TRUE);
+           
+        /* Messages that are exchanged inside of ACP exclusive*/
+        case AN_MSG_ND_KEEP_ALIVE:
+            
+            if (!an_msg_mgr_check_incoming_message_on_link_local_acp(msg_package)) {
+                return (FALSE);
+            }
+            return (TRUE);
+            
+        default:
+            return (FALSE);
+    }
+}
+    
 boolean
 an_msg_mgr_deliver_incoming_message (an_msg_package *msg_package, 
                            an_pak_t *pak, an_if_t ifhndl)
@@ -1030,17 +1245,29 @@ an_msg_mgr_deliver_incoming_message (an_msg_package *msg_package,
         break;
 
     case AN_MSG_IDP_INTENT:
+#ifndef AN_IDP_PUSH 
+        an_idp_incoming_intent_message_v2(msg_package, ifhndl);
+#else
+        an_idp_incoming_intent_message(msg_package);
+#endif
         break;
 
 #ifndef AN_IDP_PUSH    
      case AN_MSG_IDP_INTENT_VERSION:
+        an_idp_incoming_intent_version_message_v2(msg_package, ifhndl);
         break;
  
      case AN_MSG_IDP_INTENT_REQUEST:
+        an_idp_incoming_intent_request_message_v2(msg_package, ifhndl);
         break;
 #endif
  
       case AN_MSG_IDP_ACK:
+#ifndef AN_IDP_PUSH
+        an_idp_incoming_ack_message_v2(msg_package, ifhndl);
+#else
+        an_idp_incoming_ack_message(msg_package);
+#endif
         break;
 #if 0
     case AN_MSG_SERVICE_INFO:
@@ -1059,6 +1286,7 @@ an_msg_mgr_deliver_incoming_message (an_msg_package *msg_package,
     case AN_MSG_CNP_REJECT:
     case AN_MSG_CNP_ERROR:
     case AN_MSG_CNP_ACK:
+        an_cnp_receive_pak(msg_package); 
         break;
     default:
         DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n%sUnrecognized Msg Type "
@@ -1095,7 +1323,7 @@ an_msg_mgr_deliver_outgoing_message (an_pak_t *pak, an_msg_package *msg_package,
     switch (msg_package->header.msg_type) {
     case AN_MSG_ND_HELLO:
         if (an_nd_delivery == AN_ND_DELIVERY_IPV6_ND) {
-            break;
+        break;
         }
     case AN_MSG_ND_KEEP_ALIVE:
     
@@ -1136,6 +1364,7 @@ an_msg_mgr_deliver_outgoing_message (an_pak_t *pak, an_msg_package *msg_package,
         an_syslog(AN_SYSLOG_MSG_INVALID_HEADER,msg_package->header.msg_type);
         break;
     }
+
     return (TRUE);
 }
 
@@ -1155,6 +1384,11 @@ an_msg_mgr_receive_an_message (uint8_t *msg_block, an_pak_t *pak, an_if_t ifhndl
     }
     
     if (!an_msg_mgr_parse_message(msg_block, pak, msg_package)) {
+        an_msg_mgr_free_message_package(msg_package);
+        return (result);
+    }
+   
+    if (!an_msg_mgr_check_gtsm_ll_and_vrf_for_incoming_messages(pak, msg_package)) {
         an_msg_mgr_free_message_package(msg_package);
         return (result);
     }
@@ -1307,6 +1541,7 @@ an_msg_mgr_create_message_block_in_packet (an_pak_t **pak_out,
       DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n%sUnsupported Msg Delivery", 
                      an_get_log_str(log));
     }
+    
     return (msg_block);
 }
 
@@ -1360,6 +1595,7 @@ an_msg_mgr_send_message (an_msg_package *msg_package)
         an_msg_mgr_deliver_incoming_message(msg_package, NULL, 0);
         return;
     }
+
     temp_msg_block = (uint8_t *)an_malloc_guard(msg_len, "AN MSG Temp Block");
     if (!temp_msg_block) {
         an_msg_mgr_free_message_package(msg_package);
@@ -1376,7 +1612,7 @@ an_msg_mgr_send_message (an_msg_package *msg_package)
     msg_block = an_msg_mgr_create_message_block_in_packet(&pak, msg_package, 
                                                           msg_len);
 
-    an_cp_msg_block_to_pak(pak,msg_block, temp_msg_block, msg_len);
+    an_cp_msg_block_to_pak(pak,msg_block,temp_msg_block,msg_len);
 
     an_msg_mgr_close_message_block_in_packet(pak, msg_block, msg_len);
     an_msg_mgr_deliver_outgoing_message(pak, msg_package,temp_msg_block,msg_len);
@@ -1494,8 +1730,6 @@ an_msg_mgr_outgoing_ipv6_na (an_pak_t *pak, an_if_t ifhndl,
 void
 an_msg_mgr_log_message (an_msg_package *message, an_log_type_e log)
 {
-	int8_t i = 0;
-
     if (!message) {
         return;
     }
@@ -1607,10 +1841,6 @@ an_msg_mgr_log_message (an_msg_package *message, an_log_type_e log)
     if (AN_CHECK_BIT_FLAGS(message->interest, AN_MSG_INT_ACP_PAYLOAD)) {
         DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "%41sPayload = %d "
                      "Bytes\n", " ", message->payload.len);
-		for (i = 0; i < message->payload.len; i++) {
-            DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "%02x", message->payload.data[i]);
-		}
-		DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n");
     }
 
     if (AN_CHECK_BIT_FLAGS(message->interest, AN_MSG_INT_CNP_CAPABILITY)) {
@@ -1624,6 +1854,8 @@ an_msg_mgr_log_message (an_msg_package *message, an_log_type_e log)
     }
     
     if (AN_CHECK_BIT_FLAGS(message->interest, AN_MSG_INT_SERVICE_INFO)) {
+        DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "%41sService Info Type = %s\n",
+                     " ", an_get_srvc_type_str(message->srvc_info.srvc_type));
     }
 
     if (AN_CHECK_BIT_FLAGS(message->interest, AN_MSG_INT_ANR_ID)) {

@@ -5,7 +5,6 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 #include "an.h"
 #include "an_ni.h"
 #include "an_nbr_db.h"
@@ -173,7 +172,7 @@ an_ni_validate_with_crl (an_nbr_t *nbr)
         if (!an_tp_exists(AN_DOMAIN_TP_LABEL) 
             || !an_get_domain_cert(&domain_cert) 
             || !an_is_device_enrollment_url_set()) {
-            an_event_update_nbr_cert_validation_result(
+            an_ni_update_nbr_cert_validation_result(
                         AN_CERT_VALIDITY_UNKNOWN, nbr);        
             DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
                          "\n%sNo domain certificate available",
@@ -214,7 +213,7 @@ an_ni_validate_with_crl (an_nbr_t *nbr)
             }
         }
 
-        an_event_update_nbr_cert_validation_result(result, nbr);        
+        an_ni_update_nbr_cert_validation_result(result, nbr);        
         break;
     case AN_NBR_CERT_SUDI: 
 
@@ -252,7 +251,7 @@ an_ni_validate (an_nbr_t *nbr)
     case AN_NBR_CERT_DOMAIN_CERT:
         if (!an_tp_exists(AN_DOMAIN_TP_LABEL)
             || !an_get_domain_cert(&domain_cert)) {
-           an_event_update_nbr_cert_validation_result(AN_CERT_VALIDITY_UNKNOWN,
+           an_ni_update_nbr_cert_validation_result(AN_CERT_VALIDITY_UNKNOWN,
                                                       nbr);
            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
                          "\n%sNo domain certificate available",
@@ -265,7 +264,7 @@ an_ni_validate (an_nbr_t *nbr)
         result = an_cert_validate_override_revoke_check(
                                         &nbr->domain_cert, 
                                         AN_LOG_BS_EVENT);                                
-        an_event_update_nbr_cert_validation_result(result, nbr);        
+        an_ni_update_nbr_cert_validation_result(result, nbr);        
         break;
     case AN_NBR_CERT_SUDI: 
 
@@ -528,8 +527,6 @@ an_ni_validate_cert_attributes (uint8_t *device_id, uint8_t *domain_id,
 {
     an_nbr_t *nbr = NULL;
 
-	return (TRUE);
-
     if (!cert.data && !cert.len) {
         DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
                      "\n%sNULL Input Params, cert", an_bs_event);
@@ -767,6 +764,14 @@ an_ni_incoming_cert_request (an_msg_package *message)
     return (TRUE);
 }
 
+void    
+an_ni_nbr_domain_cert_validated (an_nbr_t *nbr)
+{
+    if (nbr->validation.result == AN_CERT_VALIDITY_PASSED) {
+        an_ni_start_nbr_cert_expire_timer(nbr);
+    }
+}
+
 boolean
 an_ni_incoming_cert_response (an_msg_package *message)
 {
@@ -796,7 +801,8 @@ an_ni_incoming_cert_response (an_msg_package *message)
                 "\n%sRecvd AN NI cert response from  Nbr %s", 
                      an_bs_event, nbr->udi.data);
 
-    if (!an_ni_validate_cert_attributes(nbr->device_id,
+    if ((message->domain_cert.data != NULL) && 
+        !an_ni_validate_cert_attributes(nbr->device_id,
                                         nbr->domain_id, 
                                         message->domain_cert, 
                                         message->udi)) {
@@ -875,7 +881,7 @@ an_ni_incoming_cert_response (an_msg_package *message)
     }
 
     an_ni_validate(nbr);
-    an_event_nbr_domain_cert_validated(nbr);
+    an_ni_nbr_domain_cert_validated(nbr);
 
     an_msg_mgr_free_message_package(message);
     return (TRUE);
@@ -968,4 +974,161 @@ an_ni_start_nbr_cert_expire_timer (an_nbr_t *nbr)
     }
 }
 
+void
+an_ni_clean_and_refresh_nbr_cert (an_nbr_t *nbr)
+{
+    if (!nbr) {
+      return;
+    }
+    /*Stop Nbr cert related timer*/
+    an_timer_stop(&nbr->cert_request_timer);
+    an_timer_stop(&nbr->cert_revalidate_timer);
+    an_timer_stop(&nbr->cert_expire_timer);
 
+    nbr->renew_cert_poll_count = 0;
+    nbr->my_cert_expired_time = 0;
+    nbr->renew_cert_5perc_poll_timer = 0;
+    nbr->renew_cert_1perc_poll_timer = 0;
+    nbr->validation.result = AN_CERT_VALIDITY_UNKNOWN;
+
+    /*Clean up domain cert*/
+    if (nbr->domain_cert.data) {
+        an_free_guard(nbr->domain_cert.data);
+    }
+    nbr->domain_cert.data = NULL;
+    nbr->domain_cert.len = 0;
+
+    an_timer_start(&nbr->cert_expire_timer,
+                   AN_NBR_CERT_IMPORT_BUFFER_TIME_SEC*1000);
+
+}
+
+void
+an_ni_nbr_domain_cert_expired (an_nbr_t *nbr)
+{
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+             "\n%sNbr %s device cert is expired", an_bs_event, nbr->udi.data);
+    an_ni_set_state(nbr, AN_NI_CERT_EXPIRED);
+    an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_EXPIRED);
+    an_ni_clean_and_refresh_nbr_cert(nbr);
+}
+
+void
+an_ni_nbr_domain_cert_revoked (an_nbr_t *nbr)
+{
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+             "\n%sNbr %s device cert is revoked", an_bs_event, nbr->udi.data);
+    an_ni_set_state(nbr, AN_NI_OUTSIDE);
+    an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_REVOKED);
+}
+
+void
+an_ni_validation_cert_response_obtained (an_cert_validation_result_e status,
+                                            void *device_ctx)
+{
+    an_ni_validate_context_t *udi_ctx = NULL;
+    an_nbr_t *nbr = NULL;
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                "\n%sCert Validation Response Callback from PKI",
+                an_bs_event);
+    udi_ctx = (an_ni_validate_context_t *) device_ctx;
+
+    if (!udi_ctx || !udi_ctx->save_udi.data) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                      "\n%sGot event validation response, input param NULL",
+                      an_bs_event);
+        return;
+    }
+
+    nbr = an_nbr_db_search(udi_ctx->save_udi);
+
+    if (udi_ctx) {
+        if (udi_ctx->save_udi.data) {
+            an_free_guard(udi_ctx->save_udi.data);
+        }
+        an_free_guard(udi_ctx);
+    }
+
+    if (!nbr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sGot validation response, but nbr udi not in Nbr db",
+                    an_bs_event);
+        return;
+    }
+
+/*    if (status == AN_CERT_VALIDITY_PASSED_WARNING &&
+        nbr->validation.result == AN_CERT_VALIDITY_REVOKED) {
+        //Previous nbr state - REVOKED and
+        //now CRL not available - continue to mark revoked
+        status = AN_CERT_VALIDITY_REVOKED;
+    }
+
+*/
+    an_ni_update_nbr_cert_validation_result(status, nbr);
+}
+
+void
+an_ni_update_nbr_cert_validation_result (an_cert_validation_result_e result,
+                        an_nbr_t *nbr)
+{
+    if (result == AN_CERT_VALIDITY_PASSED_WARNING) {
+        if (nbr->validation.result == AN_CERT_VALIDITY_REVOKED) {
+           DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sNeighbor [%s] domain cert was earlier revoked"
+                     " and now no CRL available to validate- keeping as revoked",
+                     an_bs_event, nbr->udi.data);
+           an_ni_nbr_domain_cert_revoked(nbr);
+        } else {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%sNeighbor [%s] domain cert validated as passed with warning",
+                 an_bs_event, nbr->udi.data);
+            an_ni_set_state(nbr, AN_NI_INSIDE);
+            an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_PASSED);
+        }
+    } else if (result == AN_CERT_VALIDITY_PASSED) {
+        if (nbr->validation.result == AN_CERT_VALIDITY_EXPIRED) {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+                        "\n%sNeighbor [%s] domain cert validated "
+                        "after clock sync - nbr validated as expired "
+                        "earlier", an_bs_event, nbr->udi.data);
+        } else {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                        "\n%sNeighbor [%s] domain cert validation success",
+                        an_bs_event, nbr->udi.data);
+        }
+        an_ni_set_state(nbr, AN_NI_INSIDE);
+        an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_PASSED);
+    } else if (result == AN_CERT_VALIDITY_EXPIRED) {
+        an_ni_nbr_domain_cert_expired(nbr);
+    } else if (result == AN_CERT_VALIDITY_REVOKED) {
+        if (nbr->validation.result != AN_CERT_VALIDITY_EXPIRED) {
+            an_ni_nbr_domain_cert_revoked(nbr);
+        }
+    } else if (result == AN_CERT_VALIDITY_PENDING) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+            "\n%sNeighbor [%s] domain cert validation pending "
+            "for revocation check",
+            an_bs_event, nbr->udi.data);
+    //    an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_PENDING)
+    } else if (result == AN_CERT_VALIDITY_BUSY_CRL_POLL) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+            "\n%sNeighbor [%s] domain cert validation not done"
+            " - will call Cert Validate again",
+            an_bs_event, nbr->udi.data);
+    //    an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_BUSY_CRL_POLL);
+    } else if (result == AN_CERT_VALIDITY_UNKNOWN) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+            "\n%sNeighbor [%s] domain cert validation unknown "
+            "due to API error",
+            an_bs_event, nbr->udi.data);
+        an_ni_set_state(nbr, AN_NI_OUTSIDE);
+        an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_UNKNOWN);
+    } else {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                        "\n%sNeighbor [%s] domain cert validation failed",
+                        an_bs_event, nbr->udi.data);
+        an_ni_set_state(nbr, AN_NI_OUTSIDE);
+        an_ni_set_validation_result(nbr, AN_CERT_VALIDITY_FAILED);
+    }
+}

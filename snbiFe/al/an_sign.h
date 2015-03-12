@@ -51,6 +51,8 @@ an_sign_verify_using_key(uint8_t *key_label, uint8_t *data, uint16_t data_len,
 an_sign_api_ret_enum
 an_verify_signature(uint8_t *data, uint16_t data_len, an_sign_digest_type_e digest_type,
                     an_cert_t cert, an_sign_t sign);
+an_sign_api_ret_enum
+an_sign_gen_hash(uint8_t *in_data, uint32_t in_data_len, uint8_t *hash);
 
 boolean an_smime_sign_message(uint8_t *data, uint16_t data_len,
                 an_sign_t *sign, uint8_t *label);

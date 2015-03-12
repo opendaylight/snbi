@@ -31,3 +31,11 @@ an_key_get_private_key (uint8_t *key_label, an_key_t *key)
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
+
+boolean
+an_key_remove_keypair (uint8_t *key_label)
+{
+    printf("\n[SINO_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    return (TRUE);
+}
+

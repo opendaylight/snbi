@@ -18,6 +18,7 @@
 #include "../al/an_misc.h"
 #include "../al/an_ntp.h"
 #include "../al/an_str.h"
+#include "../al/an_timer.h"
 #include "an_msg_mgr.h"
 #include "an_event_mgr.h"
 #include "an_nbr_db.h"
@@ -30,11 +31,19 @@
 
 #define REJECTED_NBR_REFRESH_COUNT 2*10
 #define AN_BS_MAX_WAIT_TIME_BEFORE_SELECTING_NEXT_ANR (5*60)
+#define AN_ANRA_WITH_MAX_HASH TRUE
+#define AN_ANRA_WITH_2ND_MAX_HASH FALSE
 
 extern const uint8_t *an_cert_enum_get_string(an_cert_api_ret_enum enum_type);
 void an_bs_trigger_request_message(an_msg_package *invite);
 boolean bs_initialized = FALSE;
 extern an_addr_t anr_reg_address[3];
+an_timer an_revoke_check_timer = {0};
+an_unix_time_t my_5perc_poll_timer = 0;
+an_timer an_my_cert_renew_expire_timer = {0};
+an_unix_time_t my_1perc_poll_timer = 0;
+an_unix_time_t an_crl_expire_interval = 0;
+
 
 static uint8_t *an_bs_state_names[] = {
     "Bootstrap None",
@@ -71,8 +80,8 @@ void
 an_bs_uninit (void)
 {
     /* Clear AN used crypto trustpoints */
-    an_reset_ca_cert();
     an_cert_unconfig_crl_auto_download();
+    an_reset_ca_cert();
     bs_initialized = FALSE;
 }
 
@@ -348,8 +357,7 @@ an_bs_trigger_nbr_connect_message (an_nbr_t *nbr)
 {
     an_msg_package *message = NULL;
     an_addr_t anra_ip = AN_ADDR_ZERO;
-    an_unix_time_t nbr_connect_triggered_time;
-    uint16_t an_srvc_find_retry_count = 0;
+    an_unix_time_t nbr_connect_triggered_time = 0;
 
     if (!an_bs_is_initialized()) {
         DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_SEVERE, NULL,
@@ -359,29 +367,42 @@ an_bs_trigger_nbr_connect_message (an_nbr_t *nbr)
         return;
     }
 
-    nbr_connect_triggered_time = 
-        an_unix_time_get_elapsed_time(nbr->selected_anr_reference_time);
+    if (!an_addr_is_zero(nbr->selected_anr_addr) && 
+           nbr->selected_anr_reference_time != 0) {
+        nbr_connect_triggered_time =
+             an_unix_time_get_elapsed_time(nbr->selected_anr_reference_time);
+    }
+
     if (an_anra_is_configured()) {
         nbr->selected_anr_addr = an_anra_get_registrar_ip();
-    } else if ((nbr_connect_triggered_time >= 
-           AN_BS_MAX_WAIT_TIME_BEFORE_SELECTING_NEXT_ANR) || 
-           (!an_addr_struct_comp(&nbr->selected_anr_addr, &AN_ADDR_ZERO))) {
-        do {
-            an_srvc_find_retry_count++;
-            anra_ip = an_anr_get_ip_from_srvc_db();
-            //if (an_test_get_number_of_anr_addr_from_pool() == 1) {
-        }while (!an_addr_struct_comp(&anra_ip, &nbr->selected_anr_addr) &&
-                an_srvc_find_retry_count < AN_SRVC_FIND_MAX_RETRY);
-
-        if (an_srvc_find_retry_count >= AN_SRVC_FIND_MAX_RETRY) {
-            DEBUG_AN_LOG(AN_LOG_SRVC_EVENT, AN_DEBUG_SEVERE, NULL,
-                "\n Same ANR service returned for more than %d times", 
-                AN_SRVC_FIND_MAX_RETRY);
-        }
-
-        nbr->selected_anr_reference_time = 
-                    an_unix_time_get_current_timestamp();
-        nbr->selected_anr_addr = anra_ip;
+    } else if ((nbr_connect_triggered_time <=
+                AN_BS_MAX_WAIT_TIME_BEFORE_SELECTING_NEXT_ANR) &&
+             (!an_addr_struct_comp(&nbr->selected_anr_addr, &AN_ADDR_ZERO))) {
+               anra_ip = an_anra_select_anra_ip_from_srvc_db(nbr->udi, 
+                                                  AN_ANRA_WITH_MAX_HASH);
+               nbr->selected_anr_addr = anra_ip;
+               nbr->selected_anr_reference_time =
+                      an_unix_time_get_current_timestamp();
+               DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                      "\n%sSelected ANR IP address from db is "
+                      "%s %ld", an_bs_pak, 
+                      an_addr_get_string(&nbr->selected_anr_addr),
+                      nbr->selected_anr_reference_time);
+    } else if (nbr_connect_triggered_time >
+               AN_BS_MAX_WAIT_TIME_BEFORE_SELECTING_NEXT_ANR &&
+               nbr->select_anr_retry_count < AN_SRVC_FIND_MAX_RETRY) {
+               if (an_srvc_get_num_of_service(AN_ANR_SERVICE) > 1) {
+                  anra_ip = an_anra_select_anra_ip_from_srvc_db(nbr->udi, 
+                                            AN_ANRA_WITH_2ND_MAX_HASH);
+                  nbr->selected_anr_reference_time =
+                        an_unix_time_get_current_timestamp();
+                  DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                        "\n%sSelecting 2nd ANR IP address from db"
+                        "%s %ld", an_bs_pak, 
+                  an_addr_get_string(&nbr->selected_anr_addr),
+                  nbr->selected_anr_reference_time);
+                  nbr->selected_anr_addr = anra_ip;
+               }
     }
 
     if (an_addr_is_zero(nbr->selected_anr_addr)) {
@@ -390,6 +411,11 @@ an_bs_trigger_nbr_connect_message (an_nbr_t *nbr)
                      "cannot send Nbr Connect Message",
                      an_bs_pak);
         return;
+    } else {
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_SEVERE, NULL,
+                     "\n%sSelected Autonomic Registrar IP is %s ",
+                     an_bs_pak, an_addr_get_string(&nbr->selected_anr_addr));
+        nbr->select_anr_retry_count++;
     }
     
     message = an_bs_prepare_message(nbr, AN_MSG_NBR_CONNECT); 
@@ -457,6 +483,7 @@ an_bs_init_nbr_bootstrap (an_nbr_t *nbr)
                   " can't bootstrap the Nbr", an_bs_pak, nbr->udi.data);   
         if (nbr->rejected_nbr_refresh_count >= REJECTED_NBR_REFRESH_COUNT) {
             nbr->rejected_nbr_refresh_count = 0;
+            an_anra_deselect_anra_ip(nbr);
             an_bs_nbr_set_state(nbr, AN_NBR_BOOTSTRAP_NONE);
         } else {
             nbr->rejected_nbr_refresh_count++;
@@ -495,6 +522,11 @@ an_bs_init_nbr_bootstrap (an_nbr_t *nbr)
                  "\n%sProxy device triggering Nbr Connect Message"
                  " to Registrar for Nbr [%s]", 
                  an_bs_event, nbr->udi.data);
+
+    if (an_bs_nbr_get_state(nbr) == AN_NBR_BOOTSTRAP_NONE) {
+        an_anra_deselect_anra_ip(nbr);
+    }
+
     an_bs_trigger_nbr_connect_message(nbr);
     
 }
@@ -584,11 +616,6 @@ an_bs_forward_message_to_anra (an_msg_package *message)
         return (FALSE);
     }
 
-    if (an_anra_is_live()) {
-        /* I am ANRA, no need to forward the message */
-        return (FALSE);
-    }
-
     DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_INFO, NULL,
                  "\n%sForwarding %s Message to Registrar",
                  an_bs_pak, an_get_msg_name(message->header.msg_type));
@@ -605,6 +632,14 @@ an_bs_forward_message_to_anra (an_msg_package *message)
     }  
     message->src = AN_ADDR_ZERO;
     message->dest = nbr->selected_anr_addr;
+
+    if (an_addr_is_zero(nbr->selected_anr_addr)) {
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                     "\n%sSelected ANR address is zero, "
+                     "can't forward message to ANRA", an_bs_pak);
+        return (FALSE);
+    }
+
     message->iptable = an_get_iptable();
     message->ifhndl = 0;
     
@@ -733,6 +768,8 @@ an_bs_incoming_reject_message (an_msg_package *message)
     if (nbr) {
         DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
                      "\n%sBootstrap Rejected by Registrar", an_bs_pak);
+
+        an_anra_deselect_anra_ip(nbr);
 
         if (an_bs_nbr_get_state(nbr) != AN_NBR_BOOTSTRAP_REJECTED) {
             an_bs_nbr_set_state(nbr, AN_NBR_BOOTSTRAP_REJECTED);
@@ -1088,3 +1125,677 @@ an_bs_trigger_request_message (an_msg_package *invite)
     an_msg_mgr_send_message(bs_request);
 
 }
+
+void
+an_bs_ni_cert_timer_expired_event_handler (void *nbr_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+
+    if (!nbr_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr info is NULL, Cant handle ni cert timer expiry.", an_bs_event);
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sCert Req timer reset for nbr [%s]",
+                 an_bs_event, nbr->udi.data);
+
+    an_ni_cert_request_retry(nbr);
+}
+
+void
+an_bs_nbr_add_event_handler (void *nbr_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+
+    if (!nbr_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr info is NULL, Cant handle nbr add.", an_bs_event);
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+
+    if (!nbr || !nbr->udi.data) {
+        return;
+    }   
+    an_ni_cert_request(nbr);
+}
+
+void
+an_bs_restart_revoke_check_timer (an_unix_time_t revoke_interval)
+{
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+          "\n%sRestart revocation check timer %ld msec",
+          an_bs_event, revoke_interval);
+
+    //Revoke check timer =  read from CRL lifetime given in the certificate
+    if (revoke_interval > 0) {
+        an_timer_start(&an_revoke_check_timer,
+                       revoke_interval);
+    }
+}
+
+void
+an_bs_cert_revoke_check_timer_expired_event_handler (void *info_ptr)
+{
+   an_unix_time_t revoke_interval = 0;
+   an_cert_t domain_cert = {};
+   an_cert_api_ret_enum result;
+
+   DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+       "\n%sCertificate Revoke Check Timer expired- check cert aginst CRL",
+       an_bs_event);
+
+   //If trustpoint busy in renewal do not do crl based cert validation
+   // AN workaround to avoid hitting crypto bug - CRL download aborts
+   // trustpoint undergoing renewal at the same time
+   if (!an_cert_is_tp_busy_in_renew()) {
+       an_ni_validate_with_crl_nbrs();
+       if (an_get_domain_cert(&domain_cert)) {
+           //CRL present- PKI Validate call immediately returns
+           //Start revoke check timer
+           if (an_cert_is_crl_present(&domain_cert)) {
+               result = an_cert_get_crl_expiry_time(&domain_cert,
+                                                    &revoke_interval);
+               if (result == AN_CERT_API_SUCCESS && revoke_interval > 0) {
+                   revoke_interval = revoke_interval * 1000;
+                   an_bs_restart_revoke_check_timer(revoke_interval);
+                   return;
+               }
+           } else {
+               //CRL not present- PKI Validate will trigger CRL download
+               //Now rerun revoke check timer after 3 mins
+               DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+                   "\n%sNo CRL available now, rerun Cert Validation check "
+                   "cert validation", an_bs_event);
+               an_bs_restart_revoke_check_timer(
+                    AN_CERT_WAIT_TO_RERUN_REVOKE_CHECK);
+           }
+       }
+   }else {
+       DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+          "\n%sAN Domain cert is being renewed- will do without CRL "
+          "cert validation", an_bs_event);
+       an_ni_validate_nbrs();
+       an_bs_restart_revoke_check_timer(
+                    AN_CERT_WAIT_TO_RERUN_REVOKE_CHECK);
+   }
+}
+
+void
+an_bs_nbr_cert_revalidate_timer_expired_event_handler (void *nbr_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+
+   if (!nbr_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr info is NULL, Cant handle ni cert timer expiry.", an_bs_event);
+        return;
+   }
+   nbr = (an_nbr_t *)nbr_info_ptr;
+
+   DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+             "\n%sCRL check returned PKI_API_VERIFY_FAILURE, "
+             "cert not validated, hence revalidate Nbr certificate",
+             an_bs_event);
+   an_ni_validate_with_crl(nbr);
+}
+
+void
+an_bs_nbr_cert_renew_timer_expired_event_handler (void *nbr_info_ptr)
+{
+    uint8_t now_time_str[TIME_DIFF_STR];
+    an_unix_msec_time_t now;
+    an_nbr_t *nbr = NULL;
+
+    if (!nbr_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr info is NULL, Cant handle ni cert timer expiry.", an_bs_event);
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+
+    now = an_unix_time_get_current_timestamp();
+    an_unix_time_timestamp_conversion(now, now_time_str);
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+       "\n%sNbr cert timer expired, send NI cert fetch req, "
+       " at %s",
+       an_bs_event, now_time_str);
+
+    an_ni_cert_request(nbr);
+    return;
+}
+
+void
+an_bs_my_cert_renew_timer_expired_event_handler (void *info_ptr)
+{
+    an_cert_t renewed_device_cert = {};
+    an_cert_t old_device_cert = {};
+    an_unix_time_t renew_validity_time = 0;
+    an_unix_time_t old_validity_time = 0;
+    an_unix_msec_time_t renew_cert_validity_interval = 0;
+    an_unix_msec_time_t old_cert_validity_interval = 0;
+    an_unix_msec_time_t diff_in_validity_interval = 0;
+    an_cert_api_ret_enum renewed_cert_fetch_result;
+    an_cert_api_ret_enum renewed_cert_get_validtime_result;
+    an_cert_api_ret_enum old_cert_get_validtime_result;
+
+    an_get_domain_cert(&old_device_cert);
+    if (!old_device_cert.data || !old_device_cert.len) {
+         return;
+    }
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+        "\n%sMy certificate expired- Will try to get renewed certificate "
+        "from the trustpoint %s", an_bs_event, AN_DOMAIN_TP_LABEL);
+
+    renewed_cert_fetch_result =
+                an_cert_get_device_cert_from_tp(AN_DOMAIN_TP_LABEL,
+                                             &renewed_device_cert);
+
+    if (renewed_cert_fetch_result == AN_CERT_API_SUCCESS) {
+
+        renewed_cert_get_validtime_result = an_cert_get_cert_expire_time(
+                        &renewed_device_cert,
+                        &renew_cert_validity_interval, &renew_validity_time);
+
+        old_cert_get_validtime_result = an_cert_get_cert_expire_time(
+                        &old_device_cert,
+                        &old_cert_validity_interval, &old_validity_time);
+
+        if (renewed_cert_get_validtime_result == AN_CERT_API_SUCCESS &&
+            old_cert_get_validtime_result == AN_CERT_API_SUCCESS) {
+
+            if (old_cert_validity_interval <= renew_cert_validity_interval) {
+                diff_in_validity_interval = (renew_cert_validity_interval -
+                                        old_cert_validity_interval);
+            }
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+                  "\n%sRead from tp, diff in time b.w existing and new cert"
+                  "from tp differ by %lld msec, old %lld msec, "
+                  "renewed %lld msec",
+                  an_bs_event, diff_in_validity_interval,
+                  old_cert_validity_interval,
+                  renew_cert_validity_interval);
+            if (diff_in_validity_interval == 0) {
+                DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sRetry getting renewed cert from tp - "
+                    "starting timer for %d",
+                    an_bs_event, my_5perc_poll_timer);
+                an_timer_start(&an_my_cert_renew_expire_timer, my_5perc_poll_timer);
+            } else if (diff_in_validity_interval > 0) {
+                //Store the new certificate in the an_info global structure
+                DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                       "\n%sTrustpoint %s has renewed certificate for AN"
+                       " AN device", an_bs_event,
+                        AN_DOMAIN_TP_LABEL);
+                an_set_domain_cert(renewed_device_cert, AN_CERT_TYPE_RENEWED);
+            } //end of if - diff in time b.w old and new cert
+
+        }//end of if - validity fetch success
+    } else if (renewed_cert_fetch_result ==
+               AN_CERT_EXPIRED_DEVICE_CERT_IN_TP) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+             "\n%sRead expired cert from tp", an_bs_event);
+        an_event_domain_device_cert_expired();
+        if (!an_anra_is_configured()) {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+             "\n%sRestart poll my cert timer on AN device", an_bs_event);
+            an_timer_start(&an_my_cert_renew_expire_timer,
+                           my_1perc_poll_timer);
+        }
+    }else {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+             "\n%sReading from tp failed, Retry getting renewed cert",
+             an_bs_event);
+        an_timer_start(&an_my_cert_renew_expire_timer,
+                       my_5perc_poll_timer);
+    } //end of if - fetch renew cert from tp
+}
+
+void
+an_bs_domain_device_cert_expired_event_handler (void *info_ptr)
+{
+    an_udi_t my_udi = {0};
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+            "\n%sDomain Device Certificate has expired", an_bs_event);
+
+    if (!an_get_udi(&my_udi))  {
+        return;
+    }
+
+    if (my_udi.data && my_udi.len) {
+        an_syslog(AN_SYSLOG_MY_DOMAIN_CERT_EXPIRED, my_udi.data);
+    }
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+             "\n%sClean up expired device for new bootstrap", an_bs_event);
+
+    /*Stop all BS related timers on the expired device*/
+
+    //Do not stop my cert expire timer- when u receive new certificate stop it
+    an_timer_stop(&an_revoke_check_timer);
+    an_crl_expire_interval = 0;
+}
+
+void
+an_bs_start_my_cert_expire_timer (void)
+{
+    an_cert_api_ret_enum result;
+    an_unix_msec_time_t cert_validity_interval = 0;
+    an_unix_msec_time_t new_cert_validity_interval = 0;
+    an_unix_time_t validity_time;
+    an_cert_t domain_cert = {};
+    int16_t shadow_percentage = 0;
+    an_unix_msec_time_t perc_75 = 0;
+    an_unix_time_t perc_5 = 0;
+    an_unix_time_t perc_1 = 0;
+    an_unix_time_t perc_40 = 0;
+    uint8_t validity_time_str[TIME_DIFF_STR];
+    an_unix_time_t  expiry_time = 0;
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+          "\nIn start my cert expire timer", an_bs_event);
+
+    an_get_domain_cert(&domain_cert);
+    if (domain_cert.data && domain_cert.len) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+          "\nGet domain cert success", an_bs_event);
+
+        result = an_cert_get_cert_expire_time(&domain_cert,
+                                   &cert_validity_interval, &validity_time);
+        if (result != AN_CERT_API_SUCCESS) {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                 "\n%sUnable to get device cert expire time", an_bs_event);
+            return;
+        }
+        an_unix_time_timestamp_conversion(validity_time,
+                                          validity_time_str);
+        shadow_percentage = an_cert_get_auto_enroll_perc();
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+          "\n%sGet domain cert validity interval %lld msec, "
+          "shadow percentage %d", an_bs_event,
+          cert_validity_interval, shadow_percentage);
+
+        an_cert_compute_cert_lifetime_percent(cert_validity_interval,
+                                  &perc_5, &perc_1, &perc_40, &perc_75);
+        my_5perc_poll_timer = perc_5;
+        my_1perc_poll_timer = perc_1;
+
+        result = an_cert_get_crl_expiry_time(&domain_cert, &expiry_time);
+        if (result == AN_CERT_API_SUCCESS && expiry_time > 0) {
+
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+              "\n%sFrom API crl revoke timer %ld", an_bs_event, expiry_time);
+
+            an_crl_expire_interval = expiry_time * 1000;
+
+        } else {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+              "\n%sSet crl revoke timer to 40 perc of cert lifetime %ld",
+              an_bs_event, perc_40);
+            an_crl_expire_interval = perc_40;
+        }
+
+        if (shadow_percentage > 0 && cert_validity_interval > 0) {
+            new_cert_validity_interval =
+                (longlong) ((cert_validity_interval *
+                            (longlong) shadow_percentage)/(longlong) 100);
+        }
+
+        if (new_cert_validity_interval > 0) {
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+                "\n%sStarted my cert expiry timer- %lld msec "
+                "Cert End LifeTime %s", an_bs_event,
+                new_cert_validity_interval,
+                validity_time_str);
+            an_timer_start64(&an_my_cert_renew_expire_timer,
+                             new_cert_validity_interval);
+        }
+    }
+}
+
+void
+an_bs_start_revoke_check_timer (void)
+{
+    if (an_timer_is_running(&an_revoke_check_timer)) {
+        an_timer_stop(&an_revoke_check_timer);
+    }
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+          "\n%sStart revocation check timer %ld msec",
+          an_bs_event, an_crl_expire_interval);
+
+    //Revoke check timer =  read from CRL lifetime given in the certificate
+    if (an_crl_expire_interval > 0) {
+        an_timer_start(&an_revoke_check_timer,
+                       an_crl_expire_interval);
+    }
+}
+
+void
+an_bs_domain_device_cert_renewed_event_handler (void *info_ptr)
+{
+    an_udi_t my_udi = {0};
+
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sDomain Device Certficate has been renewed", an_bs_event);
+
+    if (!an_get_udi(&my_udi))  {
+        return;
+    }
+
+    if (my_udi.data && my_udi.len) {
+        an_syslog(AN_SYSLOG_MY_DOMAIN_CERT_RENEWED, my_udi.data);
+    }
+    an_bs_start_my_cert_expire_timer();
+    an_bs_start_revoke_check_timer();
+    return;
+}
+
+void
+an_bs_validation_cert_response_obtained_event_handler (void *info_ptr)
+{
+    an_event_validation_cert_response_info_t *cert_resp_info = NULL;
+    
+    if (!info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sCERT Response is NULL", an_bs_event);
+        return;
+    }
+    cert_resp_info = (an_event_validation_cert_response_info_t *)info_ptr;
+
+    an_ni_validation_cert_response_obtained(cert_resp_info->status, cert_resp_info->device_ctx);
+}
+
+void
+an_bs_nbr_inside_domain_event_handler (void *nbr_info_ptr)
+{
+    an_cert_t domain_cert = {};
+    an_if_t nbr_ifhndl = 0;
+    an_nbr_t *nbr = NULL;
+
+    if(!nbr_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle nbr add event ");
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+    if (!nbr || !nbr->device_id || !nbr->domain_id) {
+        return;
+    }
+
+    if (!an_nbr_get_addr_and_ifs(nbr, NULL, &nbr_ifhndl, NULL)) {
+        return;
+    }       
+     
+    an_get_domain_cert(&domain_cert);
+    
+    an_syslog(AN_SYSLOG_NBR_IN_DOMAIN,
+             nbr->udi.data, an_if_get_name(nbr_ifhndl),
+             an_get_domain_id(), an_get_device_id());
+                 
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sNbr [%s] is inside domain, create AN Control Plane",
+                 an_nd_event, nbr->udi.data);
+    if (domain_cert.len && domain_cert.data) {
+    
+        an_bs_set_nbr_joined_domain(nbr);
+    }
+}
+
+void
+an_bs_nbr_outside_domain_event_handler (void *nbr_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+
+    if(!nbr_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle nbr add event ");
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+    an_bs_init_nbr_bootstrap(nbr);
+}
+
+an_avl_walk_e
+an_bs_init_nbr_bootstrap_cb (an_avl_node_t *node, void *args)
+{
+    an_nbr_t *nbr = (an_nbr_t *)node;
+
+    if (!nbr) {
+        return (AN_AVL_WALK_FAIL);
+    }
+
+    an_bs_init_nbr_bootstrap(nbr);
+    return (AN_AVL_WALK_SUCCESS);
+}
+
+void
+an_bs_anr_up_locally_event_handler (void *info_ptr)
+{
+    DEBUG_AN_LOG(AN_LOG_RA_EVENT, AN_DEBUG_MODERATE, NULL,
+             "\n%sAutonomic Registrar is Locally UP, walking the Nbr DB to "
+             "initialize the Nbr bootstrap", an_ra_event);
+    an_nbr_db_walk(an_bs_init_nbr_bootstrap_cb, NULL);
+    an_cert_config_crl_auto_download(AN_CERT_ANRA_CRL_PREPUBLISH_INTERVAL);
+}
+
+void
+an_bs_anr_reachable_event_handler (void *info_ptr)
+{
+    DEBUG_AN_LOG(AN_LOG_RA_EVENT, AN_DEBUG_INFO, NULL,
+             "\n%sAutonomic Registrar is reachable now, walk the Nbr DB to "
+             "initiate Nbr bootstrap", an_ra_event);
+
+    //topo_disc_adv();
+    an_nbr_db_walk(an_bs_init_nbr_bootstrap_cb, NULL);
+}
+
+void
+an_bs_clock_synchronised_event_handler (void *info_ptr)
+{
+    an_ni_validate_expired_nbrs();
+}
+
+void
+an_bs_acp_initialised_event_handler (void *info_ptr)
+{
+   an_cert_api_ret_enum result;
+   an_addr_t anra_ip = AN_ADDR_ZERO;
+
+   if (an_anra_is_configured()) {
+        anra_ip = an_anra_get_registrar_ip();
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sConfig in tp ANRA ip %s",
+                  an_bs_event, an_addr_get_string(&anra_ip));
+        result = an_cert_config_trustpoint(anra_ip);
+    } else {
+        result = an_cert_config_trustpoint(an_get_anra_ip());
+    }
+    if (result != AN_CERT_API_SUCCESS)
+    {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                 "\n%sError in configuring Re-enrollment params on "
+                 "trustpoint %s", an_bs_event, AN_DOMAIN_TP_LABEL);
+    }
+}
+
+void
+an_bs_nbr_refreshed_event_handler (void *link_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_context_t *nbr_link_ctx = NULL;
+
+    if (!link_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr link info is NULL, Cant handle acp link removal event", an_bs_event);
+        return;
+    }
+
+    nbr_link_ctx = (an_nbr_link_context_t *)link_info_ptr;
+    if (nbr_link_ctx == NULL)
+    {
+       DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL in nbr refreshed event", an_nd_event);
+       return;
+    }
+
+    nbr = nbr_link_ctx->nbr;
+     
+    if (!nbr || !nbr->udi.data) {
+        return;
+    }
+
+    if (!an_ni_is_nbr_inside(nbr)) {
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_INFO, NULL,
+                     "\n%sNbr refreshed and is outside domain, "
+                     "hence going to bootstrap Nbr [%s]",
+                     an_bs_pak, nbr->udi.data);
+        an_bs_init_nbr_bootstrap(nbr);
+    }
+}
+
+void
+an_bs_nbr_params_changed_event_handler (void *nbr_info_ptr)
+{
+    an_nbr_t *nbr = NULL;
+
+    if (!nbr_info_ptr) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr info is NULL, Cant handle ni cert"
+               " timer expiry.", an_bs_event);
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info_ptr;
+
+    if (!nbr) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL in nbr params" 
+                    " changed event", an_nd_event);
+        return;
+    }
+    an_ni_cert_request(nbr);
+}
+
+void
+an_bs_set_revoke_timer_interval (uint16_t interval_in_mins)
+{
+    if (interval_in_mins >= 10) {
+        //convert the mins to msecs
+        an_crl_expire_interval = interval_in_mins * 60 * 1000;
+    }else { //use the default value
+        an_crl_expire_interval =  AN_REVOKE_CHECK_TIMER_INTERVAL;
+    }
+    printf("\nRevoke check timer interval set from test cli %ld (msec)",
+                an_crl_expire_interval);
+
+}
+
+void
+an_bs_device_bootstrap_event_handler (void *info_ptr)
+{
+    an_ni_validate_nbrs();
+
+    if (an_timer_is_running(&an_my_cert_renew_expire_timer)) {
+        an_timer_stop(&an_my_cert_renew_expire_timer);
+    }
+    an_bs_start_my_cert_expire_timer();
+    an_bs_start_revoke_check_timer();
+    an_cert_config_crl_auto_download(AN_CERT_CRL_PREPUBLISH_INTERVAL);
+}
+
+void
+an_bs_sudi_available_event_handler (void *info_ptr)
+{
+    an_bs_retrieve_saved_enrollment();
+}
+
+void
+an_bs_udi_available_event_handler (void *info_ptr)
+{
+    an_udi_t my_udi = {};
+
+    if (!an_get_udi(&my_udi)) {
+        return;
+    }
+    if (an_create_trustpoint("MASACRT", "nvram:masa_crt.pem")) {
+        an_log(AN_LOG_MASA | AN_LOG_EVENT,
+               "\nAN: Event - Created MASA trustpoint");
+    } else {
+        an_log(AN_LOG_MASA | AN_LOG_EVENT,
+               "\nAN: Event - Failed to create MASA trustpoint");
+    }
+
+    if (an_is_active_rp()) {
+        an_bs_retrieve_saved_enrollment();
+    }
+}
+
+/*-------------------AN BS register for event handlers --------------------*/
+void
+an_bs_register_for_events (void) 
+{
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_TIMER_NI_CERT_REQUEST_EXPIRED, 
+                        an_bs_ni_cert_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_NBR_ADD, an_bs_nbr_add_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_TIMER_CERT_REVOKE_CHECK_EXPIRED, 
+                        an_bs_cert_revoke_check_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_TIMER_NBR_CERT_REVALIDATE_EXPIRED, 
+                        an_bs_nbr_cert_revalidate_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_TIMER_NBR_CERT_RENEW_EXPIRED, 
+                        an_bs_nbr_cert_renew_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_TIMER_MY_CERT_RENEW_EXPIRED, 
+                        an_bs_my_cert_renew_timer_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_DOMAIN_DEVICE_CERT_EXPIRED, 
+                        an_bs_domain_device_cert_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_DOMAIN_DEVICE_CERT_RENEWED, 
+                        an_bs_domain_device_cert_renewed_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_VALIDATION_CERT_RESPONSE, 
+                        an_bs_validation_cert_response_obtained_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_NBR_INSIDE_DOMAIN, 
+                        an_bs_nbr_inside_domain_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_NBR_OUTSIDE_DOMAIN, 
+                        an_bs_nbr_outside_domain_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_ANR_UP_LOCALLY, 
+                        an_bs_anr_up_locally_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_ANR_REACHABLE, 
+                        an_bs_anr_reachable_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_CLOCK_SYNCHRONISED, 
+                        an_bs_clock_synchronised_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_ACP_INIT, an_bs_acp_initialised_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_NBR_REFRESHED, 
+                        an_bs_nbr_refreshed_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_NBR_PARAMS_CAHNGED, 
+                        an_bs_nbr_params_changed_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_DEVICE_BOOTSTRAP, 
+                        an_bs_device_bootstrap_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_SUDI_AVAILABLE, 
+                        an_bs_sudi_available_event_handler);
+    an_event_register_consumer(AN_MODULE_BS,
+                        AN_EVENT_UDI_AVAILABLE, 
+                        an_bs_udi_available_event_handler);
+}
+

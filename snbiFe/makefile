@@ -43,19 +43,26 @@ LD_LIB = -lcrypt -lpthread -lrt
 
 CC_SNBI_COMMON_SRCS :=\
 	$(SNBI_COMMON_SRC)/an_acp.c \
+	$(SNBI_COMMON_SRC)/an_acp_cnp.c \
+	$(SNBI_COMMON_SRC)/an_acp_ntp.c \
 	$(SNBI_COMMON_SRC)/an_anra.c \
-	$(SNBI_COMMON_SRC)/an_anra_db.c \
 	$(SNBI_COMMON_SRC)/an_bs.c \
+	$(SNBI_COMMON_SRC)/an_cd.c \
+	$(SNBI_COMMON_SRC)/an_config_download.c \
 	$(SNBI_COMMON_SRC)/an.c \
 	$(SNBI_COMMON_SRC)/an_event_mgr.c \
+	$(SNBI_COMMON_SRC)/an_event_mgr_db.c \
+	$(SNBI_COMMON_SRC)/an_idp.c \
 	$(SNBI_COMMON_SRC)/an_if_mgr.c \
+	$(SNBI_COMMON_SRC)/an_intent.c \
 	$(SNBI_COMMON_SRC)/an_msg_mgr.c \
 	$(SNBI_COMMON_SRC)/an_nbr_db.c \
 	$(SNBI_COMMON_SRC)/an_nd.c \
 	$(SNBI_COMMON_SRC)/an_new.c \
 	$(SNBI_COMMON_SRC)/an_ni.c \
+	$(SNBI_COMMON_SRC)/an_srvc.c \
+	$(SNBI_COMMON_SRC)/an_srvc_db.c \
 	$(SNBI_COMMON_SRC)/an_tlv.c \
-	$(SNBI_COMMON_SRC)/an_topo_disc.c \
 	$(SNBI_COMMON_SRC)/an_util.c
 
 

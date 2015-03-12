@@ -5,7 +5,6 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 #include "an.h"
 #include "an_ni.h"
 #include "an_acp.h"
@@ -29,9 +28,11 @@
 #include "an_anra.h"
 #include "an_event_mgr.h"
 //#include "an_topo_disc.h"
+#include "an_cnp.h"
 #include "../al/an_ipsec.h"
 #include "../al/an_dike.h"
 #include "../al/an_ike.h"
+#include "../al/an_syslog.h"
 
 //#include "../ios/an_service_discovery.h"
 #define AN_ACP_TUNN_MODE_GRE_IPV6 21
@@ -50,51 +51,27 @@ static void an_acp_connect_state_set(an_if_t ifhndl,
 
 boolean an_acp_initialized = FALSE;
 static an_addr_t prev_anra_ip; 
+extern boolean an_set_secure_channel_cli;
 
-/***************************************************************/
-/* Global Strucure to set the ACP secure channel cap sets */
-typedef struct an_acp_cap_set_ {
-    uint16_t length;
-    uint16_t member_length;
-    uint8_t *value;
-} an_acp_cap_set_t;
+const uint8_t *an_acp_client_status_enum_string [] = {
+    "None",
+    "AN ACP Client success",
+    "Parameters are invalid",
+    "ACP Client already registered",
+    "ACP Client not registered",
+    "Client handle mismatch",
+    "Failed to allocate memory",
+    "Client db full",
+    "Invalid interface",
+    "AN acp client enum max",
+};
 
-an_acp_cap_set_t an_acp_capability_set;
-boolean an_set_secure_channel_cli = FALSE;
-/****************************************************************/
-
-uint8_t *
-an_acp_cnp_get_param_str (an_cnp_capability_set_t *capability_set) 
+const uint8_t *
+an_acp_client_status_enum_get_string (an_acp_client_status_e enum_type)
 {
-    if (!capability_set) {
-        return ("AN_ACP_CNP_PARAM_NONE");
-    }
-    return ("AN_ACP_CNP_PARAM_NONE");
+    return (an_acp_client_status_enum_string[enum_type]);
 }
 
-uint8_t *
-an_acp_type_str (an_cnp_capability_set_t *capability_set)
-{
-    if (!capability_set) {
-        return ("AN ACP NONE");
-    }
-
-    // this function returns the first capability set value string
-    // that has been negotiated and needs enhancement to print all the values
-    
-    return ("AN ACP NONE");
-}
-
-uint8_t *
-an_acp_get_value_string (an_cnp_capability_set_t *capability_set) 
-{
-    if (!capability_set) {
-        return ("AN ACP NONE");
-    }
-    
-    return ("AN ACP NONE");
-}
-    
 /**************** ACP Client DB *************************/
 
 an_avl_tree an_acp_client_tree;
@@ -350,7 +327,10 @@ an_acp_client_send_data (an_acp_client_comm_t *client_comm)
             return (AN_ACP_CLIENT_HANDLE_MISMATCH);
         }
     }
-       
+    if (client_comm->ifhndl) {
+        if (!an_if_is_acp_interface(client_comm->ifhndl))
+        return (AN_ACP_CLIENT_INVALID_IF);
+    }          
     message = an_msg_mgr_get_empty_message_package();
     if (!message) {
         return (AN_ACP_CLIENT_MEM_FAILURE);
@@ -611,21 +591,7 @@ an_acp_routing_track_anra (void)
 boolean
 an_acp_is_vrf_applicable (void)
 {
-    uint16_t i;
-    for (i = 0; i < an_acp_capability_set.length; i++) {
-        switch (an_acp_capability_set.value[i]) {
-            case AN_ACP_IPSEC_ON_GRE:
-                return (TRUE);
-            case AN_ACP_DIKE_ON_GRE:
-                return (TRUE);
-            case AN_ACP_NOSEC_ON_GRE:
-                return (TRUE);
-            default:
-                continue;
-        }
-    }
-    return (FALSE);
-  
+ return(an_acp_cnp_is_vrf_applicable()); 
 }
 
 static boolean
@@ -1308,6 +1274,10 @@ an_acp_create_to_nbr_for_all_valid_nbr_links (an_nbr_t *nbr)
     AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
         if (nbr_link_data != NULL) {
             i++;
+            DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
+                         "\n%sCreate AN Control Plane for all the nbr[%s] "
+                         "links of count [%d]", an_bs_event, nbr->udi.data, i);
+            an_acp_negotiate_secure_channel_per_nbr_link(nbr, nbr_link_data);
         }
     }
    
@@ -1461,70 +1431,6 @@ an_acp_vrf_init (void)
     }
 }
 
-void an_acp_set_default_cap_set (uint16_t param_id) 
-{
-    switch (param_id) {
-        case AN_ACP_CNP_PARAM_SECURE_CHANNEL:
-            an_acp_capability_set.length = 2;
-            an_acp_capability_set.member_length = 1;
-            if (an_acp_capability_set.value) {
-                an_free_guard(an_acp_capability_set.value);
-            }
-            an_acp_capability_set.value = 
-                            an_malloc_guard(an_acp_capability_set.length, 
-                                            "AN Global secure Channel cap set");
-            if (!an_acp_capability_set.value) {
-                return;
-            }
-            an_acp_capability_set.value[1] = AN_ACP_IPSEC_ON_GRE;
-            an_acp_capability_set.value[0] = AN_ACP_DIKE_ON_GRE;
-            //an_acp_capability_set.value[1] = AN_ACP_NOSEC_ON_GRE;
-           
-            /* to test the ACP on Physical set the below */
-            /*Also just return FALSE form the funtion an_parse_disallow_int_cmd */
- 
-            //an_acp_capability_set.value[0] = AN_ACP_NOSEC_ON_PHY;
-            //an_acp_capability_set.value[1] = AN_ACP_IPSEC_ON_PHY;
-
-            break;
-
-          default:
-            break;
-    }
-}
-   
-an_avl_walk_e
-an_acp_update_nego_acp_info_cbs (an_avl_node_t *node, void *nego_info)
-{
-    an_nbr_t *nbr = (an_nbr_t *)node;
-    int indicator = 0;
-
-    if (!nbr) {
-        return (AN_AVL_WALK_FAIL);
-    }
-
-    an_list_element_t *elem = NULL;
-    an_nbr_link_spec_t *nbr_link_data = NULL;
-    an_acp_negotiated_info_t *nego_det = NULL;
-    nego_det = (an_acp_negotiated_info_t *)nego_info;
-
-     AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
-        an_memcmp_s(&nbr_link_data->ipaddr, sizeof(an_addr_t), 
-                      &nego_det->nbr_addr, sizeof(an_addr_t), &indicator);
-        if (nbr_link_data != NULL &&
-            (nbr_link_data->local_ifhndl == nego_det->local_ifhndl) &&
-            (indicator == 0)) {
-        }
-    }
-    return (AN_AVL_WALK_SUCCESS);
-}
-
-void
-an_acp_update_negotiated_nbr_acp_info (an_acp_negotiated_info_t nego_info)
-{
-    an_nbr_db_walk(an_acp_update_nego_acp_info_cbs, &nego_info);
-}
-
 void
 an_acp_init (void)
 { 
@@ -1534,6 +1440,7 @@ an_acp_init (void)
     an_memset_s(&routing_info, 0, sizeof(routing_info));
     /* Make sure that the previous ACP instance is brought down first */
     an_acp_uninit();
+    an_acp_cnp_init();
 
     rc = an_avl_init(&an_acp_client_tree, an_acp_client_compare);
     if (CERR_IS_NOTOK(rc)) {
@@ -1651,6 +1558,7 @@ an_acp_uninit (void)
     an_acp_uninit_connection();
    
     an_avl_uninit(&an_acp_client_tree);
+    an_acp_cnp_uninit();
     an_acp_initialized = FALSE;
     
     an_event_acp_uninitialized();
@@ -2017,149 +1925,423 @@ an_acp_is_up_on_nbr (an_nbr_t *nbr)
    return FALSE;
 }
 
-void 
-an_acp_ntp_peer_remove_global(an_nbr_t *nbr)
-{
-    an_list_element_t *elem = NULL;
-    an_nbr_link_spec_t *nbr_link_data = NULL;
-    an_ntp_peer_param_t ntp_peer = {{0}};
-
-    /* Remove ntp peer created on link local */
-    AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
-        ntp_peer.peer_addr = nbr_link_data->ipaddr;
-        ntp_peer.ifhdl = nbr_link_data->local_ifhndl;
-        (void)an_ntp_remove_peer(&ntp_peer, TRUE);
-    }
-
-}
-
-boolean
-an_acp_enable_clock_sync_with_nbr (an_nbr_t *nbr)
-{
-    an_ntp_peer_param_t ntp_peer = {{0}};
-
-    /* Create ntp peer over acp */
-    if (an_addr_struct_comp(&g_ntp_ra_address, &AN_ADDR_ZERO)) {
-        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
-            "\n %s There is a service learnt throught sd %s," 
-                "not starting ntp peer with nbrs", 
-                an_bs_event, an_addr_get_string(&g_ntp_ra_address));
-        return (FALSE);
-    }
-
-    if (an_anra_is_live()) {
-        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n %sThis is a ANRA not creating peer with anyone", an_bs_event);
-        return (FALSE);
-    }
-    
-    ntp_peer.peer_addr = nbr->device_ipaddr;
-    ntp_peer.ifhdl = an_source_if;
-    (void)an_ntp_set_peer(&ntp_peer, TRUE);
-    return (TRUE);
-               
-}
-
 void
-an_acp_enable_clock_sync_with_server (an_addr_t address)
+an_acp_nbr_link_add_event_handler (void *link_info)
 {
-    an_ntp_peer_param_t ntp_peer = {{0}};
+    an_event_nbr_link_add_lost_info_t *nbr_link_info = NULL;
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
 
-    if (!an_addr_struct_comp(&g_ntp_ra_address, &AN_ADDR_ZERO)) {
-        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n %sAddress is Invalid to create a peer relation", 
-                an_bs_event);
+    if(!link_info) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid link info to handle nbr link add event ");
         return;
     }
+    nbr_link_info = (an_event_nbr_link_add_lost_info_t *)link_info;
+    nbr = nbr_link_info->nbr;
+    nbr_link_data = nbr_link_info->nbr_link_data;
 
-    if (an_anra_is_live()) {
-        return;
+    if (!nbr || !nbr_link_data) {
+       return;
+    }
+    if (!an_acp_is_up_on_nbr_link(nbr_link_data)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sInitiaing ACP channel negotiation on the "
+                     "fresh Nbr[%s] link [%s]", an_nd_event, nbr->udi.data,
+                     an_if_get_name(nbr_link_data->local_ifhndl));
+        an_acp_negotiate_secure_channel_per_nbr_link(nbr, nbr_link_data);
     }
 
-    ntp_peer.peer_addr = address;
-    ntp_peer.ifhdl = an_source_if;
-    (void)an_ntp_set_peer(&ntp_peer, FALSE);
     return;
 }
 
 void
-an_acp_remove_clock_sync_with_nbr (an_nbr_t *nbr)
+an_acp_domain_device_cert_expired_event_handler (void *info_ptr)
 {
-    an_ntp_peer_param_t ntp_peer = {{0}};
+    an_udi_t my_udi = {0};
 
-    ntp_peer.peer_addr = nbr->device_ipaddr; 
-    
-    ntp_peer.ifhdl = an_source_if;
-    (void)an_ntp_remove_peer(&ntp_peer, TRUE);
+    if (!an_get_udi(&my_udi))  {
+        return;
+    }
+
+    //TBD: Stop services before bring down ACP    
+    //Stop config download, service discovery, aaa
+
+    /* Reset ACP */
+    an_acp_uninit();
+
+    /*Clear dbs*/
+    an_acp_client_db_init();
 }
 
 void
-an_acp_remove_clock_sync_with_server (an_addr_t address)
+an_acp_nbr_link_cleanup (an_nbr_link_context_t *nbr_link_ctx)
 {
-    an_ntp_peer_param_t ntp_peer = {{0}};
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
 
-    ntp_peer.peer_addr = address;
-    ntp_peer.ifhdl = an_source_if;
-    (void)an_ntp_remove_peer(&ntp_peer, FALSE);
+    if (nbr_link_ctx == NULL)
+    {
+       DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL", an_nd_event);
+       return;
+    }
+    
+    nbr = nbr_link_ctx->nbr;
+    nbr_link_data = nbr_link_ctx->nbr_link_data;
+ 
+    if (!nbr_link_data || !nbr)
+    {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                     "\n%sNull Input Nbr Link data", an_nd_event);
+        return;
+    }
+    an_syslog(AN_SYSLOG_NBR_LOST,
+                  nbr->udi.data, an_if_get_name(nbr_link_data->local_ifhndl));
+
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sNbr[%s] Link [%s] Lost", an_nd_event, nbr->udi.data,
+                 an_if_get_name(nbr_link_data->local_ifhndl));
+
+    an_acp_ntp_nbr_link_cleanup(nbr_link_data);
+    
+    if (an_acp_is_up_on_nbr_link(nbr_link_data)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sRemoving AN Control Plane on the Nbr[%s] link [%s]",
+                     an_nd_event, nbr->udi.data,
+                     an_if_get_name(nbr_link_data->local_ifhndl));
+        an_acp_remove_per_nbr_link(nbr, nbr_link_data);
+    }
 }
 
-static an_avl_walk_e 
-an_acp_enable_clock_sync_with_nbrs (an_avl_node_t *node, void *args)
+void
+an_acp_nbr_inside_domain_event_handler (void *nbr_info)
 {
-    an_nbr_t *nbr = (an_nbr_t *)node;
+    an_cert_t domain_cert = {};
+    an_if_t nbr_ifhndl = 0;
+    an_nbr_t *nbr = NULL;
 
-    if (!nbr) {
-        return (AN_AVL_WALK_FAIL);
+    if(!nbr_info) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle nbr inside domain event ");
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info;
+    if (!nbr || !nbr->device_id || !nbr->domain_id) {
+        return;
     }
 
-    an_acp_enable_clock_sync_with_nbr(nbr);
-    return (AN_AVL_WALK_SUCCESS);
+    if (!an_nbr_get_addr_and_ifs(nbr, NULL, &nbr_ifhndl, NULL)) {
+        return;
+    }       
+     
+    an_get_domain_cert(&domain_cert);
+    
+    if (domain_cert.len && domain_cert.data) {
+        an_acp_create_to_nbr_for_all_valid_nbr_links(nbr);
+    }
+
 }
 
-an_avl_walk_e
-an_acp_remove_clock_sync_with_nbrs (an_avl_node_t *node, void *args)
+void
+an_acp_nbr_outside_domain_event_handler (void *nbr_info)
 {
-    an_nbr_t *nbr = (an_nbr_t *)node;
+    an_nbr_t *nbr = NULL;
 
-    if (!nbr) {
-        return (AN_AVL_WALK_FAIL);
+    if(!nbr_info) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle nbr outside domain event ");
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info;
+
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+              "\n%sNbr [%s] is out of domain", an_nd_event, nbr->udi.data);
+
+    if (an_acp_is_up_on_nbr(nbr)) {
+        an_acp_remove_to_nbr_for_all_valid_nbr_links(nbr);
+    }
+}
+
+void
+an_acp_anr_up_locally_event_handler (void *info_ptr)
+{
+    an_acp_ntp_anr_locally_up_event();
+}
+
+void
+an_acp_anr_shut_event_handler (void *info_ptr)
+{
+    an_acp_ntp_anr_shut_event();
+}
+
+void
+an_acp_nbr_cert_validity_expired_event_handler (void *nbr_info)
+{
+    an_nbr_t *nbr = NULL;
+
+    if(!nbr_info) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle nbr add event ");
+        return;
+    }
+    nbr = (an_nbr_t *)nbr_info;
+    an_acp_ntp_start_clock_sync_nbr(nbr);
+}
+
+void
+an_acp_pre_uninit_event_handler (void *info_ptr)
+{
+    /*Syslog*/
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sSyslog uninitialized", an_bs_event);
+    an_syslog_disconnect();
+    return;
+}
+
+void
+an_acp_init_event_handler (void *info_ptr)
+{
+    an_syslog_connect();
+}
+
+void
+an_acp_if_autonomic_init_event_handler (void *if_info)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface autonomic init event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info;
+    ifhndl = *ifhndl_info;
+
+    an_if_info = an_if_info_db_search(ifhndl, FALSE); 
+    if (!an_if_info) {
+       return;
     }
 
+    if (an_if_info->an_if_acp_info.ext_conn_state ==
+                AN_EXT_CONNECT_STATE_HOLD) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sACP Init external connection", an_bs_event);
+        an_acp_init_external_connection(ifhndl);
+    }
+}
+
+void
+an_acp_if_autonomic_uninit_event_handler (void *if_info)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface autonomic init event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info;
+    ifhndl = *ifhndl_info;
+
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+    if (!an_if_info) {
+       return;
+    }
+
+    if (an_if_info->an_if_acp_info.ext_conn_state ==
+                AN_EXT_CONNECT_STATE_DONE) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sACP hold external connection", an_bs_event);
+        an_acp_hold_external_connection(ifhndl);
+    }
+}
+
+void
+an_acp_removed_on_link_event_handler (void *link_info)
+{
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+    an_nbr_link_context_t *nbr_link_ctx = NULL;
+
+    if (!link_info) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr link info is NULL, Cant handle acp link"
+               " removal event", an_bs_event);
+        return;
+    }
+
+    nbr_link_ctx = (an_nbr_link_context_t *)link_info;
+
+    if (nbr_link_ctx == NULL)
+    {
+       DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL in acp on link removed event", an_nd_event);
+       return;
+    }
+
+    nbr = nbr_link_ctx->nbr;
+    nbr_link_data = nbr_link_ctx->nbr_link_data;
+
+    if (!nbr || !nbr_link_data) {
+        return;
+    }
     an_acp_remove_clock_sync_with_nbr(nbr);
-    return (AN_AVL_WALK_SUCCESS);
 }
 
 void
-an_acp_start_ntp_with_nbrs (void)
+an_acp_created_on_link_event_handler (void *link_info)
 {
-    an_acp_remove_clock_sync_with_server(g_ntp_ra_address);
-    g_ntp_ra_address = AN_ADDR_ZERO;
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+    an_nbr_link_context_t *nbr_link_ctx = NULL;
 
-    an_nbr_db_walk(an_acp_enable_clock_sync_with_nbrs, NULL);
+    if (!link_info) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr link info is NULL, Cant handle acp"
+               " link create event", an_bs_event);
+        return;
+    }
+
+    nbr_link_ctx = (an_nbr_link_context_t *)link_info;
+    if (nbr_link_ctx == NULL)
+    {
+       DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL in acp on"
+                    " link created event", an_nd_event);
+       return;
+    }
+
+    nbr = nbr_link_ctx->nbr;
+    nbr_link_data = nbr_link_ctx->nbr_link_data;
+
+    if (!nbr || !nbr_link_data) {
+        return;
+    }
+    an_acp_enable_clock_sync_with_nbr(nbr);
+    an_acp_ntp_peer_remove_global(nbr);
 }
 
 void
-an_acp_enable_clock_sync_with_ra (an_addr_t address)
+an_acp_nbr_refreshed_event_handler (void *link_info)
 {
-    
-    an_acp_remove_clock_sync_with_server(g_ntp_ra_address);
-               
-    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
-            "\n %sClock sync with new ra %s old ra address %s",
-            an_bs_event, an_addr_get_string(&address), 
-            an_addr_get_string(&g_ntp_ra_address));
-    an_acp_enable_clock_sync_with_server(address);
-    g_ntp_ra_address = address;
+    an_nbr_t *nbr = NULL;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+    an_if_t tunn_ifhndl;
+    an_if_t tunn_src_ifhndl;
+    an_nbr_link_context_t *nbr_link_ctx = NULL;
+
+    if (!link_info) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\n%sNbr link info is NULL, Cant handle nbr" 
+               " refreshed event", an_bs_event);
+        return;
+    }
+
+    nbr_link_ctx = (an_nbr_link_context_t *)link_info;
+    if (nbr_link_ctx == NULL)
+    {
+       DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                    "\n%sContext is NULL in nbr_refreshed event", an_nd_event);
+       return;
+    }
+
+    nbr = nbr_link_ctx->nbr;
+    nbr_link_data = nbr_link_ctx->nbr_link_data;
+    if (!nbr || !nbr->udi.data || !nbr_link_data) {
+        return;
+    }
+
+    switch (nbr_link_data->acp_info.sec_channel_established) {
+        case AN_ACP_IPSEC_ON_GRE:
+            tunn_ifhndl =
+                nbr_link_data->acp_info.sec_channel_spec.sec_gre_info.gre_channel.ifhndl;
+            tunn_src_ifhndl = nbr_link_data->local_ifhndl;
+            an_tunnel_check_integrity(tunn_ifhndl, tunn_src_ifhndl);
+            break;
+        case AN_ACP_DIKE_ON_GRE:
+            tunn_ifhndl =
+                nbr_link_data->acp_info.sec_channel_spec.sec_gre_info.gre_channel.ifhndl;
+            tunn_src_ifhndl = nbr_link_data->local_ifhndl;
+            an_tunnel_check_integrity(tunn_ifhndl, tunn_src_ifhndl);
+            break;
+        case AN_ACP_NOSEC_ON_GRE:
+            tunn_ifhndl =
+                nbr_link_data->acp_info.sec_channel_spec.nosec_gre_info.gre_channel.ifhndl;
+            tunn_src_ifhndl = nbr_link_data->local_ifhndl;
+            an_tunnel_check_integrity(tunn_ifhndl, tunn_src_ifhndl);
+            break;
+        default:
+            break;
+
+     }
+
+    if (nbr_link_data->acp_info.acp_secure_channel_negotiation_started &&
+        an_unix_time_is_elapsed(nbr_link_data->acp_info.acp_secure_channel_negotiation_started,
+                                AN_UNIX_TIME_ACP_RETRY_SECONDS)) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE, NULL,
+                     "\n%sACP Secure Channel negotiation with %s on %s is not "
+                     "complete in %d seconds, retyring it", an_bs_event,
+                     nbr->udi.data, an_if_get_name(nbr_link_data->local_ifhndl),
+                     AN_UNIX_TIME_ACP_RETRY_SECONDS);
+        an_acp_negotiate_secure_channel_per_nbr_link(nbr, nbr_link_data);
+    }
 }
 
 void
-an_acp_start_ntp_with_ra (an_addr_t address)
+an_acp_device_bootstrap_event_handler (void *info_ptr)
 {
-    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
-            "\n Removing ntp peer with neighbors Clock sync with ra %s", 
-            an_addr_get_string(&address));
-    an_nbr_db_walk(an_acp_remove_clock_sync_with_nbrs, NULL);
-    g_ntp_ra_address = address;
-    an_acp_enable_clock_sync_with_server(address);
+     an_acp_init();
+}
+
+/*----------------AN ACP register for event handlers -------------------------*/
+
+void
+an_acp_register_for_events (void) 
+{
+    an_event_register_consumer(AN_MODULE_ACP, AN_EVENT_NBR_LINK_ADD,
+                                     an_acp_nbr_link_add_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_DOMAIN_DEVICE_CERT_EXPIRED, 
+                        an_acp_domain_device_cert_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_NBR_INSIDE_DOMAIN, 
+                        an_acp_nbr_inside_domain_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_NBR_OUTSIDE_DOMAIN, 
+                        an_acp_nbr_outside_domain_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_ANR_UP_LOCALLY, 
+                        an_acp_anr_up_locally_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_ANR_SHUT, an_acp_anr_shut_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_NBR_CERT_VALIDITY_EXPIRED, 
+                        an_acp_nbr_cert_validity_expired_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_ACP_PRE_UNINIT, 
+                        an_acp_pre_uninit_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_ACP_INIT, an_acp_init_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_INTF_AUTONOMIC_ENABLE, 
+                        an_acp_if_autonomic_init_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_INTF_AUTONOMIC_DISABLE, 
+                        an_acp_if_autonomic_uninit_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_ACP_ON_LINK_REMOVED, 
+                        an_acp_removed_on_link_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_ACP_ON_LINK_CREATED, 
+                        an_acp_created_on_link_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_NBR_REFRESHED, 
+                        an_acp_nbr_refreshed_event_handler);
+    an_event_register_consumer(AN_MODULE_ACP,
+                        AN_EVENT_DEVICE_BOOTSTRAP, 
+                        an_acp_device_bootstrap_event_handler);
 }
 

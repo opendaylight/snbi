@@ -267,5 +267,5 @@ void an_set_anr_macaddress(an_mac_addr *mac_address);
 an_mac_addr * an_get_anr_macaddress(void);
 void an_set_anr_ip_for_cert_renewal(an_addr_t ip);
 an_addr_t an_get_anr_ip_for_cert_renewal(void);
-
+void an_generic_register_for_events(void);
 #endif

@@ -41,6 +41,13 @@ an_nbr_alloc_init (an_nbr_t *nbr)
     nbr->renew_cert_5perc_poll_timer = 0;
     nbr->renew_cert_1perc_poll_timer = 0;
     nbr->validation.result = AN_CERT_VALIDITY_UNKNOWN;
+    nbr->select_anr_retry_count = 0;
+    for(index = AN_SERVICE_AAA; index<AN_SERVICE_MAX; index++) {
+        nbr->an_nbr_srvc_list[index].srvc_ip = AN_ADDR_ZERO;
+        nbr->an_nbr_srvc_list[index].sync_done = FALSE;
+        an_timer_init(&nbr->an_nbr_srvc_list[index].cleanup_timer, 
+                      AN_TIMER_TYPE_AAA_INFO_SYNC + index, nbr, FALSE);
+    }
 }
 
 an_nbr_t* 
@@ -100,6 +107,9 @@ an_nbr_free_cleanup (an_nbr_t *nbr)
     an_timer_stop(&nbr->cert_request_timer);
     an_timer_stop(&nbr->cert_revalidate_timer);
     an_timer_stop(&nbr->cert_expire_timer);
+    for(index = AN_SERVICE_AAA; index<AN_SERVICE_MAX; index++) {
+        an_timer_stop(&nbr->an_nbr_srvc_list[index].cleanup_timer);
+    }
 }
 
 void
@@ -388,7 +398,7 @@ an_nbr_link_db_stop_timer_and_remove_node (an_list_t *list,
 boolean
 an_nbr_link_db_create (an_nbr_t *nbr)
 {
-   // if (!nbr->an_nbr_link_list) {
+    if (!nbr->an_nbr_link_list) {
         if (AN_CERR_SUCCESS != an_list_create(&nbr->an_nbr_link_list,
                               "AN Nbr Link DB")) {
             DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
@@ -402,7 +412,7 @@ an_nbr_link_db_create (an_nbr_t *nbr)
                          an_nd_db, nbr->udi.data);
             return (TRUE);
         }
-//    }
+    }
     return (TRUE);
 }
 

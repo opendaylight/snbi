@@ -45,4 +45,8 @@ boolean an_ni_set_state(an_nbr_t *nbr, an_ni_state_e state);
 void an_ni_set_validation_result(an_nbr_t *nbr, an_cert_validation_result_e result);
 boolean an_ni_is_nbr_revoked(an_nbr_t *nbr);
 boolean an_ni_is_nbr_expired(an_nbr_t *nbr);
+void an_ni_update_nbr_cert_validation_result(
+            an_cert_validation_result_e result, an_nbr_t *nbr);
+void an_ni_validation_cert_response_obtained(an_cert_validation_result_e status,
+                                            void *device_ctx);
 #endif

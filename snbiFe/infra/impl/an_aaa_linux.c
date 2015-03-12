@@ -6,7 +6,6 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
 #include "an_types.h"
 #include "an_logger.h"
 #include "an_tunnel.h"

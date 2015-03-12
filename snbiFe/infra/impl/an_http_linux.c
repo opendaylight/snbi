@@ -16,12 +16,10 @@
 #include "an_sign.h"
 #include "an_mem.h"
 #include "an.h"
-#include "an_anra_db.h"
 #include "an_anra.h"
 #include "an_msg_mgr.h"
 #include "an_event_mgr.h"
 #include "an_bs.h"
-#include "an_topo_disc.h"
 #include "an_http_linux.h"
 
 
