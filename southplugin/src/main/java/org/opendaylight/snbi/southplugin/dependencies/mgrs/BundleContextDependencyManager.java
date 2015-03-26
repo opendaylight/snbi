@@ -1,6 +1,6 @@
 package org.opendaylight.snbi.southplugin.dependencies.mgrs;
 
-import org.opendaylight.yangtools.yang.data.impl.codec.BindingIndependentMappingService;
+import org.opendaylight.yangtools.binding.data.codec.api.BindingNormalizedNodeSerializer;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
@@ -14,20 +14,20 @@ import org.osgi.framework.ServiceReference;
 public class BundleContextDependencyManager implements AutoCloseable{
 
     private volatile BundleContext bundleContext;
-    private volatile BindingIndependentMappingService mappingService;
-    private volatile ServiceReference<BindingIndependentMappingService> mappingServiceRef;
-    
+    private BindingNormalizedNodeSerializer mappingService;
+    private ServiceReference<BindingNormalizedNodeSerializer> mappingServiceRef;
+
     public void setBundleContext(BundleContext bundleContext) {
         this.bundleContext = bundleContext;
     }
 
     public void init() {
         mappingServiceRef =
-                bundleContext.getServiceReference( BindingIndependentMappingService.class );
+                bundleContext.getServiceReference( BindingNormalizedNodeSerializer.class );
         mappingService = bundleContext.getService( mappingServiceRef);
     }
 
-    public BindingIndependentMappingService getMappingService() {
+    public BindingNormalizedNodeSerializer getMappingService() {
         return mappingService;
     }
 

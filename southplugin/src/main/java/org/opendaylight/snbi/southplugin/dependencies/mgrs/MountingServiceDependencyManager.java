@@ -2,12 +2,10 @@ package org.opendaylight.snbi.southplugin.dependencies.mgrs;
 
 import java.util.Collection;
 import java.util.Collections;
-
 import org.opendaylight.controller.md.sal.dom.api.DOMMountPointService;
 import org.opendaylight.controller.sal.core.api.Broker.ProviderSession;
 import org.opendaylight.controller.sal.core.api.Provider;
 import org.opendaylight.controller.sal.core.api.model.SchemaService;
-import org.opendaylight.controller.sal.core.api.mount.MountProvisionService;
 import org.opendaylight.snbi.southplugin.util.AutoCloseableManager;
 import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.model.api.SchemaContext;
