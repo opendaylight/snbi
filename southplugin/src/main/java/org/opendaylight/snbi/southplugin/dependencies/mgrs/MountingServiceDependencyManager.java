@@ -15,7 +15,7 @@ import org.opendaylight.yangtools.yang.model.api.SchemaContextListener;
  * This class is responsible for extracting and holding a reference to all of the services that
  * are advertised via the config system (i.e. implements the {BrokerService} interface.
  *
- * Here we are specifically getting and using the {@link MountProvisionService} for mounting our
+ * Here we are specifically getting and using the {@link DOMMountPointService} for mounting our
  * requests onto a particular node in the data model tree.
  *
  * <Br><br>DEMOSTRATES: How to get services via the config sub system (data broker).
@@ -40,7 +40,7 @@ public class MountingServiceDependencyManager implements SchemaContextListener,
 
     @Override
     public void onSessionInitiated(ProviderSession session) {
-        //The MountProvisionService is required to mount an RPC implementation, or data reader for
+        //The DOMMountPointService is required to mount an RPC implementation, or data reader for
         //a particular node.
         mountService = session.getService(DOMMountPointService.class);
 
