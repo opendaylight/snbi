@@ -5,27 +5,42 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
+#include <stdio.h>
+#include <an_event_mgr.h>
+#include <an_if_mgr.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <an_types.h>
+#include <an_str.h>
+#include <cparser.h>
+#include <cparser_tree.h>
 
-
-#include "conf_an.h"
-
-void 
-an_conf_auton (bool no, int a, char *av[]) {
-    printf ("\n*********Starting Autonomic Process************\n");
+cparser_result_t
+cparser_cmd_snbi_start (cparser_context_t *context)
+{
+    printf("\n*********Starting Autonomic Process************\n");
     an_event_db_init();
     an_autonomic_enable();
     return;
 }
 
-void 
-an_conf_no_auton (bool no, int a, char *av[]) {
+cparser_result_t
+cparser_cmd_snbi_stop (cparser_context_t *context)
+{
     an_autonomic_disable();
-    printf ("\n*************Ending Autonomic Process**********\n");
+    printf("\n*************Ending Autonomic Process**********\n");
     return;
 }
 
-void
-an_discovery_intf (bool no, int a, char *av[]) {
+cparser_result_t 
+cparser_cmd_no_snbi_discovery (cparser_context_t *context)
+{
+}
+
+cparser_result_t
+cparser_cmd_snbi_discovery (cparser_context_t *context)
+{
+    int no = 0;
     an_if_t ifhndl = 0;
     an_if_info_t *an_if_info = NULL;
 
@@ -58,8 +73,8 @@ an_discovery_intf (bool no, int a, char *av[]) {
 }
 
 
-void
-an_conf_intf_auton (bool no, int a, char *av[]) 
+cparser_result_t 
+cparser_cmd_snbi_interface_start (cparser_context_t *context)
 {
     an_if_t ifhndl = 0;
     an_if_info_t *an_if_info = NULL;
@@ -85,9 +100,8 @@ printf("\n [SRK_printf] Setting interface mode autonomic...!");
     return;
 }
 
-
-void
-an_conf_intf_no_auton (bool no, int a, char *av[]) 
+cparser_result_t 
+cparser_cmd_snbi_interface_stop (cparser_context_t *context)
 {
     an_if_t ifhndl = 0;
     an_if_info_t *an_if_info = NULL;
@@ -110,4 +124,52 @@ printf("\n [SRK_printf] Unsetting interface mode autonomic...!");
     return;
 }
 
+cparser_result_t
+cparser_cmd_quit (cparser_context_t *context)
+{
+    return cparser_quit(context->parser);
+}
 
+static cparser_result_t
+cparser_cmd_enter_privileged_mode (cparser_t *parser, char *buf, int buf_size)
+{
+    if (strncmp(buf, "snbi", buf_size)) {
+        printf("\nPassword incorrect. Should enter 'snbi'.\n");
+    } else {
+        printf("\nEnter privileged mode.\n");
+        cparser_set_privileged_mode(parser, 1);
+    }
+    return CPARSER_OK;
+}
+
+
+cparser_result_t
+cparser_cmd_enable_privileged_mode (cparser_context_t *context)
+{
+    char passwd[100];
+    int rc;
+
+    if (cparser_is_in_privileged_mode(context->parser)) {
+        printf("Already in privileged mode.\n");
+        return CPARSER_NOT_OK;
+    }
+
+    /* Request privileged mode password */
+    rc = cparser_user_input(context->parser, 
+                            "Enter password (Enter: 'snbi'): ", 0,
+                            passwd, sizeof(passwd), 
+                            cparser_cmd_enter_privileged_mode);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_cmd_disable_privileged_mode (cparser_context_t *context)
+{
+    if (!cparser_is_in_privileged_mode(context->parser)) {
+        printf("Not in privileged mode.\n");
+        return CPARSER_NOT_OK;
+    }
+
+    cparser_set_privileged_mode(context->parser, 0);
+    return CPARSER_OK;
+}

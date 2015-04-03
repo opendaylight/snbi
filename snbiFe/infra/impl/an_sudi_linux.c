@@ -15,7 +15,6 @@
 #include "../../al/an_mem.h"
 #include "../../al/an_str.h"
 #include "an_ipv6.h"
-#include "show_an.h"
 
 
 extern uint8_t sudi_trustpoint[];

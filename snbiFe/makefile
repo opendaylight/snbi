@@ -10,7 +10,7 @@ BASE_LINUX_AL_DIR = $(BASE_DIR)/infra/impl
 BASE_COMMON_DIR = $(BASE_DIR)/common
 BASE_AL_DIR = $(BASE_DIR)/al
 BASE_LIB_DIR = $(BASE_DIR)/infra/lib
-BASE_LIBCLI_DIR = $(BASE_LIB_DIR)/libcli
+BASE_LIBCLI_DIR = $(BASE_LIB_DIR)/libcliParser
 BASE_SNBI_CLISIM_DIR = $(BASE_LIB_DIR)/snbi-sim
 BASE_LIBAVL_DIR = $(BASE_LIB_DIR)/libavl
 SNBI_BIN=$(BASE_DIR)/bin
@@ -20,15 +20,14 @@ CC_INCDIRS :=\
 	-I$(BASE_LINUX_AL_DIR) \
 	-I$(BASE_AL_DIR) \
 	-I$(BASE_COMMON_DIR) \
-	-I$(BASE_LIBCLI_DIR) \
+	-I$(BASE_LIBCLI_DIR)/inc \
 	-I$(BASE_LIBAVL_DIR) \
 	-I$(BASE_SNBI_CLISIM_DIR)
 
 SNBI_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
-SNBI_LIBCLI_SRC=$(BASE_LIBCLI_DIR)
 SNBI_LIBAVL_SRC=$(BASE_LIBAVL_DIR)
 SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)
-
+SNBI_LIBCLI_SRC=$(BASE_LIBCLI_DIR)/src
 SNBI_COMMON_SRC=$(BASE_COMMON_DIR)
 
 CC = gcc
@@ -104,18 +103,21 @@ CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_udp_linux.c
 
 CC_SNBI_CLISIM_SRCS :=\
-	$(SNBI_CLISIM_SRC)/conf_an.c \
-	$(SNBI_CLISIM_SRC)/an_clisim_test.c \
-	$(SNBI_CLISIM_SRC)/an_cli.c \
-	$(SNBI_CLISIM_SRC)/show_an.c
+	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_avl_test.c \
+	$(SNBI_CLISIM_SRC)/an_show.c \
+	$(SNBI_CLISIM_SRC)/an_sim.c
 
 CC_SNBI_LIBCLI_SRCS :=\
-	$(SNBI_LIBCLI_SRC)/libcli.c \
-	$(SNBI_LIBCLI_SRC)/automore.c \
-	$(SNBI_LIBCLI_SRC)/flread.c \
-	$(SNBI_LIBCLI_SRC)/getopts.c \
-	$(SNBI_LIBCLI_SRC)/strie.c \
-	$(SNBI_LIBCLI_SRC)/termio.c
+	$(SNBI_LIBCLI_SRC)/cparser.c \
+	$(SNBI_LIBCLI_SRC)/cparser_token.c \
+	$(SNBI_LIBCLI_SRC)/cparser_token_tbl.c \
+	$(SNBI_LIBCLI_SRC)/cparser_token_tbl.c \
+	$(SNBI_LIBCLI_SRC)/cparser_io_unix.c \
+	$(SNBI_LIBCLI_SRC)/cparser_line.c \
+	$(SNBI_LIBCLI_SRC)/cparser_fsm.c \
+	$(SNBI_LIBCLI_SRC)/cparser_tree.c
+
 
 CC_SNBI_LIBAVL_SRCS :=\
 	$(SNBI_LIBAVL_SRC)/avl.c
@@ -130,12 +132,13 @@ all: mkdir libcli libavl an_linux_al an_common snbi_clisim
 
 mkdir:
 	echo "Making obj dir"
+	echo "SNBI_LIBCLI_SRC  = $(SNBI_LIBCLI_PARSER_SRC)"
 	mkdir -p $(SNBI_BIN)
 	mkdir -p $(SNBI_OBJ)
 	@echo ' '
 
 libcli: $(CC_SNBI_LIBCLI_SRCS)
-	echo "Building target: $@"
+	echo "Building target: $@" 
 	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
                 

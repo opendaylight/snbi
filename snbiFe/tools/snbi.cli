@@ -1,0 +1,47 @@
+show autonomic interface
+
+show autonomic interface
+
+show ip interfaces
+
+show process
+
+show snbi device
+
+show snbi neighbors
+
+snbi discovery
+
+no snbi discovery
+
+snbi interface start
+
+snbi interface stop
+
+show snbi intf-db
+
+snbi start
+
+snbi stop
+
+test avl-get-firstnode
+
+test avl-init
+
+test avl-insert <UINT:value>
+
+test avl-remove <UINT:value>
+
+test avl-search <UINT:value>
+
+test avl-uninit
+
+test avl-walk
+
+// Enable privileged mode
+enable privileged-mode
+
+// Disable privileged mode
++ disable privileged-mode
+
+quit
