@@ -9,24 +9,19 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-#include "libcli.h"
-#include <unistd.h>
-#include "conf_an.h"
-#include "show_an.h"
 #include "an_types.h"
 #include "an_mem.h"
+#include <unistd.h>
+#include <cparser.h>
+#include <cparser_tree.h>
 
-#define MAX_RAND_ARRAY 10
 
 an_avl_tree an_avl_test_tree;
-static int node_index = 0;
 
 typedef struct an_avl_test_node_t_ {
     an_avl_node_t avl_node;
-    int data;
+    uint32_t data;
 } an_avl_test_node_t;
-
-static an_avl_test_node_t *node_store[MAX_RAND_ARRAY];
 
 static  an_walk_e
 an_avl_test_nodes_walk_func (an_avl_node_t *node, void *args) 
@@ -68,19 +63,19 @@ an_avl_test_compare_func (an_avl_node_t *nodeA, an_avl_node_t *nodeB)
     }
 }
 
-
-void an_test_init_tree (bool negation, int argc, char *argv[]) 
+cparser_result_t 
+cparser_cmd_test_avl_init (cparser_context_t *context)
 {
     printf("\nInside test init");
     an_memset(&an_avl_test_tree, 0, sizeof(an_avl_tree));
     an_avl_init(&an_avl_test_tree, an_avl_test_compare_func);
+    return (CPARSER_OK);
 }
 
-void an_test_insert_data (bool negation, int argc, char *argv[]) 
+cparser_result_t
+cparser_cmd_test_avl_insert_value (cparser_context_t *context, 
+                                   uint32_t *value_ptr)
 {
-    if (node_index >= MAX_RAND_ARRAY) {
-        return;
-    }
     an_avl_test_node_t *test_node = an_malloc(sizeof(an_avl_test_node_t), 
                                              "AN AVL test node");
     if (!test_node) {
@@ -90,18 +85,17 @@ void an_test_insert_data (bool negation, int argc, char *argv[])
 
     an_memset(test_node, 0, sizeof(an_avl_test_node_t));
 
-//    test_node->data = ++data_gen;
-    test_node->data = rand();
+    test_node->data = *value_ptr;
     printf("\nInside test insert data %d", test_node->data);
-    node_store[node_index++] = test_node;
 
     an_avl_insert_node(NULL, (an_avl_node_t *)test_node, 
                        an_avl_test_compare_func,
                        &an_avl_test_tree);
+    return (CPARSER_OK);
 }
 
-
-void an_test_walk_tree (bool negation, int argc, char *argv[]) 
+cparser_result_t
+cparser_cmd_test_avl_walk (cparser_context_t *context)
 {
     printf("\nInside test AVL tree");
 
@@ -109,21 +103,24 @@ void an_test_walk_tree (bool negation, int argc, char *argv[])
                           an_avl_test_compare_func, 
                           "Tree walking ctxt string", 
                           &an_avl_test_tree);
+    return (CPARSER_OK);
 }
 
-void an_test_remove_data (bool negation, int argc, char *argv[]) 
+cparser_result_t
+cparser_cmd_test_avl_remove_value (cparser_context_t *context,
+                                   uint32_t *value_ptr)
 {
-    an_avl_test_node_t *test_node = NULL;
-    if (node_index == 0) {
-        return;
-    }
-    test_node =  node_store[--node_index];
-    printf("\nInside test AVL remove data %d", test_node->data);
-    an_avl_remove_node(NULL, (an_avl_node_t *)test_node, 
+    an_avl_test_node_t test_node = {0};
+
+    test_node.data = *value_ptr;
+    printf("\nInside test AVL remove data %d", test_node.data);
+    an_avl_remove_node(NULL, (an_avl_node_t *)&test_node, 
                        an_avl_test_compare_func, &an_avl_test_tree);
+    return (CPARSER_OK);
 }
 
-void an_test_get_first_node (bool negation, int argc, char *argv[]) 
+cparser_result_t
+cparser_cmd_test_avl_get_firstnode (cparser_context_t *context)
 {
     an_avl_test_node_t *test_node = NULL;
     test_node = (an_avl_test_node_t *)an_avl_get_first_node(NULL, 
@@ -131,46 +128,32 @@ void an_test_get_first_node (bool negation, int argc, char *argv[])
     if (test_node) {
         printf("\nInside test AVL get first node %d", test_node->data); 
     }
+    return (CPARSER_OK);
 }
 
-void an_test_search_node (bool negation, int argc, char *argv[]) 
+cparser_result_t 
+cparser_cmd_test_avl_search_value  (cparser_context_t *context,
+                                    uint32_t *value_ptr)
 {
     an_avl_test_node_t *test_node = NULL;
     an_avl_test_node_t match_node = {0};
 
-    match_node.data =  node_store[node_index-1]->data;
+    match_node.data =  *value_ptr;
     test_node = (an_avl_test_node_t *)an_avl_search_node(NULL,
                                                 (an_avl_node_t *) &match_node, 
                                                 NULL, &an_avl_test_tree);
 
     if (test_node) {
         printf("\nInside avl search node found %d", test_node->data);
+    } else {
+        printf("\nFailed to find the node");
     }
-
+    return (CPARSER_OK);
 }
 
-void an_test_uninit_tree (bool negation, int argc, char *argv[]) 
+cparser_result_t
+cparser_cmd_test_avl_uninit (cparser_context_t *context)
 {
+    printf("\nInside AVL uninit");
+    return (CPARSER_OK);
 }
-
-void cli_an_test_init(cli_set_t *s) 
-{
-
-    cli_insert(s, "test avl-init ", "Init an AVL tree", 
-            an_test_init_tree, false);
-    cli_insert(s, "test avl-insert", "Insert an AVL tree", 
-            an_test_insert_data, false);
-    cli_insert(s, "test avl-walk", "Walk an AVL tree", 
-            an_test_walk_tree, false);
-    cli_insert(s, "test avl-remove", "delet from an avl tree", 
-            an_test_remove_data, false);
-    cli_insert(s, "test avl-search", 
-            "search the node",
-            an_test_search_node, false);
-    cli_insert(s, "test avl-get-firstnode", 
-            "Get the first node from an avl tree", 
-            an_test_get_first_node, false);
-    cli_insert(s, "test avl-uninit", "uninint an avl tree", 
-            an_test_uninit_tree, false);
-}
-

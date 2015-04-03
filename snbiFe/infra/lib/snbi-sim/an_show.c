@@ -6,10 +6,12 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
-#include "show_an.h"
+#include <stdio.h>
 #include "an_event_mgr.h"
 #include "an_if_mgr.h"
+#include <cparser.h>
+#include <cparser_tree.h>
+
 
 uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
 uint8_t an_show_header[1] = {'\0'};
@@ -39,22 +41,23 @@ an_show_nbr_list_name_cb (an_list_t *list,
     return 1;
 }
 
-void 
-an_show_auton(bool no, int a, char *av[]) {
-
+cparser_result_t 
+cparser_cmd_show_snbi_device (cparser_context_t *context)
+{
     int i;
 
     printf("\n%80s", an_show_header);
     printf ("\n UDI    %s ", an_info.udi.data);
     printf("\n%80s", an_show_trailer); 
-   
 }
 
-void an_show_auton_intf(bool no, int a, char *av[]) {
+cparser_result_t 
+cparser_cmd_show_autonomic_interface(cparser_context_t *context)
+{
 }
 
-void
-an_show_intf(bool no, int a, char *av[]) 
+cparser_result_t
+cparser_cmd_show_ip_interfaces (cparser_context_t *context)
 {
     char buf[1024];
     struct ifconf ifc;
@@ -108,39 +111,9 @@ an_show_intf(bool no, int a, char *av[])
     return;
 }
 
-void an_show_proc(bool no, int a, char *av[]) {}
-
-void an_show_nbrs(bool no, int a, char *av[]) {
-
-    printf("\n%80s", an_show_header);
-    printf("\n%s %45s %21s %10s",
-               "UDI", "Device-ID", "Domain", "Interface");
-    printf("\n%80s", an_table_header);
-    an_nbr_db_walk(an_show_nbr_command_cb, NULL);
-    printf("\n%80s", an_show_trailer);
-
-
-}
-
-an_walk_e
-an_if_info_walker(an_avl_node_t *node, void *data) {
-
-    an_if_info_t *an_if_info = NULL;
-
-    if (!node) {
-        return (AN_WALK_FAIL);
-    }
-    an_if_info = (an_if_info_t *)node;
-    printf("\nAVL walking nodes :\n");
-    printf("\n Ifhndl while walk is %lu ", an_if_info->ifhndl); 
-    printf("\n AN is auton enabled on interface ? ");
-    (an_if_info->if_cfg_autonomic_enable > 0) ? printf("YES"):printf("NO");
-
-    return (AN_WALK_SUCCESS);
-}
-
-void an_walk_if_db (bool no, int a, char *av[]) {
-    an_if_info_db_walk(an_if_info_walker, NULL);
+cparser_result_t 
+cparser_cmd_show_process (cparser_context_t *context)
+{
 }
 
 an_avl_walk_e
@@ -160,3 +133,39 @@ an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
                       an_show_nbr_list_name_cb, NULL);
     return TRUE;
 }
+
+cparser_result_t 
+cparser_cmd_show_snbi_neighbors (cparser_context_t *context)
+{
+    printf("\n%80s", an_show_header);
+    printf("\n%s %45s %21s %10s",
+               "UDI", "Device-ID", "Domain", "Interface");
+    printf("\n%80s", an_table_header);
+    an_nbr_db_walk(an_show_nbr_command_cb, NULL);
+    printf("\n%80s", an_show_trailer);
+}
+
+an_walk_e
+an_if_info_walker(an_avl_node_t *node, void *data) 
+{
+
+    an_if_info_t *an_if_info = NULL;
+
+    if (!node) {
+        return (AN_WALK_FAIL);
+    }
+    an_if_info = (an_if_info_t *)node;
+    printf("\nAVL walking nodes :\n");
+    printf("\n Ifhndl while walk is %lu ", an_if_info->ifhndl); 
+    printf("\n AN is auton enabled on interface ? ");
+    (an_if_info->if_cfg_autonomic_enable > 0) ? printf("YES"):printf("NO");
+
+    return (AN_WALK_SUCCESS);
+}
+
+cparser_result_t 
+cparser_cmd_show_snbi_intf_db (cparser_context_t *context)
+{
+    an_if_info_db_walk(an_if_info_walker, NULL);
+}
+

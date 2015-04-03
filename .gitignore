@@ -31,3 +31,4 @@ maven-eclipse.xml
 *.ks
 *.o
 cscope.out
+tags
