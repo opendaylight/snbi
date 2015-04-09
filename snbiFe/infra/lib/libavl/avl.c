@@ -1,395 +1,404 @@
-/*
- *  Vijay Anand R.
- *
- *  Copyright (c) 2014 by cisco Systems, Inc.
- *  All rights reserved.
- *
- */
 
 /*
- * ANSI C Library for maintainance of AVL Balanced Trees
+ *  Sreekanth Maddali
  *
- * ref.:
- *  G. M. Adelson-Velskij & E. M. Landis
- *  Doklady Akad. Nauk SSSR 146 (1962), 263-266
- *
- * see also:
- *  D. E. Knuth: The Art of Computer Programming Vol.3 (Sorting and Searching)
- *
- * (C) 2000 Daniel Nagy, Budapest University of Technology and Economics
- * Released under GNU General Public License (GPL) version 2
+ * Library for maintainance of AVL Balanced Trees
  *
  */
 
-#include "avl.h"
-#include "stdbool.h"
-#include <string.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include"avl.h"
 
-/* Private methods */
+static int node_count;
 
-/* Swing to the left
- * Warning: no balance maintainance
- */
-void avl_swl(avl** root){
-   avl* a=*root;
-   avl* b=a->right;
-   *root=b;
-   a->right=b->left;
-   b->left=a;
-}
-
-/* Swing to the right
- * Warning: no balance maintainance
- */
-void avl_swr(avl** root){
-   avl* a=*root;
-   avl* b=a->left;
-   *root=b;
-   a->left=b->right;
-   b->right=a;
-}
-
-/* Balance maintainance after especially nasty swings
- */
-void avl_nasty(avl* root){
-   switch(root->balance){
-    case -1:root->left->balance=0;
-      root->right->balance=1;
-      break;
-    case 1:	root->left->balance=-1;
-      root->right->balance=0;
-      break;
-    case 0:	root->left->balance=0;
-      root->right->balance=0;
-   }
-   root->balance=0;
-}
-
-/* Public methods */
-
-int avl_tree_init (avl_tree *t, avl_compare_cb_f compare_func) {
-    if (!t) {
-        return -1;
-    }
-    memset(t, 0, sizeof(avl_tree));
-    t->root = NULL;
-    t->compar = compare_func;
-    return 0;
-}
-
-bool walktree (struct avl *a, avl_walk_cb_f walk_cb, void *args) 
+/*******************
+ * Local Functions *
+ *******************/
+static int get_height (avl *node)
 {
-    if (a == NULL) {
-        return false;
+    int lh, rh;
+
+    if(node==NULL)
+        return(0);
+
+    if(node->left==NULL)
+        lh = 0;
+    else
+        lh = node->left->height + 1;
+
+    if(node->right==NULL)
+        rh = 0;
+    else
+        rh = node->right->height + 1;
+
+    return((lh>rh) ? lh : rh);
+}
+
+static int bal_factor (avl *node)
+{
+    int lh, rh;
+
+    if(node==NULL)
+        return(0);
+
+    if(node->left==NULL)
+        lh = 0;
+    else
+        lh = node->left->height + 1;
+
+    if(node->right==NULL)
+        rh = 0;
+    else
+        rh = node->right->height + 1;
+
+    return(lh - rh);
+}
+
+static avl * rotate_right (avl *nodeA)
+{
+    avl *nodeB;
+
+    nodeB         = nodeA->left;
+    nodeA->left   = nodeB->right;
+    nodeB->right  = nodeA;
+    nodeA->height = get_height(nodeA);
+    nodeB->height = get_height(nodeB);
+
+    return(nodeB);
+}
+
+static avl * rotate_left (avl *nodeA)
+{
+    avl *nodeB;
+
+    nodeB         = nodeA->right;
+    nodeA->right  = nodeB->left;
+    nodeB->left   = nodeA;
+    nodeA->height = get_height(nodeA);
+    nodeB->height = get_height(nodeB);
+
+    return(nodeB);
+}
+
+static avl *do_insert (avl *node, avl_compare_cb_f cmp_fn, void *new)
+{
+    if(node==NULL)
+    {
+        return(new);
     }
 
-    if (a->right) {
-        if (!walktree(a->right, walk_cb, args)) {
-            return false;
+    if(cmp_fn(new, node) == AVL_COMPARE_GT)
+    {
+        node->right = do_insert(node->right, cmp_fn, new);
+
+        if(bal_factor(node)==-2)
+        {
+            if(cmp_fn(new, node->right) == AVL_COMPARE_GT)
+            {
+                node = rotate_left(node);
+            }
+            else
+            {
+                node->right = rotate_right(node->right);
+                node = rotate_left(node);
+            }
+        }
+    }
+    else if(cmp_fn(new, node) == AVL_COMPARE_LT)
+    {
+        node->left = do_insert(node->left, cmp_fn, new);
+
+        if(bal_factor(node)==2)
+        {
+            if(cmp_fn(new, node->left) == AVL_COMPARE_LT)
+            {
+                node = rotate_right(node);
+            }
+            else
+            {
+                node->left = rotate_left(node->left);
+                node = rotate_right(node);
+            }
         }
     }
 
-    if (!walk_cb(a, args)) {
-        return false;
-    }
+    node->height = get_height(node);
 
-    if (a->left) {
-        if (!walktree(a->left, walk_cb, args)) {
-            return false;
+    return(node);
+}
+
+static reset_node_count (void)
+{
+    node_count = 0;
+}
+
+static int get_count (avl *node)
+{
+    if(node!=NULL)
+    {
+        ++node_count;
+        get_count(node->left);
+        get_count(node->right);
+    }
+    return(node_count);
+}
+
+avl *remove_node (avl *node)
+{
+    avl *temp1;
+    avl *temp = node;
+    if(node->right == NULL)
+    {
+        if(node->left)
+            node->left->height = get_height(node->left);
+        return node->left;
+    } else {
+        //traverse
+        if(node->right->left == NULL)
+        {
+            node->right->left = temp->left;
+            node->right->height = get_height(node->right);
+            return node->right;
+        } else {
+            node = node->right;
+            while(node->left->left)
+                node = node->left;
+            if(node->left->right == NULL)
+            {
+                node->left->left = temp->left;
+                node->left->right = temp->right;
+                temp = node->left;
+                node->left = NULL;
+                node->height = get_height(node);
+                temp->height = get_height(temp);
+                return temp;
+            } else {
+                temp1 = node->left;
+                node->left = remove_node(node->left);
+                temp1->left = temp->left;
+                temp1->right = temp->right;
+                node = temp1;
+                //Check for balance of tree and rebalance
+                if(bal_factor(node)==-2)
+                {
+                    if(bal_factor(node->right)<=0)
+                    {
+                        node = rotate_left(node);
+                    }
+                    else
+                    {
+                        node->right = rotate_right(node->right);
+                        node = rotate_left(node);
+                    }
+                }
+
+                return node;
+            }
         }
     }
-    return true;
 }
 
-bool avl_tree_walk_all_nodes (avl_tree *t, avl_walk_cb_f walk_cb_func, 
-                              void *args) 
+static avl *do_remove (avl *node, avl_compare_cb_f cmp_fn, avl *del_node)
 {
-    return (walktree(t->root, walk_cb_func, args)); 
+    avl *p;
+    avl *ret_node_t = NULL;
+
+    if(!node || !cmp_fn || !del_node)
+    {
+        return(NULL);
+    }
+    else
+    {
+        if(cmp_fn(del_node, node) == AVL_COMPARE_GT)
+        {
+            node->right = do_remove(node->right, cmp_fn, del_node);
+
+            if(bal_factor(node)==2)
+            {
+                if(bal_factor(node->left)>=0)
+                {
+                    node = rotate_right(node);
+                }
+                else
+                {
+                    node->left = rotate_left(node->left);
+                    node = rotate_right(node);
+                }
+            }
+            node->height = get_height(node);
+        }
+        else
+        {
+            if(cmp_fn(del_node, node) == AVL_COMPARE_LT)
+            {
+                node->left = do_remove(node->left, cmp_fn, del_node);
+
+                /* Check for balance of tree and rebalance */
+                if(bal_factor(node)==-2)
+                {
+                    if(bal_factor(node->right)<=0)
+                    {
+                        node = rotate_left(node);
+                    }
+                    else
+                    {
+                        node->right = rotate_right(node->right);
+                        node = rotate_left(node);
+                    }
+                }
+                node->height = get_height(node);
+            }
+            else
+            {
+                /* node to be deleted is found */
+                node = remove_node(node);
+
+            }
+        }
+    }
+
+    return(node);
 }
 
-int avl_tree_uninit (avl_tree *t) {
-    if (!t || t->root) {
-        // The tree is no empty.
+int do_walk (avl *node, avl_walk_cb_f walk_cb, void *args)
+{
+    if (node == NULL) {
+        return 0;
+    }
+
+    if (node->right) {
+        if (!do_walk(node->right, walk_cb, args)) {
+            return 0;
+        }
+    }
+
+    if (!walk_cb(node, args)) {
+        return 0;
+    }
+
+    if (node->left) {
+        if (!do_walk(node->left, walk_cb, args)) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int do_search (avl *node, avl *search_node, avl_compare_cb_f cmp_fn,
+               avl **found_node)
+{
+    avl_compare_e diff;
+
+    if (!node) {
+        return 0;
+    }
+
+    diff = cmp_fn(search_node, node);
+
+    if (diff == AVL_COMPARE_LT) { 
+        return(do_search(node->left, search_node, cmp_fn, found_node));
+    } else if (diff == AVL_COMPARE_GT) {
+        return(do_search(node->right, search_node, cmp_fn, found_node));
+    } else {
+        *found_node = node;
+        return 1;
+    }
+}
+
+/********************
+ * Public Functions *
+ ********************/
+int avl_tree_init (avl_tree *tree, avl_compare_cb_f cmp_fn)
+{
+    if(!tree  || !cmp_fn)
+        return(-1);
+
+    tree->root = NULL;
+    tree->compare_fun = cmp_fn;
+    return(0);
+}
+
+int avl_insert (avl_tree *tree, void *new)
+{
+    if(!tree || !tree->compare_fun)
+        return(-1);
+
+    tree->root = do_insert(tree->root, tree->compare_fun, new);
+    return(0);
+}
+
+int avl_remove (avl_tree *tree, void *del_node)
+{
+    if(!tree || !tree->compare_fun)
+        return(-1);
+
+    tree->root = do_remove(tree->root, tree->compare_fun, del_node);
+    return(0);
+}
+
+int avl_tree_uninit (avl_tree *tree) {
+    if (!tree || tree->root) {
+        //The tree is not empty.
         return (-1);
     }
 
-    t->compar = NULL;
+    tree->compare_fun = NULL;
     return 0;
 }
 
-/* Insert element a into the AVL tree t
- * returns 1 if the depth of the tree has grown
- * Warning: do not insert elements already present
- */
-int avl_insert (avl_tree* t,avl* a)
+int avl_get_count (avl_tree *tree)
 {
-   /* initialize */
-   a->left=0;
-   a->right=0;
-   a->balance=0;
-   /* insert into an empty tree */
-   if(!t->root) {
-      t->root=a;
-      return 1;
-   }
-   
-   if (t->compar(t->root,a) == AVL_COMPARE_LT) {
-      /* insert into the left subtree */
-      if(t->root->left){
-          avl_tree left_subtree;
-          left_subtree.root=t->root->left;
-          left_subtree.compar=t->compar;
-          if(avl_insert(&left_subtree,a)){
-              switch(t->root->balance--){
-                  case 1: return 0;
-                  case 0:	return 1;
-              }
-              if(t->root->left->balance<0){
-                  avl_swr(&(t->root));
-                  t->root->balance=0;
-                  t->root->right->balance=0;
-              }else{
-                  avl_swl(&(t->root->left));
-                  avl_swr(&(t->root));
-                  avl_nasty(t->root);
-              }
-          } else {
-              t->root->left=left_subtree.root;
-          }
-          return 0;
-      } else {
-          t->root->left=a;
-          if(t->root->balance--) return 0;
-          return 1;
-      }
-   } else {
-       /* insert into the right subtree */
-       if (t->root->right) {
-           avl_tree right_subtree;
-           right_subtree.root=t->root->right;
-           right_subtree.compar=t->compar;
-           if (avl_insert(&right_subtree,a)) {
-               switch (t->root->balance++) {
-                   case -1: return 0;
-                   case 0: return 1;
-               }
-               if (t->root->right->balance>0) {
-                   avl_swl(&(t->root));
-                   t->root->balance=0;
-                   t->root->left->balance=0;
-               } else {
-                   avl_swr(&(t->root->right));
-                   avl_swl(&(t->root));
-                   avl_nasty(t->root);
-               }
-           } else {
-               t->root->right=right_subtree.root;
-           }
-           return 0;
-       } else {
-           t->root->right=a;
-           if(t->root->balance++) {
-               return 0;
-           }
-           return 1;
-       }
-   }
+    if(!tree || !tree->compare_fun)
+        return(-1);
+
+    reset_node_count();
+    return (get_count(tree->root));
 }
 
-/* Remove an element a from the AVL tree t
- * returns -1 if the depth of the tree has shrunk
- * Warning: if the element is not present in the tree,
- *          returns 0 as if it had been removed succesfully.
+/* function 'avl_tree_walk_all_nodes'
+ * returning 0 for failure and 1 for success, unlike all other functions
+ * which are written to return 0 in success case and -1 in failure case
+ * This is done make sure that this library is compatible to 
+ * already existing application using this.
  */
-int avl_remove(avl_tree* t, avl* a)
+int avl_tree_walk_all_nodes (avl_tree *tree, avl_walk_cb_f walk_fn,
+        void *args)
 {
-   int b;
-   if(t->root==a)
-     return avl_removeroot(t);
-   b=t->compar(t->root,a);
-   if(b>=0){
-      /* remove from the left subtree */
-      int ch;
-      avl_tree left_subtree;
-      if((left_subtree.root=t->root->left)){
-	 left_subtree.compar=t->compar;
-	 ch=avl_remove(&left_subtree,a);
-	 t->root->left=left_subtree.root;
-	 if(ch){
-	    switch(t->root->balance++){
-	     case -1: return -1;
-	     case 0: return 0;
-	    }
-	    switch(t->root->right->balance){
-	     case 0:	avl_swl(&(t->root));
-	       t->root->balance=-1;
-	       t->root->left->balance=1;
-	       return 0;
-	     case 1: avl_swl(&(t->root));
-	       t->root->balance=0;
-	       t->root->left->balance=0;
-	       return -1;
-	    }
-	    avl_swr(&(t->root->right));
-	    avl_swl(&(t->root));
-	    avl_nasty(t->root);
-	    return -1;
-	 }
-      }
-   }
-   if(b<=0){
-      /* remove from the right subtree */
-      int ch;
-      avl_tree right_subtree;
-      if((right_subtree.root=t->root->right)){
-	 right_subtree.compar=t->compar;
-	 ch=avl_remove(&right_subtree,a);
-	 t->root->right=right_subtree.root;
-	 if(ch){
-	    switch(t->root->balance--){
-	     case 1: return -1;
-	     case 0: return 0;
-	    }
-	    switch(t->root->left->balance){
-	     case 0:	avl_swr(&(t->root));
-	       t->root->balance=1;
-	       t->root->right->balance=-1;
-	       return 0;
-	     case -1:avl_swr(&(t->root));
-	       t->root->balance=0;
-	       t->root->right->balance=0;
-	       return -1;
-	    }
-	    avl_swl(&(t->root->left));
-	    avl_swr(&(t->root));
-	    avl_nasty(t->root);
-	    return -1;
-	 }
-      }
-   }
-   return 0;
+    return (do_walk(tree->root, walk_fn, args));
 }
 
-/* Remove the root of the AVL tree t
- * Warning: dumps core if t is empty
+/* function 'avl_get_first_node'
+ * returning 0 for failure and 1 for success, unlike all other functions
+ * which are written to return 0 in success case and -1 in failure case
+ * This is done make sure that this library is compatible to 
+ * already existing application using this.
  */
-int avl_removeroot(avl_tree* t)
+int avl_get_first_node (avl_tree *tree, avl **node)
 {
-   int ch;
-   avl* a;
-   if(!t->root->left){
-      if(!t->root->right){
-	 t->root=0;
-	 return -1;
-      }
-      t->root=t->root->right;
-      return -1;
-   }
-   if(!t->root->right){
-      t->root=t->root->left;
-      return -1;
-   }
-   if(t->root->balance<0){
-      /* remove from the left subtree */
-      a=t->root->left;
-      while(a->right) a=a->right;
-   }else{
-      /* remove from the right subtree */
-      a=t->root->right;
-      while(a->left) a=a->left;
-   }
-   ch=avl_remove(t,a);
-   a->left=t->root->left;
-   a->right=t->root->right;
-   a->balance=t->root->balance;
-   t->root=a;
-   if(a->balance==0) return ch;
-   return 0;
-}
-
-/* Iterate through elements in t from a range between a and b (inclusive)
- * for each element calls iter(a) until it returns 0
- * returns the last value returned by iterator or 0 if there were no calls
- * Warning: a<=b must hold
- */
-int avl_range(avl_tree* t,avl* a,avl* b,int(*iter)(avl* a))
-{
-   int x,c=0;
-   if(!t->root) return 0;
-   x=t->compar(t->root,a);
-   if(a!=b){
-      if(x<0){
-	 x=t->compar(t->root,b);
-	 if(x>0) x=0;
-      }
-   }
-   if(x>=0){
-      /* search in the left subtree */
-      avl_tree left_subtree;
-      if((left_subtree.root=t->root->left)){
-	 left_subtree.compar=t->compar;
-	 if(!(c=avl_range(&left_subtree,a,b,iter))) if(x>0) return 0;
-      }
-   }
-   if(x==0){
-      if(!(c=iter(t->root))) return 0;
-   }
-   if(x<=0){
-      /* search in the right subtree */
-      avl_tree right_subtree;
-      if((right_subtree.root=t->root->right)){
-	 right_subtree.compar=t->compar;
-	 if(!(c=avl_range(&right_subtree,a,b,iter))) if(x<0) return 0;
-      }
-   }
-   return c;
-}
-
-bool
-avl_recursive_search (avl *root, avl *a, avl_compare_cb_f compar_fn, 
-                      avl **match_node)
-{
-    int x;
-    
-    if (!root) {
-        return false;
+    if (!tree || !node) {
+        return 0;
     }
 
-    x = compar_fn(root, a);
-
-    if (x == AVL_COMPARE_LT) { /* search in the left subtree */
-        return(avl_recursive_search(root->left, a, compar_fn, match_node));
-    } else if (x == AVL_COMPARE_GT) {
-        /* search in the right subtree */
-        return(avl_recursive_search(root->right, a, compar_fn, match_node));
-    } else {
-        *match_node = root;
-        return true;
-    }
+    *node = tree->root;
+    return 1;
 }
 
-/* Iterate through elements in t equal to a
- * for each element calls iter(a) until it returns 0
- * returns the last value returned by iterator or 0 if there were no calls
+/* function 'avl_search'
+ * returning 0 for failure and 1 for success, unlike all other functions
+ * which are written to return 0 in success case and -1 in failure case
+ * This is done make sure that this library is compatible to 
+ * already existing application using this.
  */
-avl* avl_search (avl_tree* t, avl* a)
+avl* avl_search (avl_tree* tree, avl* node)
 {
-    avl *match_node = NULL;
-    if (!t || !t->root || !t->compar) {
+    avl *found_node = NULL;
+    if (!tree || !tree->root || !tree->compare_fun) {
         return NULL;
     }
-    if (avl_recursive_search(t->root, a, t->compar, &match_node)) {
-        return match_node;
+    if (do_search(tree->root, node, tree->compare_fun, &found_node)) {
+        return found_node;
     }
     return NULL;
 }
 
-bool avl_get_first_node (avl_tree *t, avl **node) 
-{
-    if (!t || !node) {
-        return false;
-    }
-
-    *node = t->root;
-    return true;
-}

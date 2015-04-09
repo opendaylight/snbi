@@ -1,53 +1,405 @@
+
 /*
- * Copyright (c) 2014  Cisco Systems, All rights reserved.
+ *  Sreekanth Maddali
  *
- * This program and the accompanying materials are made available under
- * the terms of the Eclipse License v1.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v10.html
+ * Test code to test AVL library
+ *
  */
 
-
 #include<stdio.h>
-#include "avl.h"
+#include<stdlib.h>
+#include"avl.h"
 
-struct int_avl{
-	struct avl avl;
-	int value;
+struct test_avl_node{
+    avl avl_node;
+    void *data;
 };
 
-int cmpint(void* a,void* b){
-	return ((struct int_avl*)a)->value - ((struct int_avl*)b)->value;
+typedef struct test_avl_node test_avl_node_t;
+
+static int walk_sum = 0;
+
+int compare(void *val1, void *val2)
+{
+    return (int)(*(int *)val1 - *(int *)val2);
 }
 
-struct avl_tree ints;
+/*
+ *My compare function 
+ */
+static avl_compare_e
+//my_compare_func (avl *nodeA, avl *nodeB)
+my_compare_func (const avl *nodeA, const avl *nodeB)
+{
+    int valA, valB;
+    test_avl_node_t *test_nodeA = (test_avl_node_t *) nodeA;
+    test_avl_node_t *test_nodeB = (test_avl_node_t *) nodeB;
 
-struct int_avl myint[20];
+    if (!test_nodeA && !test_nodeB) {
+        return (AVL_COMPARE_EQ);
+    } else if (!test_nodeA) {
+        return (AVL_COMPARE_LT);
+    } else if (!test_nodeB) {
+        return (AVL_COMPARE_GT);
+    }
 
-void listree(struct avl* a,int m){
-	int n=m;
-	if(a==0) return;
-	if(a->right) listree(a->right,m+1);
-	while(n--) printf("   ");
-	printf("%d (%d)\n",((struct int_avl*)a)->value,a->balance);
-	if(a->left) listree(a->left,m+1);
+    valA = *(int *)test_nodeA->data;
+    valB = *(int *)test_nodeB->data;
+
+    if (valA < valB) {
+        return (AVL_COMPARE_LT);
+    } else if (valA > valB) {
+        return (AVL_COMPARE_GT);
+    } else {
+        return (AVL_COMPARE_EQ);
+    }
 }
 
-int main(int argc,char* argv[]){
-	int i;
-	for(i=0;i<20;i++)
-		myint[i].value=(i*9)%20;
-	ints.compar=cmpint;
-	ints.root=0;
-	for(i=0;i<20;i++){
-		printf("-------------\n");
-		avl_insert(&ints,(struct avl*)&myint[i]);
-		listree(ints.root,0);
-	}
-	for(i=0;i<20;i++){
-		printf("++++++++++++++\n");
-		avl_remove(&ints,(struct avl*)&myint[i]);
-
-		listree(ints.root,0);
-	}
-	return 0;
+/*
+ *My walk function here adds up the numbers in the tree and
+ *the value passed in arg at every node into walk_sum.
+ */
+int my_walk_func (avl *node, void *arg)
+{
+    test_avl_node_t *test_node = (test_avl_node_t *) node;
+    walk_sum = walk_sum + *(int *)test_node->data + *(int *)arg;
 }
+
+/*
+ *Just copied the get height and balance_factor functions 
+ * here as its not needed to be exposed through our library.
+ */
+static int get_height (avl *node)
+{
+    int lh, rh;
+
+    if(node==NULL)
+        return(0);
+
+    if(node->left==NULL)
+        lh = 0;
+    else
+        lh = node->left->height + 1;
+
+    if(node->right==NULL)
+        rh = 0;
+    else
+        rh = node->right->height + 1;
+
+    return((lh>rh) ? lh : rh);
+}
+
+static int bal_factor (avl *node)
+{
+    int lh, rh;
+
+    if(node==NULL)
+        return(0);
+
+    if(node->left==NULL)
+        lh = 0;
+    else
+        lh = node->left->height + 1;
+
+    if(node->right==NULL)
+        rh = 0;
+    else
+        rh = node->right->height + 1;
+
+    return(lh - rh);
+}
+
+static void print_preorder (avl *node)
+{
+    test_avl_node_t *test_node = (test_avl_node_t *)node;
+    if(node!=NULL)
+    {
+        printf("%d(%d/%d) ", *(int *)test_node->data, bal_factor(node), get_height(node));
+        print_preorder(node->left);
+        print_preorder(node->right);
+    }
+}
+
+static void print_inorder (avl *node)
+{
+    test_avl_node_t *test_node = (test_avl_node_t *)node;
+    if(node!=NULL)
+    {
+        print_inorder(node->left);
+        printf("%d(%d/%d) ", *(int *)test_node->data, bal_factor(node), get_height(node));
+        print_inorder(node->right);
+    }
+}
+
+static void print_postorder (avl *node)
+{
+    test_avl_node_t *test_node = (test_avl_node_t *)node;
+    if(node!=NULL)
+    {
+        print_postorder(node->left);
+        print_postorder(node->right);
+        printf("%d(%d/%d) ", *(int *)test_node->data, bal_factor(node), get_height(node));
+    }
+}
+
+void avl_print_tree (avl_tree *tree)
+{
+    if(!tree)
+        return;
+
+    printf("\nInorder sequence:\n");
+    print_inorder((avl *)tree->root);
+    printf("\n");
+
+    printf("\nPreorder sequence:\n");
+    print_preorder((avl *)tree->root);
+    printf("\n");
+
+    printf("\nPostorder sequence:\n");
+    print_postorder((avl *)tree->root);
+    printf("\n");
+}
+
+int main ()
+{
+    //node_t *root=NULL;
+    test_avl_node_t *node, N;
+    avl_tree T;
+    int arr[20] = {11,20,40,4,9,15,10,23,5,25,1,14,3,35,30,21,2,29,39,7}; 
+    test_avl_node_t *ptrs[20] = {}; 
+    int i, rv, val;
+    int diff = 2;
+
+    ///////////////////////
+    //TC-1: Initialise tree
+    ///////////////////////
+    rv = avl_tree_init(&T, my_compare_func);
+    if(rv==0)
+    {
+        printf("====== TC-1: Initialise tree: SUCCESS \n");
+    } else {
+        printf("====== TC-1: Initialise tree: FAIL \n");
+    }
+
+    ////////////////////////////////
+    //TC-2: Insert elements randomly
+    ////////////////////////////////
+    for(i=0; i<20; i++)
+    {
+        ptrs[i] = malloc(sizeof(test_avl_node_t));
+        if(ptrs[i]==NULL)
+        {
+            printf("Unable to allocate a node");
+            exit(0);
+        }
+        ptrs[i]->data = (void *)&arr[i];
+        rv = avl_insert(&T, (void *)ptrs[i]);
+        if(rv < 0)
+        {
+            printf("Unable to insert node, exiting\n");
+        }
+    }
+    if(avl_get_count(&T) == 20)
+    {
+        printf("====== TC-2: Insert elements randomly: SUCCESS \n");
+    } else {
+        printf("====== TC-2: Insert elements randomly: FAIL \n");
+        printf("Inserted 20 nodes, count is: %d, expected is: %d\n",
+               avl_get_count(&T),20);
+        avl_print_tree(&T);
+    }
+
+    /////////////////////////////////////////////////
+    //TC-3: Get first node from Tree without elements
+    /////////////////////////////////////////////////
+    node = &N;
+    rv = avl_get_first_node (&T, (avl **)&node);
+    val = *(int *)node->data;
+    if((rv==1) && (val == 11))
+    {
+        printf("====== TC-3: Get first node from Tree without elements: SUCCESS \n");
+    } else {
+        printf("====== TC-3: Get first node from Tree without elements: FAIL \n");
+        printf("rv:%d, first node data:%d\n", rv, *(int *)node->data);
+    }
+
+    //////////////////////////////////////
+    //TC-4: Uninit Tree with some elements
+    //////////////////////////////////////
+    rv = avl_tree_uninit(&T);
+    if(rv==-1)
+    {
+        printf("====== TC-4: Uninit Tree with some elements: SUCCESS \n");
+    } else {
+        printf("====== TC-4: Uninit Tree with some elements: FAIL \n");
+    }
+
+    /////////////////////////////////////
+    //TC-5: Delete some elements randomly
+    /////////////////////////////////////
+    for(i=0; i<20; i=i+3)
+    {
+        rv = avl_remove(&T, ptrs[i]);
+        if(rv < 0)
+        {
+            printf("Unable to delete node, exiting\n");
+        }
+    }
+
+    if(avl_get_count(&T) == 13)
+    {
+        printf("====== TC-5: Delete some elements randomly: SUCCESS \n");
+    } else {
+        printf("====== TC-5: Delete some elements randomly: FAIL \n");
+        printf("Deleted 7 nodes, count is: %d, expected is: %d\n",
+               avl_get_count(&T),13);
+
+        avl_print_tree(&T);
+    }
+
+    /////////////////////////////////////////////////
+    //TC-6: Get first node from Tree without elements
+    /////////////////////////////////////////////////
+    node = &N;
+    rv = avl_get_first_node (&T, (avl **)&node);
+    if(node)
+        val = *(int *)node->data;
+    if((rv) && (val == 14))
+    {
+        printf("====== TC-6: Get first node from Tree without elements: SUCCESS \n");
+    } else {
+        printf("====== TC-6: Get first node from Tree without elements: FAIL \n");
+        printf("rv:%d, first node data:%d\n", rv, *(int *)node->data);
+    }
+
+    /////////////////////////////////////
+    //TC-7: Search for exisiting element
+    /////////////////////////////////////
+    if(avl_search(&T, (avl *)ptrs[8]))
+    {
+        if(*(int *)node->data == *(int *)ptrs[8]->data)
+            printf("====== TC-7: Search for exisiting element: SUCCESS \n");
+    } else {
+        printf("====== TC-7: Search for exisiting element: FAIL \n");
+    }
+
+    //////////////////////////////////////////
+    //TC-8: Delete some more elements randomly
+    //////////////////////////////////////////
+    for(i=2; i<20; i=i+2)
+    {
+        rv = avl_remove(&T, ptrs[i]);
+        if(rv < 0)
+        {
+            printf("Unable to delete node, exiting\n");
+        }
+    }
+
+    if(avl_get_count(&T) == 7)
+    {
+        printf("====== TC-8: Delete some more elements randomly: SUCCESS \n");
+    } else {
+        printf("====== TC-8: Delete some more elements randomly: FAIL \n");
+        printf("Deleted 6 nodes, count is: %d, expected is: %d\n", 
+               avl_get_count(&T),7);
+        avl_print_tree(&T);
+    }
+
+    /////////////////////////////////////////////////
+    //TC-9: Get first node from Tree without elements
+    /////////////////////////////////////////////////
+    node = &N;
+    rv = avl_get_first_node (&T, (avl **)&node);
+    if(node)
+        val = *(int *)node->data;
+    if((rv) && (val == 20))
+    {
+        printf("====== TC-9: Get first node from Tree without elements: SUCCESS \n");
+    } else {
+        printf("====== TC-9: Get first node from Tree without elements: FAIL \n");
+        printf("rv:%d, first node data:%d\n", rv, *(int *)node->data);
+    }
+
+    /////////////////////////////////////
+    //TC-10: Search for exisiting element
+    /////////////////////////////////////
+    if(avl_search (&T, (void *)ptrs[7]))
+    {
+        printf("====== TC-10: Search for exisiting element: SUCCESS \n");
+    } else {
+        printf("====== TC-10: Search for exisiting element: FAIL \n");
+    }
+
+    ///////////////////////
+    //TC-11: Walk all nodes
+    ///////////////////////
+    avl_tree_walk_all_nodes(&T, my_walk_func, (void *)&diff);
+    if(walk_sum == 157)
+    {
+        printf("====== TC-11: Walk all nodes: SUCCESS \n");
+    } else {
+        printf("====== TC-11: Walk all nodes: FAIL \n");
+    }
+
+    ///////////////////////////////////////////
+    //TC-12: Delete some more elements randomly
+    ///////////////////////////////////////////
+    for(i=1; i<20; i=i+2)
+    {
+        rv = avl_remove(&T, ptrs[i]);
+        if(rv < 0)
+        {
+            printf("Unable to delete node, exiting\n");
+        }
+    }
+
+    if(avl_get_count(&T) == 0)
+    {
+        printf("====== TC-12: Delete some more elements randomly: SUCCESS \n");
+    } else {
+        printf("====== TC-12: Delete some more elements randomly: FAIL \n");
+        printf("Deleted 7 nodes, count is: %d, expected is: %d\n",
+               avl_get_count(&T),0);
+        avl_print_tree(&T);
+    }
+
+    /////////////////////////////////////////
+    //TC-13: Search for non-exisiting element
+    /////////////////////////////////////////
+    if(avl_search (&T, (avl *)ptrs[7]))
+    {
+        printf("====== TC-13: Search for non-exisiting element: FAIL \n");
+    } else {
+        printf("====== TC-13: Search for non-exisiting element: SUCCESS \n");
+    }
+
+    //////////////////////////////////////
+    //TC-14: Uninit Tree with some elements
+    //////////////////////////////////////
+    rv = avl_tree_uninit(&T);
+    if(rv==0)
+    {
+        printf("====== TC-14: Uninit Tree without any elements: SUCCESS \n");
+    } else {
+        printf("====== TC-14: Uninit Tree without any elements: FAIL \n");
+    }
+
+    /////////////////////////////////////////////////
+    //TC-15: Get first node from Tree without elements
+    /////////////////////////////////////////////////
+    node = &N;
+    rv = avl_get_first_node (&T, (avl **)&node);
+    if(rv)
+    {
+        printf("====== TC-15: Get first node from Tree without elements: SUCCESS \n");
+    } else {
+        printf("====== TC-15: Get first node from Tree without elements: FAIL \n");
+        if(node)
+            printf("rv:%d, first node data:%d\n", rv, *(int *)node->data);
+    }
+
+    return (0);
+}
+
+
+

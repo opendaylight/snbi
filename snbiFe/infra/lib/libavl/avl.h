@@ -1,44 +1,20 @@
-/*
- *  Vijay Anand R.
- *
- *  Copyright (c) 2014 by cisco Systems, Inc.
- *  All rights reserved.
- *
- */
-
 
 /*
- * ANSI C Library for maintainance of AVL Balanced Trees
+ *  Sreekanth Maddali
  *
- * ref.:
- *  G. M. Adelson-Velskij & E. M. Landis
- *  Doklady Akad. Nauk SSSR 146 (1962), 263-266
- *
- * see also:
- *  D. E. Knuth: The Art of Computer Programming Vol.3 (Sorting and Searching)
- *
- * (C) 2000 Daniel Nagy, Budapest University of Technology and Economics
- * Released under GNU General Public License (GPL) version 2
+ * Library for maintainance of AVL Balanced Trees
  *
  */
 
 #ifndef _AVL_H
 #define _AVL_H 1
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdbool.h>
-
-/* Data structures */
-
-
-/* One element of the AVL tree */
-typedef struct avl
+struct node
 {
-   struct avl* left;
-   struct avl* right;
-   signed char balance;
-} avl;
+  struct node *left,*right;
+  int height;
+};
+typedef struct node avl;
 
 typedef enum avl_compare_e {
     AVL_COMPARE_LT,
@@ -46,63 +22,52 @@ typedef enum avl_compare_e {
     AVL_COMPARE_GT
 } avl_compare_e;
 
-typedef int (*avl_compare_cb_f) (avl *a, avl *b);
+typedef avl_compare_e (*avl_compare_cb_f)(const avl *, const avl *);
+
 typedef int (*avl_walk_cb_f) (avl *node, void *args);
 
-/* An AVL tree */
-typedef struct avl_tree
+struct tree
 {
-   avl* root;
-   avl_compare_cb_f compar;
-} avl_tree;
+  avl *root;
+  avl_compare_cb_f compare_fun;
+};
+typedef struct tree avl_tree;
 
+int avl_tree_init(avl_tree *tree, avl_compare_cb_f cmp_fn);
 
-/* Public methods */
+int avl_insert_node(avl_tree *, void *);
 
-/**
- * Init a avl tree, memory of the tree should be allocated by the caller.
- * returns 0 if successfully inited the tree.
- * returns 1 if init of tree failed.
+int avl_get_count(avl_tree *tree);
+
+void avl_print_tree(avl_tree *);
+
+int avl_delete_node(avl_tree *tree, void *del_node);
+
+int avl_tree_uninit(avl_tree *tree);
+
+/* function 'avl_tree_walk_all_nodes'
+ * returning 0 for failure and 1 for success, unlike all other functions
+ * which are written to return 0 in success case and -1 in failure case
+ * This is done make sure that this library is compatible to 
+ * already existing application using this.
  */
-int avl_tree_init(avl_tree *t, avl_compare_cb_f compar);
+int avl_tree_walk_all_nodes(avl_tree *tree, avl_walk_cb_f walk_fn, void *args);
 
-/**
-  * Walk the entire tree and call walk_cb with node and args as input, 
-  * the walk_cb can stop the tree walk at any point of time.
-  * If all nodes in the tree were walked the API would return 0, 1 if not.
-  */
-bool avl_tree_walk_all_nodes(avl_tree *t, avl_walk_cb_f walk_cb, void *args);
-
-/* Insert element a into the AVL tree t
- * returns 1 if the depth of the tree has grown
- * Warning: do not insert elements already present
+/* function 'avl_get_first_node'
+ * returning 0 for failure and 1 for success, unlike all other functions
+ * which are written to return 0 in success case and -1 in failure case
+ * This is done make sure that this library is compatible to 
+ * already existing application using this.
  */
-int avl_insert(avl_tree* t,avl* a);
+int avl_get_first_node(avl_tree *t, avl **node);
 
-/* Remove an element a from the AVL tree t
- * returns -1 if the depth of the tree has shrunk
- * Warning: if the element is not present in the tree, 
- *          returns 0 as if it had been removed succesfully.
+/* function 'avl_search'
+ * returning 0 for failure and 1 for success, unlike all other functions
+ * which are written to return 0 in success case and -1 in failure case
+ * This is done make sure that this library is compatible to 
+ * already existing application using this.
  */
-int avl_remove(avl_tree* t, avl* a);
+avl* avl_search(avl_tree* tree, avl* node);
 
-/* Remove the root of the AVL tree t
- * Warning: dumps core if t is empty
- */
-int avl_removeroot(avl_tree* t);
+#endif 
 
-/* Iterate through elements in t from a range between a and b (inclusive)
- * for each element calls iter(a) until it returns 0
- * returns the last value returned by iterator or 0 if there were no calls
- * Warning: a<=b must hold
- */
-int avl_range(avl_tree* t,avl* a,avl* b,int(*iter)(avl* a));
-
-avl* avl_search(avl_tree* t, avl* a);
-/*
- * Get the first node in the tree
- * returns FALSE if the tree is empty.
- */
-bool avl_get_first_node (avl_tree *t, avl **node);
-
-#endif /* avl.h */
