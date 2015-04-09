@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a93c517_0ca47655",
+        "filename": "snbiFe/infra/lib/libavl/avl.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-04-09T12:47:18Z",
+      "side": 1,
+      "message": "please add the epl licence here.",
+      "revId": "fd3b37dcdb73c932b460ed0673dd49863e767879",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
