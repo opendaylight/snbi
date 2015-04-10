@@ -7,20 +7,28 @@
  */
 
 
-#include "an_logger.h"
-#include "an_misc.h"
-//#include "an_parse_dummy.h"
-#include "an_tlv.h"
-#include "an_file.h"
-#include "an_file_linux.h"
-#include "an_syslog.h"
+#include <an_logger.h>
+#include <an_misc.h>
+//#include <an_parse_dummy.h>
+#include <an_tlv.h>
+#include <an_file.h>
+#include <an_file_linux.h>
+#include <an_syslog.h>
 #include <stdarg.h>
 #include <string.h>
+#include <unistd.h>
 
 #define AN_LOG_FLAG_FROM_LOG_CFG(cfg) (an_pow(2, cfg - 1))
-boolean an_debug_map[AN_LOG_ALL_ALL][AN_DEBUG_MAX];
-#define AN_LINUX_LOGGER_FILENAME "an_logger.log"
-#define AN_LOGGER_MAX_LINE_LEN 500
+int an_debug_map[AN_LOG_ALL_ALL] = {
+        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+        AN_DEBUG_MAX, AN_DEBUG_MAX
+        };
+
+an_file_descr_t log_fd_ = STDOUT_FILENO;
+
 an_log_type AN_LOG_NONE;
 an_log_type AN_LOG_ND;
 an_log_type AN_LOG_CD;
@@ -160,48 +168,20 @@ static void an_log_all (boolean sense)
     }
 }
 
-void vbuginf(const char *fmt, va_list args) {
-    an_buffer_t line = {};
-    uint8_t temp_str[AN_LOGGER_MAX_LINE_LEN-1] = {};
-    an_file_descr_t fd = AN_FILE_DESCR_INVALID;
+void vbuginf(const char *fmt, va_list args) 
+{
     an_file_api_ret_enum retval;
 
-   fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_WRITE_ONLY | AN_FOF_APPEND);
-   if (!an_file_descr_is_valid(fd)) { 
-       fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_WRITE_ONLY |
-               AN_FOF_APPEND | AN_FOF_CREATE);
-       if (!an_file_descr_is_valid(fd)) { 
-           printf("\n Failed to open the file in vbuginf %s", AN_LINUX_LOGGER_FILENAME);
-       }
+   if (!an_file_descr_is_valid(log_fd_)) {
+       printf("Invalid filedescriptor in vbuginf %d\n", log_fd_);
        return;
     }
 
-    retval = an_file_seek(fd, 0, AN_FILE_SEEK_END);
+    retval = an_file_write_fs(log_fd_, fmt, args);
     if (retval != AN_FILE_API_SUCCESS) {
-       printf("\nEncountered error in writing to linux logger file"
-              "file %s, error code %s", AN_LINUX_LOGGER_FILENAME, an_file_enum_get_string(retval));
-        an_file_close(fd);
+        printf("Failed to write to write to fd %d\n", log_fd_);
         return;
     }
-// Write to logger file here.
-//    snprintf(temp_str, AN_LOGGER_MAX_LINE_LEN, fmt, args);
-    vsnprintf(temp_str, AN_LOGGER_MAX_LINE_LEN, fmt, args);
-    line.data = temp_str;
-    line.len = strlen(temp_str)+1;
-    retval = an_file_write_word(fd, &line);
-    if (retval != AN_FILE_API_SUCCESS) {
-        an_file_close(fd);
-        return;
-    }
-
-    retval = an_file_write_line_terminator(fd);
-    if (retval != AN_FILE_API_SUCCESS) {
-        an_file_close(fd);
-        return;
-    }
-    an_file_close(fd);
-
-//    vprintf(fmt,args);
     return;
 }
 
@@ -251,27 +231,7 @@ void an_logger_init (void)
     AN_LOG_FILE         =   AN_LOG_FLAG_FROM_LOG_CFG(AN_LOG_CFG_FILE);
     AN_LOG_ALL          =  0xFFFFFFFF;
 
-    an_buffer_t word = {};
-    an_file_descr_t fd = AN_FILE_DESCR_INVALID;
-    an_file_api_ret_enum retval;        
-
-    fd = an_file_open(AN_LINUX_LOGGER_FILENAME, AN_FOF_READ_WRITE | AN_FOF_CREATE);
-    if (!an_file_descr_is_valid(fd)) {  
-        printf("\n Failed to open the file in an_logger_init() %s", AN_LINUX_LOGGER_FILENAME);
-       return;
-    }
- 
-/*
-    retval = an_file_seek(fd, 0, AN_FILE_SEEK_END);
-    if (retval != AN_FILE_API_SUCCESS) {
-       printf("\nEncountered error in writing to linux logger file"
-              "file %s, error code %s", file, an_file_enum_get_string(retval));
-        an_file_close(fd);
-        return;
-    }
-*/
     an_logger_initialized = TRUE;    
-    an_file_close(fd);
     return;
 }
 
@@ -280,59 +240,70 @@ void an_logger_uninit (void)
     if (!an_logger_is_initialized()) {
         return;
     }
-    an_file_delete(AN_LINUX_LOGGER_FILENAME);
+    if (log_fd_ != STDOUT_FILENO) {
+        an_file_close(log_fd_);
+        log_fd_ = STDOUT_FILENO;
+    }
     an_logger_initialized = FALSE;
     return;
 }
 
-void an_set_log_lev (an_log_type_e start_log, an_log_type_e end_log, 
-                     an_debug_level_e lev, boolean flag)
+void an_set_log_lev (an_log_type_e log_type, an_debug_level_e lev, boolean flag)
 {
-    int i;
-    for (i = start_log; i <end_log; i++) {
-         an_debug_map[i][lev] = flag;
-         if (flag) {
-            printf("\n\tDebugging is Enabled for %s %s",
-                    an_log_cfg_string[i], an_log_lev_str[lev]);
-         } else {
-            printf("\n\tDebugging is Disabled for %s %s",
-                    an_log_cfg_string[i], an_log_lev_str[lev]);
-         }
-    }
-
-} 
-
-void an_config_debug_log (an_log_type_e type, an_debug_level_e lev, boolean flag)
-{
-    int i;
-    for (i = lev; i < AN_DEBUG_MAX; i++) {
-
-        switch (type) {
-            case AN_LOG_ND_ALL:
-                 an_set_log_lev(AN_LOG_ND_EVENT, type, i, flag);
-                break;
-            case AN_LOG_BS_ALL:
-                 an_set_log_lev(AN_LOG_BS_EVENT, type, i, flag);
-                break;
-            case AN_LOG_RA_ALL:
-                 an_set_log_lev(AN_LOG_RA_EVENT, type, i, flag);
-                 break;
-            case AN_LOG_SRVC_ALL:
-                 an_set_log_lev(AN_LOG_SRVC_EVENT, type, i, flag);
-                 break;
-            default:
-                an_debug_map[type][lev] = flag;
-                if (flag) {
-                    printf("\n\tDebugging is Enabled for %s %s",
-                           an_log_cfg_string[type], an_log_lev_str[i]);
-                } else {
-                    printf("\n\tDebugging is Disabled for %s %s",
-                           an_log_cfg_string[type], an_log_lev_str[i]);
-                }
-                break;
+    if (flag) {
+        if (lev <= an_debug_map[log_type]) {
+            an_debug_map[log_type] = lev;
+            printf("\n\tDebugging is Enabled for  %s %s",
+                   an_log_cfg_string[log_type],
+                   an_log_lev_str[an_debug_map[log_type]]);
+        } else {
+            printf("\n\tWarning!!!!Debugging is already enabled for  %s %s",
+                   an_log_cfg_string[log_type], an_log_lev_str[lev]);
+        }
+    } else {
+        if ((lev <= an_debug_map[log_type]) && 
+             (an_debug_map[log_type] != AN_DEBUG_MAX)) {
+            printf("\n\tDebugging is Disabled for  %s %s",
+                    an_log_cfg_string[log_type],
+                    an_log_lev_str[an_debug_map[log_type]]);
+            an_debug_map[log_type] = AN_DEBUG_MAX;
+        } else {
+            printf("\n\tError!!!!Disabling the debugs [%s %s] that are not"
+                   " enabled", an_log_cfg_string[log_type],
+                   an_log_lev_str[lev]);
         }
     }
 }
+
+void an_config_debug_log (an_log_type_e type, an_debug_level_e lev, boolean flag)
+{
+    switch (type) {
+        case AN_LOG_ND_ALL:
+            an_set_log_lev(AN_LOG_ND_EVENT, lev, flag);
+            an_set_log_lev(AN_LOG_ND_PACKET, lev, flag);
+            an_set_log_lev(AN_LOG_ND_DB, lev, flag);
+            break;
+        case AN_LOG_BS_ALL:
+            an_set_log_lev(AN_LOG_BS_EVENT, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_EVENT, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_PACKET, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_AAA, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_NTP, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_SYSLOG, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_IDP, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_TOPO, lev, flag);
+            an_set_log_lev(AN_LOG_SRVC_CONFIG, lev, flag);
+            break;
+        case AN_LOG_INTENT_ALL:
+            printf("\nNo intent logging is supported");
+            break;
+        default:
+            an_set_log_lev(type, lev, flag);
+            break;
+    }
+}
+
+
 
 void an_log_start (an_log_cfg_e cfg)
 {
@@ -366,7 +337,7 @@ boolean an_log_is_enabled_for_type (an_log_type type)
 
 boolean an_log_is_enabled_for_type_lev (an_log_type_e type, an_debug_level_e lev)
 {
-    return (an_debug_map[type][lev]);
+    return (an_debug_map[type] == lev);
 }
 
 boolean an_debug_log_is_enabled_for_type (an_log_type_e type)
@@ -401,22 +372,23 @@ void an_debug_log (an_log_type_e type, an_debug_level_e lev,
                    void *condition, const char *fmt, ...) 
 {
     va_list args;
- //   if (an_debug_map[type][lev]) {
+
+    if (lev >= an_debug_map[type]) {
         va_start(args, fmt);
         vbuginf(fmt, args);
         va_end(args);
- //   }
+    }
 }
  
 void an_debug_log_start (boolean flag)
 {
-    an_debug_level_e lev;
-    an_log_type_e log;
-
-    for(lev=AN_DEBUG_INFO; lev<AN_DEBUG_MAX; lev++) {
-        for (log=AN_LOG_ND_EVENT; log<AN_LOG_ALL_ALL; log++) {
-            an_debug_map[log][lev] = flag;
-        }
+    an_log_type_e log_type;
+    for (log_type = AN_LOG_ND_EVENT; log_type < AN_LOG_ALL_ALL; log_type++) {
+         if (flag) {
+             an_debug_map[log_type] = AN_DEBUG_SEVERE;
+         } else {
+             an_debug_map[log_type] = AN_DEBUG_MAX;
+         }
     }
 }
 
@@ -442,6 +414,40 @@ void an_log_uninit (void)
 
 void an_buginf (const char *fmt, ...)
 {
-            return;
+    va_list args;
+
+    va_start(args, fmt);
+    vbuginf(fmt, args);
+    va_end(args);
+
+    return;
 }
 
+boolean an_log_fd_set (an_file_descr_t fd)
+{
+    if (log_fd_ != STDOUT_FILENO) {
+        an_file_close(log_fd_);
+    }
+    log_fd_ = fd;
+    return TRUE;
+}
+
+boolean an_log_stdout_set (void)
+{
+    if (log_fd_ != STDOUT_FILENO) {
+        an_file_close(log_fd_);
+        log_fd_ = STDOUT_FILENO;
+    }
+
+    return TRUE;
+}
+
+boolean an_log_file_set (uint8_t *file_name)
+{
+    if (log_fd_ != STDOUT_FILENO) {
+        an_file_close(log_fd_);
+    }
+    log_fd_ = an_file_open(file_name, O_RDWR|O_CREAT|O_APPEND);
+
+    return (an_file_descr_is_valid(log_fd_));
+}

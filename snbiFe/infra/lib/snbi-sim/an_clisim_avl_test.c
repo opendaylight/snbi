@@ -1,11 +1,10 @@
 /*
  * AN test cli for testing stubs.
  *
- *  Vijay Anand R
- *
- *  Copyright (c) 2010-2012, 2014 by cisco Systems, Inc.
- *  All rights reserved.
- *
+ * Vijay Anand R
+ * This program and the accompanying materials are made available under
+ * the terms of the Eclipse License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +79,7 @@ cparser_cmd_test_avl_insert_value (cparser_context_t *context,
                                              "AN AVL test node");
     if (!test_node) {
         printf("\n Failed to allocate test node");
-        return;
+        return (CPARSER_NOT_OK);
     }
 
     an_memset(test_node, 0, sizeof(an_avl_test_node_t));

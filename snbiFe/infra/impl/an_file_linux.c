@@ -7,15 +7,15 @@
  */
 
 
-#include "../../al/an_types.h"
-#include "../../al/an_logger.h"
-#include "../../al/an_addr.h"
-#include "../../al/an_mem.h"
-#include "../../al/an_str.h"
-#include "../../al/an_sudi.h"
-#include "../../al/an_file.h"
-#include "an_file_linux.h"
-#include "../../common/an_acp.h"
+#include <an_types.h>
+#include <an_logger.h>
+#include <an_addr.h>
+#include <an_mem.h>
+#include <an_str.h>
+#include <an_sudi.h>
+#include <an_file.h>
+#include <an_file_linux.h>
+#include <an_acp.h>
 
 
 const an_file_descr_t AN_FILE_DESCR_INVALID = -1;
@@ -202,8 +202,20 @@ an_file_write_line (an_file_descr_t fd, an_buffer_t *line)
     }
 
     return (AN_FILE_API_SUCCESS);
-
 }
+
+an_file_api_ret_enum
+an_file_write_fs (an_file_descr_t fd, const char *fmt, va_list args)
+{
+    if (!an_file_descr_is_valid(fd)) {
+        return (AN_FILE_INVALID_DESCR);
+    }
+
+    dprintf(fd, fmt, args);
+
+    return (AN_FILE_API_SUCCESS);
+}
+
 
 an_file_api_ret_enum
 an_file_exist (uint8_t *filename)

@@ -1,4 +1,4 @@
-show autonomic interface
+clear
 
 show autonomic interface
 
@@ -10,19 +10,36 @@ show snbi device
 
 show snbi neighbors
 
-snbi discovery
-
-no snbi discovery
-
-snbi interface start
-
-snbi interface stop
-
 show snbi intf-db
 
-snbi start
+snbi
 
-snbi stop
+#submode "snbi"
+
+quit
+
+discovery
+
+no discovery
+
+interface start
+
+interface stop
+
+start
+
+stop
+
+debug log console
+debug log file <STRING:logfile>
+
+debug neighbor-discovery <LIST:all,database,events,packets:type> <LIST:info,moderate,sev:level>
+no debug neighbor-discovery <LIST:all,database,events,packets:type> <LIST:info,moderate,sev:level>
+
+debug bootstrap <LIST:all,events,packets:type> <LIST:info,moderate,sev:level>
+no debug bootstrap <LIST:all,events,packets:type> <LIST:info,moderate,sev:level>
+
+#endsubmode
 
 test avl-get-firstnode
 

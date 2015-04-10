@@ -6,15 +6,15 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#include "an_types.h"
-#include "an.h"
-#include "an_event_mgr.h"
-#include "an_cert.h"
-#include "an_timer.h"
-#include "an_logger.h"
-#include "../../al/an_mem.h"
-#include "../../al/an_str.h"
-#include "an_ipv6.h"
+#include <an_types.h>
+#include <an.h>
+#include <an_event_mgr.h>
+#include <an_cert.h>
+#include <an_timer.h>
+#include <an_logger.h>
+#include <an_mem.h>
+#include <an_str.h>
+#include <an_ipv6.h>
 
 
 extern uint8_t sudi_trustpoint[];

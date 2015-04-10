@@ -49,11 +49,13 @@ cparser_cmd_show_snbi_device (cparser_context_t *context)
     printf("\n%80s", an_show_header);
     printf ("\n UDI    %s ", an_info.udi.data);
     printf("\n%80s", an_show_trailer); 
+    return (CPARSER_OK);
 }
 
 cparser_result_t 
 cparser_cmd_show_autonomic_interface(cparser_context_t *context)
 {
+    return (CPARSER_OK);
 }
 
 cparser_result_t
@@ -71,7 +73,7 @@ cparser_cmd_show_ip_interfaces (cparser_context_t *context)
     if(sck < 0)
     {
         perror("socket");
-        return;
+        return (CPARSER_NOT_OK);
     }
 
 /* Query available interfaces. */
@@ -80,7 +82,7 @@ cparser_cmd_show_ip_interfaces (cparser_context_t *context)
     if(ioctl(sck, SIOCGIFCONF, &ifc) < 0)
     {
         perror("ioctl(SIOCGIFCONF)");
-        return;
+        return (CPARSER_NOT_OK);
     }
 /* Iterate through the list of interfaces. */
     ifr         = ifc.ifc_req;
@@ -99,7 +101,7 @@ cparser_cmd_show_ip_interfaces (cparser_context_t *context)
         if(ioctl(sck, SIOCGIFHWADDR, item) < 0)
         {
             perror("ioctl(SIOCGIFHWADDR)");
-            return;
+            return (CPARSER_NOT_OK);
         }
 
     /* Get the broadcast address */
@@ -108,12 +110,13 @@ cparser_cmd_show_ip_interfaces (cparser_context_t *context)
         printf("\n");
     }
     close(sck); 
-    return;
+    return (CPARSER_OK);
 }
 
 cparser_result_t 
 cparser_cmd_show_process (cparser_context_t *context)
 {
+    return (CPARSER_OK);
 }
 
 an_avl_walk_e
@@ -143,6 +146,7 @@ cparser_cmd_show_snbi_neighbors (cparser_context_t *context)
     printf("\n%80s", an_table_header);
     an_nbr_db_walk(an_show_nbr_command_cb, NULL);
     printf("\n%80s", an_show_trailer);
+    return (CPARSER_OK);
 }
 
 an_walk_e
@@ -167,5 +171,5 @@ cparser_result_t
 cparser_cmd_show_snbi_intf_db (cparser_context_t *context)
 {
     an_if_info_db_walk(an_if_info_walker, NULL);
+    return (CPARSER_OK);
 }
-

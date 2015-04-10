@@ -10,18 +10,36 @@ extern "C" {
 
 extern cparser_node_t cparser_root;
 
+cparser_result_t cparser_cmd_clear(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_autonomic_interface(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_ip_interfaces(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_process(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_device(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_neighbors(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_intf_db(cparser_context_t *context);
+cparser_result_t cparser_cmd_snbi(cparser_context_t *context);
+cparser_result_t cparser_cmd_snbi_quit(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_discovery(cparser_context_t *context);
+cparser_result_t cparser_cmd_snbi_no_discovery(cparser_context_t *context);
+cparser_result_t cparser_cmd_snbi_no_debug_neighbor_discovery_type_level(cparser_context_t *context,
+    char **type_ptr,
+    char **level_ptr);
+cparser_result_t cparser_cmd_snbi_no_debug_bootstrap_type_level(cparser_context_t *context,
+    char **type_ptr,
+    char **level_ptr);
 cparser_result_t cparser_cmd_snbi_interface_start(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_interface_stop(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_start(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_stop(cparser_context_t *context);
-cparser_result_t cparser_cmd_no_snbi_discovery(cparser_context_t *context);
+cparser_result_t cparser_cmd_snbi_debug_log_console(cparser_context_t *context);
+cparser_result_t cparser_cmd_snbi_debug_log_file_logfile(cparser_context_t *context,
+    char **logfile_ptr);
+cparser_result_t cparser_cmd_snbi_debug_neighbor_discovery_type_level(cparser_context_t *context,
+    char **type_ptr,
+    char **level_ptr);
+cparser_result_t cparser_cmd_snbi_debug_bootstrap_type_level(cparser_context_t *context,
+    char **type_ptr,
+    char **level_ptr);
 cparser_result_t cparser_cmd_test_avl_get_firstnode(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_init(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_insert_value(cparser_context_t *context,

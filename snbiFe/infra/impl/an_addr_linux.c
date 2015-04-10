@@ -7,12 +7,12 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#include "../../al/an_types.h"
-#include "../../common/an.h"
-#include "../../al/an_mem.h"
-#include "../../al/an_str.h"
-#include "../../al/an_logger.h"
-#include "../../al/an_addr.h"
+#include <an_types.h>
+#include <an.h>
+#include <an_mem.h>
+#include <an_str.h>
+#include <an_logger.h>
+#include <an_addr.h>
 
 #define ADDR_IPV6 20 /* IP Version 6 */
 #define ADDRLEN_IPV6 16 

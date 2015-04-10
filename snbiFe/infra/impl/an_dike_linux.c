@@ -6,8 +6,8 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#include "an_types.h"
-#include "an_dike.h"
+#include <an_types.h>
+#include <an_dike.h>
 
 boolean
 an_dike_profile_apply_on_tunnel (an_if_t tunn_ifhndl, uint16_t ll_dike_port,
