@@ -6,8 +6,8 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-#include "an_types.h"
-#include "an_bitlist.h"
+#include <an_types.h>
+#include <an_bitlist.h>
 
 int
 an_bitlist_count (an_bitlist_t *bl)

@@ -9,7 +9,7 @@
 #ifndef __AN_AVL_LINUX_H__
 #define __AN_AVL_LINUX_H__
 
-#include "avl.h"
+#include <avl.h>
 
 typedef avl an_avl_node_t;
 typedef avl* an_avl_top_p;

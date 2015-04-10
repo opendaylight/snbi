@@ -7,10 +7,10 @@
  */
 
 
-#include "an_types.h"
-#include "an_nd.h"
-#include "an_msg_mgr.h"
-#include "an_ipv6_nd.h"
+#include <an_types.h>
+#include <an_nd.h>
+#include <an_msg_mgr.h>
+#include <an_ipv6_nd.h>
 
 boolean
 an_ipv6_nd_attach (void)

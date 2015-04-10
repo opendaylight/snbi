@@ -9,8 +9,8 @@
 #ifndef __AN_PAK_LINUX_H__
 #define __AN_PAK_LINUX_H__
 
-#include "an_types.h"
-#include "an_types_linux.h"
+#include <an_types.h>
+#include <an_types_linux.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>

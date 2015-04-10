@@ -10,6 +10,13 @@
 #include "cparser_tree.h"
 
 cparser_result_t
+cparser_glue_clear (cparser_t *parser)
+{
+    cparser_cmd_clear(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_show_autonomic_interface (cparser_t *parser)
 {
     cparser_cmd_show_autonomic_interface(&parser->context);
@@ -52,9 +59,72 @@ cparser_glue_show_snbi_intf_db (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_snbi (cparser_t *parser)
+{
+    cparser_cmd_snbi(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_quit (cparser_t *parser)
+{
+    cparser_cmd_snbi_quit(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_snbi_discovery (cparser_t *parser)
 {
     cparser_cmd_snbi_discovery(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_no_discovery (cparser_t *parser)
+{
+    cparser_cmd_snbi_no_discovery(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_no_debug_neighbor_discovery_type_level (cparser_t *parser)
+{
+    char *type_val;
+    char **type_ptr = NULL;
+    char *level_val;
+    char **level_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_list(&parser->tokens[3], &type_val);
+    assert(CPARSER_OK == rc);
+    type_ptr = &type_val;
+    rc = cparser_get_list(&parser->tokens[4], &level_val);
+    assert(CPARSER_OK == rc);
+    level_ptr = &level_val;
+    cparser_cmd_snbi_no_debug_neighbor_discovery_type_level(&parser->context,
+        type_ptr,
+        level_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_no_debug_bootstrap_type_level (cparser_t *parser)
+{
+    char *type_val;
+    char **type_ptr = NULL;
+    char *level_val;
+    char **level_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_list(&parser->tokens[3], &type_val);
+    assert(CPARSER_OK == rc);
+    type_ptr = &type_val;
+    rc = cparser_get_list(&parser->tokens[4], &level_val);
+    assert(CPARSER_OK == rc);
+    level_ptr = &level_val;
+    cparser_cmd_snbi_no_debug_bootstrap_type_level(&parser->context,
+        type_ptr,
+        level_ptr);
     return CPARSER_OK;
 }
 
@@ -87,9 +157,66 @@ cparser_glue_snbi_stop (cparser_t *parser)
 }
 
 cparser_result_t
-cparser_glue_no_snbi_discovery (cparser_t *parser)
+cparser_glue_snbi_debug_log_console (cparser_t *parser)
 {
-    cparser_cmd_no_snbi_discovery(&parser->context);
+    cparser_cmd_snbi_debug_log_console(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_debug_log_file_logfile (cparser_t *parser)
+{
+    char *logfile_val;
+    char **logfile_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_string(&parser->tokens[3], &logfile_val);
+    assert(CPARSER_OK == rc);
+    logfile_ptr = &logfile_val;
+    cparser_cmd_snbi_debug_log_file_logfile(&parser->context,
+        logfile_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_debug_neighbor_discovery_type_level (cparser_t *parser)
+{
+    char *type_val;
+    char **type_ptr = NULL;
+    char *level_val;
+    char **level_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_list(&parser->tokens[2], &type_val);
+    assert(CPARSER_OK == rc);
+    type_ptr = &type_val;
+    rc = cparser_get_list(&parser->tokens[3], &level_val);
+    assert(CPARSER_OK == rc);
+    level_ptr = &level_val;
+    cparser_cmd_snbi_debug_neighbor_discovery_type_level(&parser->context,
+        type_ptr,
+        level_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_snbi_debug_bootstrap_type_level (cparser_t *parser)
+{
+    char *type_val;
+    char **type_ptr = NULL;
+    char *level_val;
+    char **level_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_list(&parser->tokens[2], &type_val);
+    assert(CPARSER_OK == rc);
+    type_ptr = &type_val;
+    rc = cparser_get_list(&parser->tokens[3], &level_val);
+    assert(CPARSER_OK == rc);
+    level_ptr = &level_val;
+    cparser_cmd_snbi_debug_bootstrap_type_level(&parser->context,
+        type_ptr,
+        level_ptr);
     return CPARSER_OK;
 }
 
@@ -421,43 +548,207 @@ cparser_node_t cparser_node_test = {
     &cparser_node_test_avl_get_firstnode
 };
 
-cparser_node_t cparser_node_no_snbi_discovery_eol = {
+cparser_node_t cparser_node_snbi_root_debug_bootstrap_type_level_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_no_snbi_discovery,
+    cparser_glue_snbi_debug_bootstrap_type_level,
     NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_no_snbi_discovery = {
-    CPARSER_NODE_KEYWORD,
+cparser_list_node_t cparser_list_node_snbi_root_debug_bootstrap_type_level_sev = {
+    NULL,
+    "sev"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_bootstrap_type_level_moderate = {
+    &cparser_list_node_snbi_root_debug_bootstrap_type_level_sev,
+    "moderate"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_bootstrap_type_level_info = {
+    &cparser_list_node_snbi_root_debug_bootstrap_type_level_moderate,
+    "info"
+ };
+
+cparser_node_t cparser_node_snbi_root_debug_bootstrap_type_level = {
+    CPARSER_NODE_LIST,
     0,
-    "discovery",
+    &cparser_list_node_snbi_root_debug_bootstrap_type_level_info,
     NULL,
     NULL,
-    &cparser_node_no_snbi_discovery_eol
+    &cparser_node_snbi_root_debug_bootstrap_type_level_eol
 };
 
-cparser_node_t cparser_node_no_snbi = {
-    CPARSER_NODE_KEYWORD,
+cparser_list_node_t cparser_list_node_snbi_root_debug_bootstrap_type_packets = {
+    NULL,
+    "packets"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_bootstrap_type_events = {
+    &cparser_list_node_snbi_root_debug_bootstrap_type_packets,
+    "events"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_bootstrap_type_all = {
+    &cparser_list_node_snbi_root_debug_bootstrap_type_events,
+    "all"
+ };
+
+cparser_node_t cparser_node_snbi_root_debug_bootstrap_type = {
+    CPARSER_NODE_LIST,
     0,
-    "snbi",
+    &cparser_list_node_snbi_root_debug_bootstrap_type_all,
     NULL,
     NULL,
-    &cparser_node_no_snbi_discovery
+    &cparser_node_snbi_root_debug_bootstrap_type_level
 };
 
-cparser_node_t cparser_node_no = {
+cparser_node_t cparser_node_snbi_root_debug_bootstrap = {
     CPARSER_NODE_KEYWORD,
     0,
-    "no",
+    "bootstrap",
     NULL,
-    &cparser_node_test,
-    &cparser_node_no_snbi
+    NULL,
+    &cparser_node_snbi_root_debug_bootstrap_type
 };
 
-cparser_node_t cparser_node_snbi_stop_eol = {
+cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery_type_level_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_debug_neighbor_discovery_type_level,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_sev = {
+    NULL,
+    "sev"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_moderate = {
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_sev,
+    "moderate"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_info = {
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_moderate,
+    "info"
+ };
+
+cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery_type_level = {
+    CPARSER_NODE_LIST,
+    0,
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_info,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_debug_neighbor_discovery_type_level_eol
+};
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_packets = {
+    NULL,
+    "packets"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_events = {
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_packets,
+    "events"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_database = {
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_events,
+    "database"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_debug_neighbor_discovery_type_all = {
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_database,
+    "all"
+ };
+
+cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery_type = {
+    CPARSER_NODE_LIST,
+    0,
+    &cparser_list_node_snbi_root_debug_neighbor_discovery_type_all,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_debug_neighbor_discovery_type_level
+};
+
+cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "neighbor-discovery",
+    NULL,
+    &cparser_node_snbi_root_debug_bootstrap,
+    &cparser_node_snbi_root_debug_neighbor_discovery_type
+};
+
+cparser_node_t cparser_node_snbi_root_debug_log_file_logfile_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_debug_log_file_logfile,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_snbi_root_debug_log_file_logfile = {
+    CPARSER_NODE_STRING,
+    0,
+    "<STRING:logfile>",
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_debug_log_file_logfile_eol
+};
+
+cparser_node_t cparser_node_snbi_root_debug_log_file = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "file",
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_debug_log_file_logfile
+};
+
+cparser_node_t cparser_node_snbi_root_debug_log_console_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_debug_log_console,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_snbi_root_debug_log_console = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "console",
+    NULL,
+    &cparser_node_snbi_root_debug_log_file,
+    &cparser_node_snbi_root_debug_log_console_eol
+};
+
+cparser_node_t cparser_node_snbi_root_debug_log = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "log",
+    NULL,
+    &cparser_node_snbi_root_debug_neighbor_discovery,
+    &cparser_node_snbi_root_debug_log_console
+};
+
+cparser_node_t cparser_node_snbi_root_debug = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "debug",
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_debug_log
+};
+
+cparser_node_t cparser_node_snbi_root_stop_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_snbi_stop,
@@ -466,16 +757,16 @@ cparser_node_t cparser_node_snbi_stop_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_snbi_stop = {
+cparser_node_t cparser_node_snbi_root_stop = {
     CPARSER_NODE_KEYWORD,
     0,
     "stop",
     NULL,
-    NULL,
-    &cparser_node_snbi_stop_eol
+    &cparser_node_snbi_root_debug,
+    &cparser_node_snbi_root_stop_eol
 };
 
-cparser_node_t cparser_node_snbi_start_eol = {
+cparser_node_t cparser_node_snbi_root_start_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_snbi_start,
@@ -484,16 +775,16 @@ cparser_node_t cparser_node_snbi_start_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_snbi_start = {
+cparser_node_t cparser_node_snbi_root_start = {
     CPARSER_NODE_KEYWORD,
     0,
     "start",
     NULL,
-    &cparser_node_snbi_stop,
-    &cparser_node_snbi_start_eol
+    &cparser_node_snbi_root_stop,
+    &cparser_node_snbi_root_start_eol
 };
 
-cparser_node_t cparser_node_snbi_interface_stop_eol = {
+cparser_node_t cparser_node_snbi_root_interface_stop_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_snbi_interface_stop,
@@ -502,16 +793,16 @@ cparser_node_t cparser_node_snbi_interface_stop_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_snbi_interface_stop = {
+cparser_node_t cparser_node_snbi_root_interface_stop = {
     CPARSER_NODE_KEYWORD,
     0,
     "stop",
     NULL,
     NULL,
-    &cparser_node_snbi_interface_stop_eol
+    &cparser_node_snbi_root_interface_stop_eol
 };
 
-cparser_node_t cparser_node_snbi_interface_start_eol = {
+cparser_node_t cparser_node_snbi_root_interface_start_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_snbi_interface_start,
@@ -520,25 +811,198 @@ cparser_node_t cparser_node_snbi_interface_start_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_snbi_interface_start = {
+cparser_node_t cparser_node_snbi_root_interface_start = {
     CPARSER_NODE_KEYWORD,
     0,
     "start",
     NULL,
-    &cparser_node_snbi_interface_stop,
-    &cparser_node_snbi_interface_start_eol
+    &cparser_node_snbi_root_interface_stop,
+    &cparser_node_snbi_root_interface_start_eol
 };
 
-cparser_node_t cparser_node_snbi_interface = {
+cparser_node_t cparser_node_snbi_root_interface = {
     CPARSER_NODE_KEYWORD,
     0,
     "interface",
     NULL,
-    &cparser_node_snbi_start,
-    &cparser_node_snbi_interface_start
+    &cparser_node_snbi_root_start,
+    &cparser_node_snbi_root_interface_start
 };
 
-cparser_node_t cparser_node_snbi_discovery_eol = {
+cparser_node_t cparser_node_snbi_root_no_debug_bootstrap_type_level_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_no_debug_bootstrap_type_level,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_bootstrap_type_level_sev = {
+    NULL,
+    "sev"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_bootstrap_type_level_moderate = {
+    &cparser_list_node_snbi_root_no_debug_bootstrap_type_level_sev,
+    "moderate"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_bootstrap_type_level_info = {
+    &cparser_list_node_snbi_root_no_debug_bootstrap_type_level_moderate,
+    "info"
+ };
+
+cparser_node_t cparser_node_snbi_root_no_debug_bootstrap_type_level = {
+    CPARSER_NODE_LIST,
+    0,
+    &cparser_list_node_snbi_root_no_debug_bootstrap_type_level_info,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_no_debug_bootstrap_type_level_eol
+};
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_bootstrap_type_packets = {
+    NULL,
+    "packets"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_bootstrap_type_events = {
+    &cparser_list_node_snbi_root_no_debug_bootstrap_type_packets,
+    "events"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_bootstrap_type_all = {
+    &cparser_list_node_snbi_root_no_debug_bootstrap_type_events,
+    "all"
+ };
+
+cparser_node_t cparser_node_snbi_root_no_debug_bootstrap_type = {
+    CPARSER_NODE_LIST,
+    0,
+    &cparser_list_node_snbi_root_no_debug_bootstrap_type_all,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_no_debug_bootstrap_type_level
+};
+
+cparser_node_t cparser_node_snbi_root_no_debug_bootstrap = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "bootstrap",
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_no_debug_bootstrap_type
+};
+
+cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery_type_level_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_no_debug_neighbor_discovery_type_level,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_sev = {
+    NULL,
+    "sev"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_moderate = {
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_sev,
+    "moderate"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_info = {
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_moderate,
+    "info"
+ };
+
+cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery_type_level = {
+    CPARSER_NODE_LIST,
+    0,
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_info,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_no_debug_neighbor_discovery_type_level_eol
+};
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_packets = {
+    NULL,
+    "packets"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_events = {
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_packets,
+    "events"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_database = {
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_events,
+    "database"
+ };
+
+cparser_list_node_t cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_all = {
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_database,
+    "all"
+ };
+
+cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery_type = {
+    CPARSER_NODE_LIST,
+    0,
+    &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_all,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_no_debug_neighbor_discovery_type_level
+};
+
+cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "neighbor-discovery",
+    NULL,
+    &cparser_node_snbi_root_no_debug_bootstrap,
+    &cparser_node_snbi_root_no_debug_neighbor_discovery_type
+};
+
+cparser_node_t cparser_node_snbi_root_no_debug = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "debug",
+    NULL,
+    NULL,
+    &cparser_node_snbi_root_no_debug_neighbor_discovery
+};
+
+cparser_node_t cparser_node_snbi_root_no_discovery_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_no_discovery,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_snbi_root_no_discovery = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "discovery",
+    NULL,
+    &cparser_node_snbi_root_no_debug,
+    &cparser_node_snbi_root_no_discovery_eol
+};
+
+cparser_node_t cparser_node_snbi_root_no = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "no",
+    NULL,
+    &cparser_node_snbi_root_interface,
+    &cparser_node_snbi_root_no_discovery
+};
+
+cparser_node_t cparser_node_snbi_root_discovery_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_snbi_discovery,
@@ -547,13 +1011,49 @@ cparser_node_t cparser_node_snbi_discovery_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_snbi_discovery = {
+cparser_node_t cparser_node_snbi_root_discovery = {
     CPARSER_NODE_KEYWORD,
     0,
     "discovery",
     NULL,
-    &cparser_node_snbi_interface,
-    &cparser_node_snbi_discovery_eol
+    &cparser_node_snbi_root_no,
+    &cparser_node_snbi_root_discovery_eol
+};
+
+cparser_node_t cparser_node_snbi_root_quit_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi_quit,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_snbi_root_quit = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "quit",
+    NULL,
+    &cparser_node_snbi_root_discovery,
+    &cparser_node_snbi_root_quit_eol
+};
+
+cparser_node_t cparser_node_snbi_root = {
+    CPARSER_NODE_ROOT,
+    0,
+    NULL,
+    "Root of submode snbi",
+    NULL,
+    &cparser_node_snbi_root_quit
+};
+
+cparser_node_t cparser_node_snbi_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_snbi,
+    NULL,
+    NULL,
+    &cparser_node_snbi_root
 };
 
 cparser_node_t cparser_node_snbi = {
@@ -561,8 +1061,8 @@ cparser_node_t cparser_node_snbi = {
     0,
     "snbi",
     NULL,
-    &cparser_node_no,
-    &cparser_node_snbi_discovery
+    &cparser_node_test,
+    &cparser_node_snbi_eol
 };
 
 cparser_node_t cparser_node_show_snbi_intf_db_eol = {
@@ -709,12 +1209,30 @@ cparser_node_t cparser_node_show = {
     &cparser_node_show_autonomic
 };
 
+cparser_node_t cparser_node_clear_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_clear,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_clear = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "clear",
+    NULL,
+    &cparser_node_show,
+    &cparser_node_clear_eol
+};
+
 cparser_node_t cparser_root = {
     CPARSER_NODE_ROOT,
     0,
     NULL,
     "Root node of the parser tree",
     NULL,
-    &cparser_node_show
+    &cparser_node_clear
 };
 

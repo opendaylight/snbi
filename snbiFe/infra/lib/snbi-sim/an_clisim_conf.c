@@ -6,14 +6,22 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 #include <stdio.h>
-#include <an_event_mgr.h>
-#include <an_if_mgr.h>
-#include <stdio.h>
 #include <unistd.h>
-#include <an_types.h>
+#include <assert.h>
 #include <an_str.h>
+#include <stdlib.h>
 #include <cparser.h>
+#include <an_types.h>
+#include <an_if_mgr.h>
 #include <cparser_tree.h>
+#include <an_event_mgr.h>
+
+cparser_result_t 
+cparser_cmd_clear(cparser_context_t *context)
+{
+    system("clear");
+    return CPARSER_OK;
+}
 
 cparser_result_t
 cparser_cmd_snbi_start (cparser_context_t *context)
@@ -21,7 +29,7 @@ cparser_cmd_snbi_start (cparser_context_t *context)
     printf("\n*********Starting Autonomic Process************\n");
     an_event_db_init();
     an_autonomic_enable();
-    return;
+    return (CPARSER_OK);
 }
 
 cparser_result_t
@@ -29,12 +37,28 @@ cparser_cmd_snbi_stop (cparser_context_t *context)
 {
     an_autonomic_disable();
     printf("\n*************Ending Autonomic Process**********\n");
-    return;
+    return (CPARSER_OK);
 }
 
 cparser_result_t 
-cparser_cmd_no_snbi_discovery (cparser_context_t *context)
+cparser_cmd_snbi_no_discovery (cparser_context_t *context)
 {
+    return (CPARSER_OK);
+}
+
+cparser_result_t
+cparser_cmd_snbi (cparser_context_t *context)
+{
+    char prompt[CPARSER_MAX_PROMPT];
+    snprintf(prompt, CPARSER_MAX_PROMPT, "clisim (snbi) > ");
+    return (cparser_submode_enter(context->parser, NULL, prompt)); 
+}
+
+cparser_result_t
+cparser_cmd_snbi_quit (cparser_context_t *context)
+{
+    assert(context && context->parser);
+    return cparser_submode_exit(context->parser);
 }
 
 cparser_result_t
@@ -52,11 +76,11 @@ cparser_cmd_snbi_discovery (cparser_context_t *context)
        ifhndl = if_nametoindex("netio0");
     }
     if (!ifhndl) {
-        return;
+        return (CPARSER_NOT_OK);
     }
     an_if_info = an_if_info_db_search(ifhndl, TRUE);
     if (!an_if_info) {
-        return;
+        return (CPARSER_NOT_OK);
     }
     
     if (!no) {
@@ -68,6 +92,7 @@ cparser_cmd_snbi_discovery (cparser_context_t *context)
         an_nd_set_preference(ifhndl, AN_ND_CLIENT_CLI, AN_ND_CFG_DISABLED);
         an_nd_stop_on_interface(ifhndl);
     }
+    return (CPARSER_OK);
 
 //    return 0;
 }
@@ -82,11 +107,11 @@ cparser_cmd_snbi_interface_start (cparser_context_t *context)
 // Replace netio0 with av[1] after taking input from user
     ifhndl = if_nametoindex("netio0");
     if (!ifhndl) {
-        return;
+        return (CPARSER_NOT_OK);
     }
     an_if_info = an_if_info_db_search(ifhndl, TRUE);
     if (!an_if_info) {
-        return;
+        return (CPARSER_NOT_OK);
     }
 
 /*  if (an_if_is_cfg_autonomic_enabled(an_if_info)) {
@@ -97,7 +122,7 @@ cparser_cmd_snbi_interface_start (cparser_context_t *context)
 printf("\n [SRK_printf] Setting interface mode autonomic...!");
     an_if_set_cfg_autonomic_enable(an_if_info, TRUE);
     an_if_autonomic_enable(ifhndl);
-    return;
+     return (CPARSER_OK);
 }
 
 cparser_result_t 
@@ -109,19 +134,19 @@ cparser_cmd_snbi_interface_stop (cparser_context_t *context)
 // Replace netio0 with av[1] after taking input from user
     ifhndl = if_nametoindex("netio0");
     if (!ifhndl) {
-        return;
+        return (CPARSER_NOT_OK);
     }
     an_if_info = an_if_info_db_search(ifhndl, TRUE);
     if (!an_if_info) {
-        return;
+        return (CPARSER_NOT_OK);
     }
     if (!an_if_is_cfg_autonomic_enabled(an_if_info)) {
-        return; 
+        return (CPARSER_NOT_OK); 
     }
 printf("\n [SRK_printf] Unsetting interface mode autonomic...!");
     an_if_set_cfg_autonomic_enable(an_if_info, FALSE);
     an_if_autonomic_disable(ifhndl);
-    return;
+    return (CPARSER_OK);
 }
 
 cparser_result_t

@@ -30,5 +30,7 @@ maven-eclipse.xml
 *.cert
 *.ks
 *.o
-cscope.out
+*cscope*
+*cscope.*
 tags
+*.swp

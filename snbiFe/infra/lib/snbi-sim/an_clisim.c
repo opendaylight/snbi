@@ -14,6 +14,8 @@
 #include <cparser.h>
 #include <cparser_tree.h>
 
+extern int an_debug_map[];
+
 int
 main (int argc, char *argv[])
 {
@@ -24,19 +26,27 @@ main (int argc, char *argv[])
 
     memset(&parser, 0, sizeof(parser));
 
-    while (-1 != (ch = getopt(argc, argv, "pic:d"))) {
+    if (argc < 2) {
+        printf("\nInvalid options passed use -h to know the right command\n");
+        return;
+    }
+
+
+
+    while (-1 != (ch = getopt(argc, argv, "ihd"))) {
         switch (ch) {
-            case 'p':
-                printf("pid = %d\n", getpid());
-                break;
             case 'i':
                 interactive = 1;
                 break;
-            case 'c':
-                config_file = optarg;
-                break;
             case 'd':
-                debug = 1;
+                debug  = 1;
+                break;
+            case 'h':
+                printf("\n-h \tDisplay the help and exit");
+                printf("\n-i \tEnter into interactive mode");
+                printf("\n-d \tEnable parser debug mode");
+                printf("\n\n");
+                return;
                 break;
         }
     }
@@ -52,9 +62,10 @@ main (int argc, char *argv[])
     parser.cfg.ch_del = 127;
     parser.cfg.ch_help = '?';
     parser.cfg.flags = (debug ? CPARSER_FLAGS_DEBUG : 0);
-    strcpy(parser.cfg.prompt, "snbi-sim > ");
+    strcpy(parser.cfg.prompt, "clisim > ");
     parser.cfg.fd = STDOUT_FILENO;
     cparser_io_config(&parser);
+
 
     if (CPARSER_OK != cparser_init(&parser.cfg, &parser)) {
         printf("Fail to initialize parser.\n");

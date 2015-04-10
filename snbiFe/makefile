@@ -105,8 +105,10 @@ CC_SNBI_LINUX_AL_SRCS :=\
 CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_avl_test.c \
-	$(SNBI_CLISIM_SRC)/an_show.c \
-	$(SNBI_CLISIM_SRC)/an_sim.c
+	$(SNBI_CLISIM_SRC)/an_clisim_show.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_debug.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_logg.c \
+	$(SNBI_CLISIM_SRC)/an_clisim.c
 
 CC_SNBI_LIBCLI_SRCS :=\
 	$(SNBI_LIBCLI_SRC)/cparser.c \

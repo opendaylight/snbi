@@ -10,25 +10,25 @@
 #ifndef __AN_PROC_LINUX_H__
 #define __AN_PROC_LINUX_H__
 
-#include "../../al/an_if.h"
-#include "../../al/an_sudi.h"
-#include "../../al/an_cert.h"
-#include "../../al/an_timer.h"
-#include "../../al/an_logger.h"
-#include "../../al/an_pak.h"
-#include "../../al/an_mem.h"
-#include "../../al/an_tunnel.h"
-#include "../../al/an_ntp.h"
-#include "../../al/an_misc.h"
-#include "../../al/an_file.h"
-#include "../../al/an_str.h"
-#include "../../al/an_types.h"
-#include "../../common/an_bs.h"
-#include "../../common/an_nd.h"
-#include "../../common/an_event_mgr.h"
-#include "../../common/an_if_mgr.h"
-#include "../../common/an_acp.h"
-#include "../../common/an.h"
+#include <an_if.h>
+#include <an_sudi.h>
+#include <an_cert.h>
+#include <an_timer.h>
+#include <an_logger.h>
+#include <an_pak.h>
+#include <an_mem.h>
+#include <an_tunnel.h>
+#include <an_ntp.h>
+#include <an_misc.h>
+#include <an_file.h>
+#include <an_str.h>
+#include <an_types.h>
+#include <an_bs.h>
+#include <an_nd.h>
+#include <an_event_mgr.h>
+#include <an_if_mgr.h>
+#include <an_acp.h>
+#include <an.h>
 #if 0
 typedef enum an_proc_messages_ {
     AN_PMSG_IF_DOWN,
