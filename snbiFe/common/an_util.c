@@ -5,32 +5,32 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-#include "../al/an_types.h"
-#include "an.h"
-#include "an_acp.h"
-#include "an_event_mgr.h"
-#include "an_if_mgr.h"
-#include "an_idp.h"
-#include "an_srvc.h"
-#include "an_config_download.h"
-#include "../al/an_mem.h"
-#include "../al/an_pak.h"
-#include "../al/an_routing.h"
-#include "../al/an_str.h"
-#include "../al/an_mem_guard.h"
-#include "../al/an_timer.h"
-#include "../al/an_tunnel.h"
-#include "../al/an_syslog.h"
-#include "../al/an_cert.h"
-#include "../al/an_file.h"
-#include "../al/an_sudi.h"
-#include "../al/an_logger.h"
-#include "../al/an_addr.h"
-#include "../al/an_ipv6.h"
-#include "../al/an_if.h"
-#include "../al/an_ipsec.h"
-#include "../al/an_ike.h"
-#include "../al/an_misc.h"
+#include <an.h>
+#include <an_if.h>
+#include <an_acp.h>
+#include <an_idp.h>
+#include <an_srvc.h>
+#include <an_mem.h>
+#include <an_pak.h>
+#include <an_str.h>
+#include <an_ike.h>
+#include <an_cert.h>
+#include <an_file.h>
+#include <an_sudi.h>
+#include <an_addr.h>
+#include <an_ipv6.h>
+#include <an_misc.h>
+#include <an_timer.h>
+#include <an_ipsec.h>
+#include <an_types.h>
+#include <an_tunnel.h>
+#include <an_syslog.h>
+#include <an_if_mgr.h>
+#include <an_logger.h>
+#include <an_routing.h>
+#include <an_event_mgr.h>
+#include <an_mem_guard.h>
+#include <an_config_download.h>
 
 static boolean an_addr_generator_initialized = FALSE;
 an_avl_tree an_mem_elem_tree;
@@ -991,86 +991,21 @@ an_sudi_clear (void)
 void
 an_syslog_connect (void)
 {
-   an_vrf_info_t *vrf_info;
-   an_if_t syslog_ifhndl = an_get_autonomic_loopback_ifhndl();
-   an_idbtype  *an_idb = an_if_number_to_swidb(syslog_ifhndl);
-
-   vrf_info = an_vrf_get();
-
-   if (!hstaddran) {
-      DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
-            "\n%sSyslog server address is NULL- cant connect", an_nd_event);
-          return;
-   }
-
-   if (an_addr_is_zero(*hstaddran)) {
-      DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
-        "\n%sSyslog server address is UNKNOWN, cant connect", an_nd_event);
-      return;
-   }
-
-   if (an_syslog_server_set == FALSE) {
-      an_syslog_config_host(hstaddran,
-                         vrf_info->an_vrf_name, an_idb, discriminator);
-      an_syslog_server_set = TRUE;
-   }
 }
 
 void
 an_syslog_disconnect (void)
 {
-   an_vrf_info_t *vrf_info;
-
-   vrf_info = an_vrf_get();
-   if (!hstaddran  || !an_acp_is_initialized() || an_addr_is_zero(*hstaddran)) {
-      DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
-            "\n%sSyslog server address NULL- cant disconnect", an_srvc_syslog);
-          return;
-   }
-   an_syslog_delete_host(hstaddran, vrf_info->an_vrf_name);
-   *hstaddran = AN_ADDR_ZERO;
-   an_syslog_server_set = FALSE;
 }
 
 void
 an_syslog_set_server_address (an_addr_t *syslog_addr, boolean service_add)
 {
-   if (!hstaddran || !syslog_addr) {
-        return;
-   }
-
-   if (service_add) {
-      if (an_acp_is_initialized()) {
-         if (an_syslog_server_set == FALSE) {
-   	        *hstaddran = *syslog_addr;
-            DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
-                        "\n%sDiscovered syslog server addr %s",
-                        an_srvc_syslog,
-                        an_addr_get_string(hstaddran));
-            an_syslog_connect();
-         }else {
-            if (an_addr_struct_comp(hstaddran, syslog_addr) != 0) {
-                DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
-                "\n%sRemove connection to old syslog addr %s", an_srvc_syslog,
-                an_addr_get_string(hstaddran));
-                an_syslog_disconnect();
-   	            *hstaddran = *syslog_addr;
-                DEBUG_AN_LOG(AN_LOG_SRVC_SYSLOG, AN_DEBUG_MODERATE, NULL,
-                    "\n%sAdd connection to new syslog addr %s", an_srvc_syslog,
-                    an_addr_get_string(hstaddran));
-                an_syslog_connect();
-            }
-         }
-      }    
-   } else {
-       an_syslog_disconnect();
-   }
 }
 
 void
 an_syslog_uninit (void)
 {
-   an_free(hstaddran);
 }
 
 void 
