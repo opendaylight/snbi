@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3aa0d159_9db0f8de",
+        "filename": "snbiFe/infra/lib/libcliParser/src/cparser.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-04-24T06:59:07Z",
+      "side": 1,
+      "message": "pls take care of indentation",
+      "revId": "5cf1d9b0045e7dd8e67fd4bc5e1b5495a6115652",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3aa0d159_7dc72c46",
+        "filename": "snbiFe/tools/snbi.cli",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-04-24T06:59:07Z",
+      "side": 1,
+      "message": "do you think it will be more clear if we have the description with in quotes ?  something like \"Show running system information\"",
+      "revId": "5cf1d9b0045e7dd8e67fd4bc5e1b5495a6115652",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
