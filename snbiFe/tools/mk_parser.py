@@ -392,11 +392,13 @@ class Token:
     ## Beginning of a parameter token
     BEGIN = '^\<'
     ## End of a parameter token
-    END = '\>$'
+    END = '\>([=a-zA-Z0-9_~]*)$'
     ## Token type
     TYPE = '([A-Z][A-Z0-9]*)'
     ## Keyword
     KW = '[a-zA-Z0-9_-]+'
+    ## Keyword with help string
+    KW_HELP = '[a-zA-Z0-9_=~-]+'
     LIST_KW = '([^:]+)'
     ## Parameter name
     PARAM = '([a-zA-Z][a-zA-Z0-9_]*)'
@@ -409,7 +411,10 @@ class Token:
         
         @return  True if the string is a valid keyword; False otherwise.
         '''
-        return bool(re.search('^' + cls.KW + '$', s))
+    	if re.search('=',s):
+    		return bool(re.search('^' + cls.KW_HELP + '$', s))
+    	else:
+            return bool(re.search('^' + cls.KW + '$', s))
         
     def __init__(self, s):
         '''Constructor.
@@ -426,12 +431,18 @@ class Token:
         self.desc = ''
         ## If it is a LIST node, list of keywords.
         self.list_kw = []
-        
+       
         # Check if this is a keyword
         if Token.valid_keyword(s):
             self.type = 'KEYWORD'
-            self.param = s
-            self.desc = None
+            param_list = s.split('=')
+            self.param = param_list[0] 
+            if len(param_list) == 2 :
+		cur_desc = param_list[1]
+		cur_desc = cur_desc.replace('~',' ')
+		self.desc = cur_desc 
+	    else:
+		self.desc = None 
             self.list_kw = []
             return None
         
@@ -449,7 +460,9 @@ class Token:
                           Token.PARAM + Token.DESC + Token.END, s)
             if not m:
                 raise ValueError,  'Malformed LIST token "%s".' % s
-            (self.type,  list_kw,  self.param, dummy, self.desc) = m.groups()
+            (self.type,  list_kw,  self.param, dummy, dummy2, self.desc) = m.groups()
+	    self.desc = self.desc.replace('=','')
+	    self.desc = self.desc.replace('~',' ')
             # Validate all keywords in the list
             self.list_kw = list_kw.split(',')
             for kw in self.list_kw:
@@ -463,7 +476,9 @@ class Token:
             m = re.search(Token.BEGIN + Token.TYPE + ':([^:>]+)' + Token.DESC + Token.END,  s)
             assert m
             raise ValueError, 'Invalid parameter name "%s".' % m.group(2)
-        (self.type, self.param, dummy, self.desc) = m.groups()
+        (self.type, self.param, dummy, dummy2, self.desc) = m.groups()
+        self.desc = self.desc.replace('=','')
+        self.desc = self.desc.replace('~',' ')
         self.list_kw = []
 
 ##
@@ -484,8 +499,15 @@ def add_cli(root, line, comment):
 
     # Convert a line into a token list
     line = line.replace('\n','')
-    DBG('\n  LINE: ', line)
+    if re.search('\(',line):
+	#Handle help string
+        line_temp = re.sub("\([^)]*\)", lambda x:x.group(0).replace(' ','~'), line)		
+        line_temp = line_temp.replace(r'(',"=")
+        line_temp = line_temp.replace(r')','')
+        line = line_temp	
+	
     tokens = line.split(' ')
+
 
     # Delete all token that is ''
     cnt = tokens.count('')

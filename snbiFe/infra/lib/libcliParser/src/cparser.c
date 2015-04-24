@@ -92,6 +92,10 @@ cparser_help_print_node (cparser_t *parser, cparser_node_t *node,
                 }
             }
             parser->cfg.prints(parser, " ]");
+	    if (print_desc && node->desc) {
+	    parser->cfg.prints(parser, " - ");
+	    parser->cfg.prints(parser, node->desc);
+	    }
             break;
         default:
             parser->cfg.prints(parser, node->param);
