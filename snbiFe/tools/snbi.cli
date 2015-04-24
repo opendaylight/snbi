@@ -1,8 +1,8 @@
-clear
+clear("Reset functions"")
 
-show autonomic interface
+show("Show running system information") autonomic("Autonomic Networking") interface("Autonomic Interfaces")
 
-show ip interfaces
+show("Show running system information") ip("IP information") interfaces("IP interface status and configuration")
 
 show process
 
@@ -31,12 +31,12 @@ start
 stop
 
 debug log console
-debug log file <STRING:logfile>
+debug log file <STRING:logfile>("Log file name")
 
 debug neighbor-discovery <LIST:all,database,events,packets:type> <LIST:info,moderate,sev:level>
 no debug neighbor-discovery <LIST:all,database,events,packets:type> <LIST:info,moderate,sev:level>
 
-debug bootstrap <LIST:all,events,packets:type> <LIST:info,moderate,sev:level>
+debug bootstrap("Bootstrap debugs") <LIST:all,events,packets:type>("Type of debug") <LIST:info,moderate,sev:level>("Severity of debugs")
 no debug bootstrap <LIST:all,events,packets:type> <LIST:info,moderate,sev:level>
 
 #endsubmode
@@ -45,7 +45,7 @@ test avl-get-firstnode
 
 test avl-init
 
-test avl-insert <UINT:value>
+test avl-insert <UINT:value>("Integer value")
 
 test avl-remove <UINT:value>
 

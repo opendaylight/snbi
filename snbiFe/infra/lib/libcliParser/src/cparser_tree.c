@@ -489,7 +489,7 @@ cparser_node_t cparser_node_test_avl_insert_value = {
     CPARSER_NODE_UINT,
     0,
     "<UINT:value>",
-    NULL,
+    "Integer value",
     NULL,
     &cparser_node_test_avl_insert_value_eol
 };
@@ -576,7 +576,7 @@ cparser_node_t cparser_node_snbi_root_debug_bootstrap_type_level = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_debug_bootstrap_type_level_info,
-    NULL,
+    "Severity of debugs",
     NULL,
     &cparser_node_snbi_root_debug_bootstrap_type_level_eol
 };
@@ -600,7 +600,7 @@ cparser_node_t cparser_node_snbi_root_debug_bootstrap_type = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_debug_bootstrap_type_all,
-    NULL,
+    "Type of debug",
     NULL,
     &cparser_node_snbi_root_debug_bootstrap_type_level
 };
@@ -609,7 +609,7 @@ cparser_node_t cparser_node_snbi_root_debug_bootstrap = {
     CPARSER_NODE_KEYWORD,
     0,
     "bootstrap",
-    NULL,
+    "Bootstrap debugs",
     NULL,
     &cparser_node_snbi_root_debug_bootstrap_type
 };
@@ -698,7 +698,7 @@ cparser_node_t cparser_node_snbi_root_debug_log_file_logfile = {
     CPARSER_NODE_STRING,
     0,
     "<STRING:logfile>",
-    NULL,
+    "Log file name",
     NULL,
     &cparser_node_snbi_root_debug_log_file_logfile_eol
 };
@@ -1159,7 +1159,7 @@ cparser_node_t cparser_node_show_ip_interfaces = {
     CPARSER_NODE_KEYWORD,
     0,
     "interfaces",
-    NULL,
+    "IP interface status and configuration",
     NULL,
     &cparser_node_show_ip_interfaces_eol
 };
@@ -1168,7 +1168,7 @@ cparser_node_t cparser_node_show_ip = {
     CPARSER_NODE_KEYWORD,
     0,
     "ip",
-    NULL,
+    "IP information",
     &cparser_node_show_process,
     &cparser_node_show_ip_interfaces
 };
@@ -1186,7 +1186,7 @@ cparser_node_t cparser_node_show_autonomic_interface = {
     CPARSER_NODE_KEYWORD,
     0,
     "interface",
-    NULL,
+    "Autonomic Interfaces",
     NULL,
     &cparser_node_show_autonomic_interface_eol
 };
@@ -1195,7 +1195,7 @@ cparser_node_t cparser_node_show_autonomic = {
     CPARSER_NODE_KEYWORD,
     0,
     "autonomic",
-    NULL,
+    "Autonomic Networking",
     &cparser_node_show_ip,
     &cparser_node_show_autonomic_interface
 };
@@ -1204,7 +1204,7 @@ cparser_node_t cparser_node_show = {
     CPARSER_NODE_KEYWORD,
     0,
     "show",
-    NULL,
+    "Show running system information",
     &cparser_node_snbi,
     &cparser_node_show_autonomic
 };
@@ -1222,7 +1222,7 @@ cparser_node_t cparser_node_clear = {
     CPARSER_NODE_KEYWORD,
     0,
     "clear",
-    NULL,
+    "Reset functions",
     &cparser_node_show,
     &cparser_node_clear_eol
 };
