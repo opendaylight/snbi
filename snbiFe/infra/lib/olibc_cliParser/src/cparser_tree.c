@@ -881,7 +881,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_bootstrap_type = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_no_debug_bootstrap_type_all,
-    NULL,
+    "Enable bootstrap",
     NULL,
     &cparser_node_snbi_root_no_debug_bootstrap_type_level
 };

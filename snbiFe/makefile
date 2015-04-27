@@ -3,6 +3,9 @@
 #  
 #  Copyright (c) 2014 by cisco Systems, Inc.
 #  All rights reserved.
+# This program and the accompanying materials are made available under
+# the terms of the Eclipse License v1.0 which accompanies this distribution,
+# and is available at http://www.eclipse.org/legal/epl-v10.html
 #
 
 BASE_DIR = .
@@ -10,9 +13,12 @@ BASE_LINUX_AL_DIR = $(BASE_DIR)/infra/impl
 BASE_COMMON_DIR = $(BASE_DIR)/common
 BASE_AL_DIR = $(BASE_DIR)/al
 BASE_LIB_DIR = $(BASE_DIR)/infra/lib
-BASE_LIBCLI_DIR = $(BASE_LIB_DIR)/libcliParser
-BASE_SNBI_CLISIM_DIR = $(BASE_LIB_DIR)/snbi-sim
-BASE_LIBAVL_DIR = $(BASE_LIB_DIR)/libavl
+BASE_SNBI_CLISIM_DIR = $(BASE_LIB_DIR)/simulator
+BASE_OLIBAVL_DIR = $(BASE_LIB_DIR)/olibc_avl
+BASE_OLIBLIST_DIR = $(BASE_LIB_DIR)/olibc_list
+BASE_OLIBEVENT_DIR= $(BASE_LIB_DIR)/olibc_event
+BASE_OLIBCLI_DIR = $(BASE_LIB_DIR)/olibc_cliParser
+BASE_OLIBCOMMON_DIR = $(BASE_LIB_DIR)/olibc_common
 SNBI_BIN=$(BASE_DIR)/bin
 SNBI_OBJ=$(BASE_DIR)/obj
 
@@ -20,15 +26,20 @@ CC_INCDIRS :=\
 	-I$(BASE_LINUX_AL_DIR) \
 	-I$(BASE_AL_DIR) \
 	-I$(BASE_COMMON_DIR) \
-	-I$(BASE_LIBCLI_DIR)/inc \
-	-I$(BASE_LIBAVL_DIR) \
-	-I$(BASE_SNBI_CLISIM_DIR)
+	-I$(BASE_OLIBCLI_DIR)/inc \
+	-I$(BASE_OLIBAVL_DIR)/inc \
+	-I$(BASE_OLIBLIST_DIR)/inc \
+	-I$(BASE_OLIBEVENT_DIR)/inc \
+	-I$(BASE_OLIBCOMMON_DIR)/inc \
 
-SNBI_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
-SNBI_LIBAVL_SRC=$(BASE_LIBAVL_DIR)
-SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)
-SNBI_LIBCLI_SRC=$(BASE_LIBCLI_DIR)/src
 SNBI_COMMON_SRC=$(BASE_COMMON_DIR)
+SNBI_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
+SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)
+SNBI_LIBCLI_SRC=$(BASE_OLIBCLI_DIR)/src
+SNBI_LIBAVL_SRC=$(BASE_OLIBAVL_DIR)/src
+SNBI_LIBLIST_SRC=$(BASE_OLIBLIST_DIR)/src
+SNBI_LIBEVENT_SRC=$(BASE_OLIBEVENT_DIR)/src
+SNBI_LIBCOMMON_SRC=$(BASE_OLIBCOMMON_DIR)/src
 
 CC = gcc
 
@@ -65,6 +76,10 @@ CC_SNBI_COMMON_SRCS :=\
 	$(SNBI_COMMON_SRC)/an_util.c
 
 
+CC_SNBI_LIB_COMMON_SRCS := $(SNBI_LIBCOMMON_SRC)/olibc_common.c
+
+CC_SNBI_LIBLIST_SRCS := $(SNBI_LIBLIST_SRC)/olibc_list.c
+
 CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_aaa_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_addr_linux.c \
@@ -78,13 +93,13 @@ CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_icmp6_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_if_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ike_linux.c \
-	$(SNBI_LINUX_AL_SRC)/an_ipsec_linux.c\
-	$(SNBI_LINUX_AL_SRC)/an_ipv6_linux.c      \
+	$(SNBI_LINUX_AL_SRC)/an_ipsec_linux.c \
+	$(SNBI_LINUX_AL_SRC)/an_ipv6_linux.c  \
 	$(SNBI_LINUX_AL_SRC)/an_ipv6_nd_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ipv6_send_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_key_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_l2_linux.c \
-	$(SNBI_LINUX_AL_SRC)/an_list_linux.c      \
+	$(SNBI_LINUX_AL_SRC)/an_list_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_logger_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_mem_guard_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_mem_linux.c \
@@ -127,7 +142,9 @@ CC_SNBI_LIBAVL_SRCS :=\
 CC_ALL_SRCS := $(CC_SNBI_LIBCLI_SRCS) \
 	$(CC_SNBI_LIBAVL_SRCS) \
 	$(CC_SNBI_LINUX_AL_SRCS) \
-	$(CC_SNBI_COMMON_SRCS)
+	$(CC_SNBI_COMMON_SRCS) \
+    $(CC_SNBI_LIB_COMMON_SRCS)
+
 
 
 all: mkdir libcli libavl an_linux_al an_common snbi_clisim
