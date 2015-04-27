@@ -1,0 +1,6 @@
+/**
+  */
+
+Has a depenedany on lib-event, install using apt-get
+sudo apt-get install libevent-dev
+link lpthread, levent
