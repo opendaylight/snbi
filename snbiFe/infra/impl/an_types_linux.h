@@ -20,6 +20,7 @@
 #include <arpa/inet.h>
 #include <an_timer_linux.h>
 //#include <an_if_linux.h>
+#include <an_list_linux.h>
 #include <an_pak_linux.h>
 #include <an_avl_linux.h>
 #include <stdbool.h>
@@ -30,6 +31,9 @@
 #include <netinet/ip6.h>
 #include <netinet/udp.h>
 #include <netinet/icmp6.h>
+
+#define TRUE true
+#define FALSE false
 
 #define AN_UDI_STR_TERMINATOR_LEN 1
 #define AN_CERR_SUCCESS 0
@@ -47,68 +51,7 @@
 #define AN_CERR_IS_OK(cer_no)           ((cer_no) == AN_CERR_SUCCESS)
 #define CERR_IS_NOTOK(cer_no)        (!CERR_IS_OK((cer_no)))
 #define AN_CERR_IS_NOTOK(cer_no)        (!CERR_IS_OK((cer_no)))
-
-#define SIGTIMER     (SIGRTMAX)
-#define AN_LINUX_ERROR -1
-
-static inline
-void buginf (const char *format, ...) 
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
-}
-
-typedef struct an_list_element_ an_list_element;
-typedef struct an_list_header_  an_list_header;
-
-struct an_list_header_
-{
-    void              *lock;
-
-    an_list_element      *head;
-    an_list_element      *tail;
-    unsigned short     flags;
-    unsigned long      count;
-    unsigned long      maximum;
-    const char *name;
-};
-
-struct an_list_element_
-{
-    an_list_element  *next;
-    an_list_element  *prev;
-    void          *data;
-    an_list_header   *list;
-};
-
-typedef struct an_list_element_ an_list_element_t;
-typedef struct an_list_header_  an_list_t;
-
-
-#define LIST_GET_DATA(element) ((element) ? (element)->data : NULL)
-#define LIST_HEAD_ELEMENT(list)    (list)->head
-#define LIST_NEXT_ELEMENT(element) ((element) ? (element)->next : NULL)
-
-#define LIST_NEXT_DATA(element)      \
-    (LIST_NEXT_ELEMENT(element)) ? LIST_NEXT_ELEMENT(element)->data : NULL
-#define LIST_HEAD_DATA(list)      \
-    (LIST_HEAD_ELEMENT(list)) ? LIST_HEAD_ELEMENT(list)->data : NULL
-
-#define ELEMENT_GET_LIST(element) ((element) ? (element)->list : NULL)
-
-#define AN_FOR_ALL_DATA_IN_LIST(__list, __element, __data) \
-  for (__element = LIST_HEAD_ELEMENT(__list),           \
-       __data = LIST_GET_DATA(__element);               \
-       __element != NULL;                               \
-       __element = LIST_NEXT_ELEMENT(__element),        \
-       __data = LIST_GET_DATA(__element))
-
-#define AN_FOR_ALL_ELEMENTS_IN_LIST_SAVE_NEXT(__list, __element, __next) \
-  for ((__element)  = LIST_HEAD_ELEMENT((__list));                        \
-       (__next) = LIST_NEXT_ELEMENT((__element)), (__element) != NULL;      \
-       (__element) = (__next))
+#define buginf vbuginf
 
 typedef unsigned int an_dummy_t;
 typedef unsigned char uint8_t;
@@ -154,15 +97,15 @@ typedef an_dummy_t an_cd_oper_e;
 typedef an_dummy_t an_cd_info_t;
 typedef an_dummy_t an_intent_ver_t;
 typedef an_dummy_t an_idp_info_t;
+typedef an_dummy_t an_ifs_pathent;
+typedef an_dummy_t an_bitlist_t;
+typedef an_dummy_t an_intent_outer_vlans_db_t;
 //typedef an_dummy_t an_cd_state_e;
 typedef uint8_t an_mac_addr;
 #define AN_IEEEBYTES 6
 #define AN_AVL_WALK_SUCCESS TRUE
 #define AN_MACADDR_DELIMITER_DEVICE_NAME '.'
 #define AN_MACADDR_DELIMITER_SERVICE_NAME ':'
-typedef an_dummy_t an_ifs_pathent;
-typedef an_dummy_t an_bitlist_t;
-typedef an_dummy_t an_intent_outer_vlans_db_t;
 #define AN_INTENT_BITLIST_VLAN_MAX 4096
 #define AN_INTENT_BITLIST_VLAN_MIN 0
 #define AN_INTENT_BITLIST_VLAN_END -1
@@ -170,84 +113,10 @@ typedef an_dummy_t an_intent_outer_vlans_db_t;
 #define AN_CONFIG_PATH_LENGTH 255
 #define an_sprintf sprintf
 
-#define TRUE true
-#define FALSE false
-//#define NULL 0
-int printf(const char *fmtptr, ...);
-//#define an_buginf printf
 #define EINVAL 22
 #define TOPO_EVENT_UP 0
 #define ADDRLEN_IP 4
 #define ADDRLEN_IPV6 16
-// #define IPPROTO_ICMPV6 58
-#if 0
-/*
- * IPv6 address
- */
-struct in6_addr {
-        union {
-                uint8_t   __u6_addr8[16];
-                uint16_t  __u6_addr16[8];
-                uint32_t  __u6_addr32[4];
-        } __u6_addr;                    /* 128-bit IP6 address */
-#define s6_addr   __u6_addr.__u6_addr8
-#define s6_addr8  __u6_addr.__u6_addr8
-#define s6_addr16 __u6_addr.__u6_addr16
-#define s6_addr32 __u6_addr.__u6_addr32
-};
-
-typedef ulong ipaddrtype;
-
-/*
- * Definition for internet protocol version 6.
- * RFC 2460
- */
-
-struct ip6_hdr {
-        union {
-                struct ip6_hdrctl {
-                        uint32_t ip6_un1_flow;  /* 20 bits of flow-ID */
-                        uint16_t ip6_un1_plen;  /* payload length */
-                        uint8_t  ip6_un1_nxt;   /* next header */
-                        uint8_t  ip6_un1_hlim;  /* hop limit */
-                } ip6_un1;
-                uint8_t ip6_un2_vfc;    /* 4 bits version, top 4 bits class */
-        } ip6_ctlun;
-        struct in6_addr ip6_src;        /* source address */
-        struct in6_addr ip6_dst;        /* destination address */
-} __attribute__((__packed__));
-
-/*
- * ICMPv6 header (RFC2463)
- */
-typedef struct icmp6_hdr {
-    uint8_t icmp6_type;         /* type field */
-    uint8_t icmp6_code;         /* code field */
-    uint16_t icmp6_cksum;       /* checksum field */
-    union
-    {
-        uint32_t icmp6_un_data32[1];    /* type-specific field */
-        uint16_t icmp6_un_data16[2];    /* type-specific field */
-        uint8_t icmp6_un_data8[4];      /* type-specific field */
-    }
-    icmp6_dataun;
-} icmp6_hdr_t;
-
-typedef struct addrtype_ {
-    char type;
-    char length;
-    ipaddrtype ip_addr;
-    in6_addr_t ipv6_addr;
-} addrtype;
-
-
-typedef struct ip6_hdr ip6_hdr_t;
-
-typedef struct in6_addr in6_addr_t;
-
-typedef struct in6_addr rpl_in6_address_t;
-typedef rpl_in6_address_t dag_id_t;
-#endif
 
 typedef struct in6_addr an_v6addr_t;
 typedef uint32_t an_v4addr_t;
@@ -367,15 +236,10 @@ typedef struct rpl_info_ {
   rpl_info_flags_t rpl_info_flags;
 } rpl_info_t;
 
-typedef struct an_linux_chunk_t_ {
-    uint16_t chunk_size;
-    uint16_t chunkpool_size;
-    uint8_t *chunkpool_id;
-    uint16_t refcount;
-} an_linux_chunk_t;
-
-
 typedef an_dummy_t rpl_if_h;
+typedef an_dummy_t an_mem_chunkpool_t;
+typedef an_dummy_t an_linux_chunk_t;
+typedef an_dummy_t an_mem_chunk_t
 typedef rpl_info_t an_rpl_info_t;
 //typedef uint32_t an_rpl_info_t;
 typedef rpl_info_flags_t an_rpl_info_flags_t;
@@ -389,8 +253,6 @@ typedef an_linux_timer_t an_timer;
 //typedef an_dummy_t chunk_type;
 typedef an_linux_timer_t an_mgd_timer;
 typedef an_dummy_t an_crypto_ss_cnct_id;
-typedef an_linux_chunk_t an_mem_chunk_t;
-typedef an_linux_chunk_t an_mem_chunkpool_t;
 typedef ulong aaa_mlist_handle;
 typedef uint32_t aaa_server_handle;
 typedef uint32_t aaa_sg_handle;
