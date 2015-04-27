@@ -10,7 +10,7 @@ extern "C" {
 
 extern cparser_node_t cparser_root;
 
-cparser_result_t cparser_cmd_clear(cparser_context_t *context);
+cparser_result_t cparser_cmd_clear_screen(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_autonomic_interface(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_ip_interfaces(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_process(cparser_context_t *context);

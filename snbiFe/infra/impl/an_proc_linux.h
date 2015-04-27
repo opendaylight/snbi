@@ -43,6 +43,24 @@ typedef enum an_proc_messages_ {
     AN_PMSG_MAX,
 } an_proc_messages;
 #endif
+
+typedef struct an_pthread_t_ {
+    int pid;
+    char *thread_name;
+} an_pthread_t;
+
+typedef enum an_proc_retval_t_ {
+    AN_PROC_API_SUCCESS,
+    AN_PROC_API_FAILED,
+    AN_PROC_API_INVALID_INPUT,
+    AN_PROC_API_EVNT_BASE_ALLOC_FAILED
+} an_proc_retval_t;
+
+extern an_proc_retval_t an_pthread_create(an_pthread_t *an_pthread, 
+                                          char *thread_name,
+                                          void *(*start_routine) (void *), 
+                                          void *arg);
+
 extern an_watched_boolean *an_wb_node_discovered;
 extern an_watched_boolean *an_setup_done_by_user;
 extern an_watched_boolean *an_manual_config_detected;

@@ -10,9 +10,9 @@
 #include "cparser_tree.h"
 
 cparser_result_t
-cparser_glue_clear (cparser_t *parser)
+cparser_glue_clear_screen (cparser_t *parser)
 {
-    cparser_cmd_clear(&parser->context);
+    cparser_cmd_clear_screen(&parser->context);
     return CPARSER_OK;
 }
 
@@ -345,7 +345,7 @@ cparser_node_t cparser_node_disable_privileged_mode = {
     CPARSER_NODE_KEYWORD,
     CPARSER_NODE_FLAGS_HIDDEN,
     "privileged-mode",
-    "Privelege mode",
+    "Privilege mode",
     NULL,
     &cparser_node_disable_privileged_mode_eol
 };
@@ -372,7 +372,7 @@ cparser_node_t cparser_node_enable_privileged_mode = {
     CPARSER_NODE_KEYWORD,
     0,
     "privileged-mode",
-    "Privelege mode requires a password",
+    "Privilege mode requires a password",
     NULL,
     &cparser_node_enable_privileged_mode_eol
 };
@@ -1209,22 +1209,31 @@ cparser_node_t cparser_node_show = {
     &cparser_node_show_autonomic
 };
 
-cparser_node_t cparser_node_clear_eol = {
+cparser_node_t cparser_node_clear_screen_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_clear,
+    cparser_glue_clear_screen,
     NULL,
     NULL,
     NULL
+};
+
+cparser_node_t cparser_node_clear_screen = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "screen",
+    "screen",
+    NULL,
+    &cparser_node_clear_screen_eol
 };
 
 cparser_node_t cparser_node_clear = {
     CPARSER_NODE_KEYWORD,
     0,
     "clear",
-    "Reset functions",
+    "Clear functions",
     &cparser_node_show,
-    &cparser_node_clear_eol
+    &cparser_node_clear_screen
 };
 
 cparser_node_t cparser_root = {

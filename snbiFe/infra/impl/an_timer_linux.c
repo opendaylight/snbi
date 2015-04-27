@@ -17,7 +17,6 @@
 #include <an_sudi.h>
 #include <an_logger.h>
 #include <an_if.h>
-#include <an_timer_linux.h>
 
 static const uint8_t *an_timer_type_str[] = {
     "None",
@@ -61,53 +60,21 @@ an_log_type_e an_get_log_timer_type(an_timer_e timer_type)
 //boolean an_handle_timer_events (void)
 void an_handle_linux_timer_events (int signo, siginfo_t * info, void *context)
 {
-    an_timer *timer = NULL;
-
-    timer = (an_timer *)info->si_value.sival_ptr;
-
-    an_process_timer_events(timer);
 }
 
 void an_timer_services_init (void)
 {
-    struct sigaction sa = {{0}};
-
-    sa.sa_flags = SA_SIGINFO;
-    sa.sa_sigaction = an_handle_linux_timer_events;
-    sigemptyset(&sa.sa_mask);
-
-    if (sigaction(SIGTIMER, &sa, NULL) == AN_LINUX_ERROR) {
-        perror("sigaction failed");
-    }
 }
 
 void
 an_timer_init (an_timer *timer, an_timer_e timer_type,
                void *context, boolean interrupt)
 {
-    struct sigevent sigev = {{0}};
-
-    if (timer == NULL) {
-        return;
-    }
-
-    timer->type = timer_type;
-    // Create the POSIX timer to generate signo
-    sigev.sigev_notify = SIGEV_SIGNAL;
-    sigev.sigev_signo = SIGTIMER;
-    sigev.sigev_value.sival_ptr = timer;
-    timer->context = context;
-
-    if (timer_create(CLOCK_REALTIME, &sigev, &timer->timerid) 
-            == AN_LINUX_ERROR) {
-        perror("sigaction failed");
-    }
 }
 
 void
 an_timer_uninit (an_timer *timer) 
 {
-    timer_delete(timer->timerid);
 }
 
 /**
@@ -116,60 +83,29 @@ an_timer_uninit (an_timer *timer)
 void
 an_timer_start (an_timer *timer, uint32_t delay)
 {
-    struct itimerspec tspec = {{0}};
-
-    if (timer == NULL) { 
-        return;
-    }
-
-    tspec.it_value.tv_sec = delay / 1000;
-    tspec.it_value.tv_nsec = (delay * 1000000) % 1000000000;
-    tspec.it_interval.tv_sec = tspec.it_value.tv_sec;
-    tspec.it_interval.tv_nsec = tspec.it_value.tv_nsec;
-//#if 0
-    if (timer_settime(timer->timerid, 0, &tspec, NULL) == AN_LINUX_ERROR) {
-        perror("\nFailed to start timer");
-    }
-//#endif    
 }
 
 void
 an_timer_stop (an_timer *timer) 
 { 
-    struct itimerspec tspec = {{0}};
-    if (timer == NULL) {
-        return;
-    }
-
-    memset(&tspec, 0, sizeof(struct itimerspec));
-
-    if (timer_settime(timer->timerid, 0, &tspec, NULL) 
-            == AN_LINUX_ERROR) {
-        perror("\t\tFailed to stop timer");
-    }
 }
 
 uint32_t
 an_mgd_timer_type (an_mgd_timer *expired_timer)
 {
-    if (expired_timer == NULL) {
-        return AN_LOG_NONCE;
-    }
-
-    return (expired_timer->type);
+    return 0;
 }
 
 void
 an_timer_reset (an_timer *timer, uint32_t delay)
 {
-printf("\n\t\t\t\t[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
 void *
 an_mgd_timer_context (an_mgd_timer *expired_timer)
 {
-    return (expired_timer->context);
+    return (NULL);
 }
 
 const uint8_t *
@@ -196,5 +132,3 @@ void
 an_timer_start64 (an_timer *timer, int64_t delay)
 {
 }
-
-

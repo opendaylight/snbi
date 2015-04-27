@@ -1,4 +1,4 @@
-clear("Reset functions")
+clear("Clear functions") screen("screen")
 
 show("Show running system information") autonomic("Autonomic Networking") interface("Autonomic Interfaces")
 

@@ -3,6 +3,9 @@
 #  
 #  Copyright (c) 2014 by cisco Systems, Inc.
 #  All rights reserved.
+# This program and the accompanying materials are made available under
+# the terms of the Eclipse License v1.0 which accompanies this distribution,
+# and is available at http://www.eclipse.org/legal/epl-v10.html
 #
 
 BASE_DIR = .
@@ -10,25 +13,40 @@ BASE_LINUX_AL_DIR = $(BASE_DIR)/infra/impl
 BASE_COMMON_DIR = $(BASE_DIR)/common
 BASE_AL_DIR = $(BASE_DIR)/al
 BASE_LIB_DIR = $(BASE_DIR)/infra/lib
-BASE_LIBCLI_DIR = $(BASE_LIB_DIR)/libcliParser
-BASE_SNBI_CLISIM_DIR = $(BASE_LIB_DIR)/snbi-sim
-BASE_LIBAVL_DIR = $(BASE_LIB_DIR)/libavl
+BASE_SNBI_CLISIM_DIR = $(BASE_LIB_DIR)/simulator
+
+BASE_OLIBC_AVL_DIR = $(BASE_LIB_DIR)/olibc_avl
+BASE_OLIBC_LIST_DIR = $(BASE_LIB_DIR)/olibc_list
+BASE_OLIBC_EVENT_DIR= $(BASE_LIB_DIR)/olibc_event
+BASE_OLIBC_CLI_DIR = $(BASE_LIB_DIR)/olibc_cliParser
+BASE_OLIBC_COMMON_DIR = $(BASE_LIB_DIR)/olibc_common
+
 SNBI_BIN=$(BASE_DIR)/bin
 SNBI_OBJ=$(BASE_DIR)/obj
 
+CC_OLIBC_INCDIRS :=\
+	-I$(BASE_OLIBC_COMMON_DIR)/inc \
+	-I$(BASE_OLIBC_CLI_DIR)/inc \
+	-I$(BASE_OLIBC_AVL_DIR)/inc \
+	-I$(BASE_OLIBC_LIST_DIR)/inc \
+	-I$(BASE_OLIBC_EVENT_DIR)/inc \
+
 CC_INCDIRS :=\
+	$(CC_OLIBC_INCDIRS) \
 	-I$(BASE_LINUX_AL_DIR) \
 	-I$(BASE_AL_DIR) \
 	-I$(BASE_COMMON_DIR) \
-	-I$(BASE_LIBCLI_DIR)/inc \
-	-I$(BASE_LIBAVL_DIR) \
-	-I$(BASE_SNBI_CLISIM_DIR)
 
-SNBI_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
-SNBI_LIBAVL_SRC=$(BASE_LIBAVL_DIR)
-SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)
-SNBI_LIBCLI_SRC=$(BASE_LIBCLI_DIR)/src
 SNBI_COMMON_SRC=$(BASE_COMMON_DIR)
+SNBI_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
+SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)
+
+OLIBC_CLI_SRC=$(BASE_OLIBC_CLI_DIR)/src
+OLIBC_AVL_SRC=$(BASE_OLIBC_AVL_DIR)/src
+OLIBC_LIST_SRC=$(BASE_OLIBC_LIST_DIR)/src
+OLIBC_EVENT_SRC=$(BASE_OLIBC_EVENT_DIR)/src
+OLIBC_COMMON_SRC=$(BASE_OLIBC_COMMON_DIR)/src
+
 
 CC = gcc
 
@@ -38,7 +56,10 @@ CC = gcc
 
 CFLAGS = -g
 
-LD_LIB = -lcrypt -lpthread -lrt
+OLIBC_LD_LIB = -lpthread -levent
+
+#LD_LIB = -lcrypt -lpthread -lrt
+LD_LIB = -lcrypt $(OLIBC_LD_LIB)
 
 CC_SNBI_COMMON_SRCS :=\
 	$(SNBI_COMMON_SRC)/an_acp.c \
@@ -78,13 +99,13 @@ CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_icmp6_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_if_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ike_linux.c \
-	$(SNBI_LINUX_AL_SRC)/an_ipsec_linux.c\
-	$(SNBI_LINUX_AL_SRC)/an_ipv6_linux.c      \
+	$(SNBI_LINUX_AL_SRC)/an_ipsec_linux.c \
+	$(SNBI_LINUX_AL_SRC)/an_ipv6_linux.c  \
 	$(SNBI_LINUX_AL_SRC)/an_ipv6_nd_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ipv6_send_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_key_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_l2_linux.c \
-	$(SNBI_LINUX_AL_SRC)/an_list_linux.c      \
+	$(SNBI_LINUX_AL_SRC)/an_list_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_logger_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_mem_guard_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_mem_linux.c \
@@ -110,45 +131,51 @@ CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_logg.c \
 	$(SNBI_CLISIM_SRC)/an_clisim.c
 
-CC_SNBI_LIBCLI_SRCS :=\
-	$(SNBI_LIBCLI_SRC)/cparser.c \
-	$(SNBI_LIBCLI_SRC)/cparser_token.c \
-	$(SNBI_LIBCLI_SRC)/cparser_token_tbl.c \
-	$(SNBI_LIBCLI_SRC)/cparser_token_tbl.c \
-	$(SNBI_LIBCLI_SRC)/cparser_io_unix.c \
-	$(SNBI_LIBCLI_SRC)/cparser_line.c \
-	$(SNBI_LIBCLI_SRC)/cparser_fsm.c \
-	$(SNBI_LIBCLI_SRC)/cparser_tree.c
+CC_OLIBC_CLI_SRCS :=\
+	$(OLIBC_CLI_SRC)/cparser.c \
+	$(OLIBC_CLI_SRC)/cparser_token.c \
+	$(OLIBC_CLI_SRC)/cparser_token_tbl.c \
+	$(OLIBC_CLI_SRC)/cparser_token_tbl.c \
+	$(OLIBC_CLI_SRC)/cparser_io_unix.c \
+	$(OLIBC_CLI_SRC)/cparser_line.c \
+	$(OLIBC_CLI_SRC)/cparser_fsm.c \
+	$(OLIBC_CLI_SRC)/cparser_tree.c
 
+CC_OLIBC_COMMON_SRCS := $(OLIBC_COMMON_SRC)/olibc_common.c \
+	$(OLIBC_COMMON_SRC)/olibc_mem.c
 
-CC_SNBI_LIBAVL_SRCS :=\
-	$(SNBI_LIBAVL_SRC)/avl.c
- 
-CC_ALL_SRCS := $(CC_SNBI_LIBCLI_SRCS) \
-	$(CC_SNBI_LIBAVL_SRCS) \
+CC_OLIBC_LIST_SRCS := $(OLIBC_LIST_SRC)/olibc_list.c
+
+CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/avl.c
+
+CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_proc.c \
+	$(OLIBC_EVENT_SRC)/olibc_timer.c
+
+CC_OLIBC_ALL_SRCS :=\
+	$(CC_OLIBC_COMMON_SRCS) \
+	$(CC_OLIBC_LIST_SRCS) \
+	$(CC_OLIBC_AVL_SRCS) \
+	$(CC_OLIBC_CLI_SRCS) \
+	$(CC_OLIBC_EVENT_SRCS) \
+
+CC_ALL_SRCS := $(CC_OLIBC_ALL_SRCS) \
 	$(CC_SNBI_LINUX_AL_SRCS) \
-	$(CC_SNBI_COMMON_SRCS)
+	$(CC_SNBI_COMMON_SRCS) \
 
 
-all: mkdir libcli libavl an_linux_al an_common snbi_clisim
+all: mkdir libolibc an_linux_al an_common snbi_clisim
 
 mkdir:
 	echo "Making obj dir"
-	echo "SNBI_LIBCLI_SRC  = $(SNBI_LIBCLI_PARSER_SRC)"
 	mkdir -p $(SNBI_BIN)
 	mkdir -p $(SNBI_OBJ)
 	@echo ' '
 
-libcli: $(CC_SNBI_LIBCLI_SRCS)
+libolibc: $(CC_OLIBC_ALL_SRCS)
 	echo "Building target: $@" 
 	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
                 
-libavl: $(CC_SNBI_LIBAVL_SRCS)
-	echo "Building target: $@"
-	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
-	mv *.o $(SNBI_OBJ)
-
 an_linux_al: $(CC_SNBI_LINUX_AL_SRCS)
 	@echo "Building target: $@"
 	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
@@ -171,3 +198,4 @@ clean:
 	@echo "Cleaning obj and bin dir"
 	rm -rf $(SNBI_BIN)
 	rm -rf $(SNBI_OBJ)
+	rm -rf *.o

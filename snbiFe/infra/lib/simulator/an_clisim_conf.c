@@ -17,7 +17,7 @@
 #include <an_event_mgr.h>
 
 cparser_result_t 
-cparser_cmd_clear(cparser_context_t *context)
+cparser_cmd_clear_screen (cparser_context_t *context)
 {
     system("clear");
     return CPARSER_OK;

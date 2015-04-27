@@ -9,39 +9,27 @@
 #ifndef __AN_LIST_LINUX_H__
 #define __AN_LIST_LINUX_H__
 
-#include <an_types.h>
+#include <olibc_list.h>
 
-/*
- * Flag defines for list
- */
-#define LIST_FLAGS_NONE           0x0000
-#define LIST_FLAGS_VALID          0x0001
-#define LIST_FLAGS_MALLOC         0x0002
-#define LIST_FLAGS_AUTOMATIC      0x0004
+typedef olibc_list_element_t an_list_element_t; 
+typedef olibc_list_header_t an_list_t;
 
-typedef struct an_list_element_ an_list_element_t;
-typedef struct an_list_header_  an_list_t;
+#define LIST_GET_DATA(_element) OLIBC_LIST_GET_DATA(_element)
 
-struct an_list_header_
-{
-    void              *lock;
-    an_list_element      *head;
-    an_list_element      *tail;
-    unsigned short     flags;
-    unsigned long      count;
-    unsigned long      maximum;
-    char              *name;
-};
+#define LIST_HEAD_ELEMENT(_list) OLIBC_LIST_HEAD_ELEMENT(_list)
 
-struct an_list_element_ {
-    an_list_t *list;
-    an_list_element_t *next;
-    an_list_element_t *prev;
+#define LIST_NEXT_ELEMENT(_element) OLIBC_LIST_NEXT_ELEMENT(_element)
 
-    void *data;
-};
+#define LIST_NEXT_DATA(_element) OLIBC_LIST_NEXT_DATA(_element)
 
-struct an_list_ {
-    an_list_element_t *head;
-    an_list_element_t *tail;
-};
+#define LIST_HEAD_DATA(_list) OLIBC_LIST_HEAD_DATA(_list)
+
+#define ELEMENT_GET_LIST(_element) OLIBC_ELEMENT_GET_LIST(_element)  
+
+#define AN_FOR_ALL_DATA_IN_LIST(_list, _element, _data) \
+    OLIBC_FOR_ALL_DATA_IN_LIST(_list, _element, _data)
+
+#define AN_FOR_ALL_ELEMENTS_IN_LIST_SAVE_NEXT(_list, _element, _next) \
+    OLIBC_FOR_ALL_ELEMENTS_IN_LIST_SAVE_NEXT(_list, _element, _next)
+
+#endif //__AN_LIST_LINUX_H__
