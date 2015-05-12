@@ -327,7 +327,7 @@ cparser_node_t cparser_node_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    NULL,
+    "Quit the simulator",
     NULL,
     &cparser_node_quit_eol
 };
@@ -345,7 +345,7 @@ cparser_node_t cparser_node_disable_privileged_mode = {
     CPARSER_NODE_KEYWORD,
     CPARSER_NODE_FLAGS_HIDDEN,
     "privileged-mode",
-    NULL,
+    "Privelege mode",
     NULL,
     &cparser_node_disable_privileged_mode_eol
 };
@@ -354,7 +354,7 @@ cparser_node_t cparser_node_disable = {
     CPARSER_NODE_KEYWORD,
     CPARSER_NODE_FLAGS_HIDDEN,
     "disable",
-    NULL,
+    "Disable",
     &cparser_node_quit,
     &cparser_node_disable_privileged_mode
 };
@@ -372,7 +372,7 @@ cparser_node_t cparser_node_enable_privileged_mode = {
     CPARSER_NODE_KEYWORD,
     0,
     "privileged-mode",
-    NULL,
+    "Privelege mode requires a password",
     NULL,
     &cparser_node_enable_privileged_mode_eol
 };
@@ -381,7 +381,7 @@ cparser_node_t cparser_node_enable = {
     CPARSER_NODE_KEYWORD,
     0,
     "enable",
-    NULL,
+    "Enable",
     &cparser_node_disable,
     &cparser_node_enable_privileged_mode
 };
@@ -399,7 +399,7 @@ cparser_node_t cparser_node_test_avl_walk = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-walk",
-    NULL,
+    "Avl walk",
     NULL,
     &cparser_node_test_avl_walk_eol
 };
@@ -417,7 +417,7 @@ cparser_node_t cparser_node_test_avl_uninit = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-uninit",
-    NULL,
+    "Avl uninit",
     &cparser_node_test_avl_walk,
     &cparser_node_test_avl_uninit_eol
 };
@@ -435,7 +435,7 @@ cparser_node_t cparser_node_test_avl_search_value = {
     CPARSER_NODE_UINT,
     0,
     "<UINT:value>",
-    NULL,
+    "Integer value",
     NULL,
     &cparser_node_test_avl_search_value_eol
 };
@@ -444,7 +444,7 @@ cparser_node_t cparser_node_test_avl_search = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-search",
-    NULL,
+    "Avl search",
     &cparser_node_test_avl_uninit,
     &cparser_node_test_avl_search_value
 };
@@ -462,7 +462,7 @@ cparser_node_t cparser_node_test_avl_remove_value = {
     CPARSER_NODE_UINT,
     0,
     "<UINT:value>",
-    NULL,
+    "Integer value",
     NULL,
     &cparser_node_test_avl_remove_value_eol
 };
@@ -471,7 +471,7 @@ cparser_node_t cparser_node_test_avl_remove = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-remove",
-    NULL,
+    "Avl remove",
     &cparser_node_test_avl_search,
     &cparser_node_test_avl_remove_value
 };
@@ -498,7 +498,7 @@ cparser_node_t cparser_node_test_avl_insert = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-insert",
-    NULL,
+    "Avl insert",
     &cparser_node_test_avl_remove,
     &cparser_node_test_avl_insert_value
 };
@@ -516,7 +516,7 @@ cparser_node_t cparser_node_test_avl_init = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-init",
-    NULL,
+    "Avl init",
     &cparser_node_test_avl_insert,
     &cparser_node_test_avl_init_eol
 };
@@ -534,7 +534,7 @@ cparser_node_t cparser_node_test_avl_get_firstnode = {
     CPARSER_NODE_KEYWORD,
     0,
     "avl-get-firstnode",
-    NULL,
+    "Get avl first node",
     &cparser_node_test_avl_init,
     &cparser_node_test_avl_get_firstnode_eol
 };
@@ -543,7 +543,7 @@ cparser_node_t cparser_node_test = {
     CPARSER_NODE_KEYWORD,
     0,
     "test",
-    NULL,
+    "Test command",
     &cparser_node_enable,
     &cparser_node_test_avl_get_firstnode
 };
@@ -576,7 +576,7 @@ cparser_node_t cparser_node_snbi_root_debug_bootstrap_type_level = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_debug_bootstrap_type_level_info,
-    "Severity of debugs",
+    "Debugging level",
     NULL,
     &cparser_node_snbi_root_debug_bootstrap_type_level_eol
 };
@@ -600,7 +600,7 @@ cparser_node_t cparser_node_snbi_root_debug_bootstrap_type = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_debug_bootstrap_type_all,
-    "Type of debug",
+    "Type of debugging",
     NULL,
     &cparser_node_snbi_root_debug_bootstrap_type_level
 };
@@ -609,7 +609,7 @@ cparser_node_t cparser_node_snbi_root_debug_bootstrap = {
     CPARSER_NODE_KEYWORD,
     0,
     "bootstrap",
-    "Bootstrap debugs",
+    "Bootstrap debug information",
     NULL,
     &cparser_node_snbi_root_debug_bootstrap_type
 };
@@ -642,7 +642,7 @@ cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery_type_level = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_debug_neighbor_discovery_type_level_info,
-    NULL,
+    "Debugging level",
     NULL,
     &cparser_node_snbi_root_debug_neighbor_discovery_type_level_eol
 };
@@ -671,7 +671,7 @@ cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery_type = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_debug_neighbor_discovery_type_all,
-    NULL,
+    "Type of debugging",
     NULL,
     &cparser_node_snbi_root_debug_neighbor_discovery_type_level
 };
@@ -680,7 +680,7 @@ cparser_node_t cparser_node_snbi_root_debug_neighbor_discovery = {
     CPARSER_NODE_KEYWORD,
     0,
     "neighbor-discovery",
-    NULL,
+    "Neighbor discovery debug information",
     &cparser_node_snbi_root_debug_bootstrap,
     &cparser_node_snbi_root_debug_neighbor_discovery_type
 };
@@ -707,7 +707,7 @@ cparser_node_t cparser_node_snbi_root_debug_log_file = {
     CPARSER_NODE_KEYWORD,
     0,
     "file",
-    NULL,
+    "Enable file logging",
     NULL,
     &cparser_node_snbi_root_debug_log_file_logfile
 };
@@ -725,7 +725,7 @@ cparser_node_t cparser_node_snbi_root_debug_log_console = {
     CPARSER_NODE_KEYWORD,
     0,
     "console",
-    NULL,
+    "Enable console logging",
     &cparser_node_snbi_root_debug_log_file,
     &cparser_node_snbi_root_debug_log_console_eol
 };
@@ -734,7 +734,7 @@ cparser_node_t cparser_node_snbi_root_debug_log = {
     CPARSER_NODE_KEYWORD,
     0,
     "log",
-    NULL,
+    "Modify message logging facilities",
     &cparser_node_snbi_root_debug_neighbor_discovery,
     &cparser_node_snbi_root_debug_log_console
 };
@@ -743,7 +743,7 @@ cparser_node_t cparser_node_snbi_root_debug = {
     CPARSER_NODE_KEYWORD,
     0,
     "debug",
-    NULL,
+    "Debugging functions",
     NULL,
     &cparser_node_snbi_root_debug_log
 };
@@ -761,7 +761,7 @@ cparser_node_t cparser_node_snbi_root_stop = {
     CPARSER_NODE_KEYWORD,
     0,
     "stop",
-    NULL,
+    "Disable SNBI protocol",
     &cparser_node_snbi_root_debug,
     &cparser_node_snbi_root_stop_eol
 };
@@ -779,7 +779,7 @@ cparser_node_t cparser_node_snbi_root_start = {
     CPARSER_NODE_KEYWORD,
     0,
     "start",
-    NULL,
+    "Enable SNBI protocol",
     &cparser_node_snbi_root_stop,
     &cparser_node_snbi_root_start_eol
 };
@@ -797,7 +797,7 @@ cparser_node_t cparser_node_snbi_root_interface_stop = {
     CPARSER_NODE_KEYWORD,
     0,
     "stop",
-    NULL,
+    "Stop neighbor discovery",
     NULL,
     &cparser_node_snbi_root_interface_stop_eol
 };
@@ -815,7 +815,7 @@ cparser_node_t cparser_node_snbi_root_interface_start = {
     CPARSER_NODE_KEYWORD,
     0,
     "start",
-    NULL,
+    "Start neighbor discovery",
     &cparser_node_snbi_root_interface_stop,
     &cparser_node_snbi_root_interface_start_eol
 };
@@ -824,7 +824,7 @@ cparser_node_t cparser_node_snbi_root_interface = {
     CPARSER_NODE_KEYWORD,
     0,
     "interface",
-    NULL,
+    "SNBI interface",
     &cparser_node_snbi_root_start,
     &cparser_node_snbi_root_interface_start
 };
@@ -857,7 +857,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_bootstrap_type_level = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_no_debug_bootstrap_type_level_info,
-    NULL,
+    "Debugging level",
     NULL,
     &cparser_node_snbi_root_no_debug_bootstrap_type_level_eol
 };
@@ -881,7 +881,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_bootstrap_type = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_no_debug_bootstrap_type_all,
-    NULL,
+    "Type of debugging",
     NULL,
     &cparser_node_snbi_root_no_debug_bootstrap_type_level
 };
@@ -890,7 +890,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_bootstrap = {
     CPARSER_NODE_KEYWORD,
     0,
     "bootstrap",
-    NULL,
+    "Bootstrap debug information",
     NULL,
     &cparser_node_snbi_root_no_debug_bootstrap_type
 };
@@ -923,7 +923,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery_type_level = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_level_info,
-    NULL,
+    "Debugging level",
     NULL,
     &cparser_node_snbi_root_no_debug_neighbor_discovery_type_level_eol
 };
@@ -952,7 +952,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery_type = {
     CPARSER_NODE_LIST,
     0,
     &cparser_list_node_snbi_root_no_debug_neighbor_discovery_type_all,
-    NULL,
+    "Type of debugging",
     NULL,
     &cparser_node_snbi_root_no_debug_neighbor_discovery_type_level
 };
@@ -961,7 +961,7 @@ cparser_node_t cparser_node_snbi_root_no_debug_neighbor_discovery = {
     CPARSER_NODE_KEYWORD,
     0,
     "neighbor-discovery",
-    NULL,
+    "Neighbor discovery debug information",
     &cparser_node_snbi_root_no_debug_bootstrap,
     &cparser_node_snbi_root_no_debug_neighbor_discovery_type
 };
@@ -970,7 +970,7 @@ cparser_node_t cparser_node_snbi_root_no_debug = {
     CPARSER_NODE_KEYWORD,
     0,
     "debug",
-    NULL,
+    "Debugging functions",
     NULL,
     &cparser_node_snbi_root_no_debug_neighbor_discovery
 };
@@ -988,7 +988,7 @@ cparser_node_t cparser_node_snbi_root_no_discovery = {
     CPARSER_NODE_KEYWORD,
     0,
     "discovery",
-    NULL,
+    "SNBI neighbor discovery",
     &cparser_node_snbi_root_no_debug,
     &cparser_node_snbi_root_no_discovery_eol
 };
@@ -997,7 +997,7 @@ cparser_node_t cparser_node_snbi_root_no = {
     CPARSER_NODE_KEYWORD,
     0,
     "no",
-    NULL,
+    "Negate a command",
     &cparser_node_snbi_root_interface,
     &cparser_node_snbi_root_no_discovery
 };
@@ -1015,7 +1015,7 @@ cparser_node_t cparser_node_snbi_root_discovery = {
     CPARSER_NODE_KEYWORD,
     0,
     "discovery",
-    NULL,
+    "Enable SNBI neighbor discovery",
     &cparser_node_snbi_root_no,
     &cparser_node_snbi_root_discovery_eol
 };
@@ -1033,7 +1033,7 @@ cparser_node_t cparser_node_snbi_root_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    NULL,
+    "Exit from SNBI mode",
     &cparser_node_snbi_root_discovery,
     &cparser_node_snbi_root_quit_eol
 };
@@ -1060,7 +1060,7 @@ cparser_node_t cparser_node_snbi = {
     CPARSER_NODE_KEYWORD,
     0,
     "snbi",
-    NULL,
+    "SNBI mode",
     &cparser_node_test,
     &cparser_node_snbi_eol
 };
@@ -1078,7 +1078,7 @@ cparser_node_t cparser_node_show_snbi_intf_db = {
     CPARSER_NODE_KEYWORD,
     0,
     "intf-db",
-    NULL,
+    "Interface DB",
     NULL,
     &cparser_node_show_snbi_intf_db_eol
 };
@@ -1096,7 +1096,7 @@ cparser_node_t cparser_node_show_snbi_neighbors = {
     CPARSER_NODE_KEYWORD,
     0,
     "neighbors",
-    NULL,
+    "SNBI Neighbors",
     &cparser_node_show_snbi_intf_db,
     &cparser_node_show_snbi_neighbors_eol
 };
@@ -1114,7 +1114,7 @@ cparser_node_t cparser_node_show_snbi_device = {
     CPARSER_NODE_KEYWORD,
     0,
     "device",
-    NULL,
+    "Host device",
     &cparser_node_show_snbi_neighbors,
     &cparser_node_show_snbi_device_eol
 };
@@ -1123,7 +1123,7 @@ cparser_node_t cparser_node_show_snbi = {
     CPARSER_NODE_KEYWORD,
     0,
     "snbi",
-    NULL,
+    "SNBI information",
     NULL,
     &cparser_node_show_snbi_device
 };
@@ -1141,7 +1141,7 @@ cparser_node_t cparser_node_show_process = {
     CPARSER_NODE_KEYWORD,
     0,
     "process",
-    NULL,
+    "Active process statistics",
     &cparser_node_show_snbi,
     &cparser_node_show_process_eol
 };

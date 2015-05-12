@@ -67,6 +67,7 @@ static void
 cparser_help_print_node (cparser_t *parser, cparser_node_t *node,
                          const int add_lf, const int print_desc)
 {
+    char cli_keyword[30],cli_help[48],cli_list_keyword[30];
     assert(parser && node);
     if (!NODE_USABLE(parser, node)) {
         return;
@@ -78,30 +79,37 @@ cparser_help_print_node (cparser_t *parser, cparser_node_t *node,
         case CPARSER_NODE_ROOT:
             assert(0); /* this should never happen */
         case CPARSER_NODE_END:
-            parser->cfg.prints(parser, "<LF>");
+            parser->cfg.prints(parser, "\t<LF>");
             break;
         case CPARSER_NODE_LIST:
-            parser->cfg.prints(parser, "[ ");
+	    parser->cfg.prints(parser, "\t");
+	    strcpy(cli_list_keyword, "[ ");
             cparser_list_node_t *lnode = (cparser_list_node_t *)node->param;
             assert(lnode);
             while (lnode) {
-                parser->cfg.prints(parser, lnode->keyword);
+		strcat(cli_list_keyword, lnode->keyword);
                 lnode = lnode->next;
                 if (lnode) {
-                    parser->cfg.prints(parser, " | ");
+		    strcat(cli_list_keyword, " | ");
                 }
             }
-            parser->cfg.prints(parser, " ]");
+	    strcat(cli_list_keyword, " ]");
+	    sprintf(cli_keyword,"%-28s", cli_list_keyword);
+            parser->cfg.prints(parser, cli_keyword);
 	    if (print_desc && node->desc) {
-	        parser->cfg.prints(parser, " - ");
-	        parser->cfg.prints(parser, node->desc);
+		parser->cfg.prints(parser, "  ");
+                sprintf(cli_help,"%-46s", node->desc);
+                parser->cfg.prints(parser, cli_help);
 	    }
             break;
         default:
-            parser->cfg.prints(parser, node->param);
+	    sprintf(cli_keyword,"%-20s",node->param);
+	    parser->cfg.prints(parser, "\t");
+            parser->cfg.prints(parser, cli_keyword);
             if (print_desc && node->desc) {
-                parser->cfg.prints(parser, " - ");
-                parser->cfg.prints(parser, node->desc);
+                parser->cfg.prints(parser, "  ");
+		sprintf(cli_help,"%-46s", node->desc);
+                parser->cfg.prints(parser, cli_help);
             }
             break;
     }

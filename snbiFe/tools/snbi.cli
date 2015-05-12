@@ -4,61 +4,61 @@ show("Show running system information") autonomic("Autonomic Networking") interf
 
 show("Show running system information") ip("IP information") interfaces("IP interface status and configuration")
 
-show process
+show("Show running system information") process("Active process statistics")
 
-show snbi device
+show("Show running system information") snbi("SNBI information") device("Host device")
 
-show snbi neighbors
+show("Show running system information") snbi("SNBI information") neighbors("SNBI Neighbors")
 
-show snbi intf-db
+show("Show running system information") snbi("SNBI information") intf-db("Interface DB")
 
-snbi
+snbi("SNBI mode")
 
 #submode "snbi"
 
-quit
+quit("Exit from SNBI mode")
 
-discovery
+discovery("Enable SNBI neighbor discovery")
 
-no discovery
+no("Negate a command") discovery("SNBI neighbor discovery")
 
-interface start
+interface("SNBI interface") start("Start neighbor discovery")
 
-interface stop
+interface("SNBI interface") stop("Stop neighbor discovery")
 
-start
+start("Enable SNBI protocol")
 
-stop
+stop("Disable SNBI protocol")
 
-debug log console
-debug log file <STRING:logfile>("Log file name")
+debug("Debugging functions") log("Modify message logging facilities") console("Enable console logging")
+debug("Debugging functions") log("Modify message logging facilities") file("Enable file logging") <STRING:logfile>("Log file name")
 
-debug neighbor-discovery <LIST:all,database,events,packets:type> <LIST:info,moderate,sev:level>
-no debug neighbor-discovery <LIST:all,database,events,packets:type> <LIST:info,moderate,sev:level>
+debug("Debugging functions") neighbor-discovery("Neighbor discovery debug information") <LIST:all,database,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
+no("Negate a command") debug("Debugging functions") neighbor-discovery("Neighbor discovery debug information") <LIST:all,database,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
 
-debug bootstrap("Bootstrap debugs") <LIST:all,events,packets:type>("Type of debug") <LIST:info,moderate,sev:level>("Severity of debugs")
-no debug bootstrap <LIST:all,events,packets:type> <LIST:info,moderate,sev:level>
+debug("Debugging functions") bootstrap("Bootstrap debug information") <LIST:all,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
+no("Negate a command") debug("Debugging functions") bootstrap("Bootstrap debug information") <LIST:all,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
 
 #endsubmode
 
-test avl-get-firstnode
+test("Test command") avl-get-firstnode("Get avl first node")
 
-test avl-init
+test("Test command") avl-init("Avl init")
 
-test avl-insert <UINT:value>("Integer value")
+test("Test command") avl-insert("Avl insert") <UINT:value>("Integer value")
 
-test avl-remove <UINT:value>
+test("Test command") avl-remove("Avl remove") <UINT:value>("Integer value")
 
-test avl-search <UINT:value>
+test("Test command") avl-search("Avl search") <UINT:value>("Integer value")
 
-test avl-uninit
+test("Test command") avl-uninit("Avl uninit")
 
-test avl-walk
+test("Test command") avl-walk("Avl walk")
 
 // Enable privileged mode
-enable privileged-mode
+enable("Enable") privileged-mode("Privilege mode requires a password")
 
 // Disable privileged mode
-+ disable privileged-mode
++ disable("Disable") privileged-mode("Privilege mode")
 
-quit
+quit("Quit the simulator")
