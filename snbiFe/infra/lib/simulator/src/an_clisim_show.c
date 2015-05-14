@@ -11,6 +11,7 @@
 #include "an_if_mgr.h"
 #include <cparser.h>
 #include <cparser_tree.h>
+#include <unistd.h>
 
 
 uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
@@ -44,8 +45,6 @@ an_show_nbr_list_name_cb (an_list_t *list,
 cparser_result_t 
 cparser_cmd_show_snbi_device (cparser_context_t *context)
 {
-    int i;
-
     printf("\n%80s", an_show_header);
     printf ("\n UDI    %s ", an_info.udi.data);
     printf("\n%80s", an_show_trailer); 

@@ -119,7 +119,6 @@ boolean an_ipv6_forward_pak (an_pak_t *pak, uint8_t *msg_block,uint32_t
         *msg_pkg,uint16_t msgb_len)
 {
     struct sockaddr_in6 dest;
-    an_ipv6_hdr_t *ipv6_header = NULL;
     char ipstr[INET6_ADDRSTRLEN + 1];
     unsigned int ifhndl= 0;
     an_addr_t *src, *dst;

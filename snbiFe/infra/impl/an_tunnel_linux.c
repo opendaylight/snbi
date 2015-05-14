@@ -51,7 +51,7 @@ boolean
 an_vrf_define (void)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return;
+        return FALSE;
 }
 
 void

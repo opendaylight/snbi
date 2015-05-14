@@ -44,6 +44,21 @@ olibc_pthread_create (olibc_pthread_hdl *pthread_hdl,
     if (pthread_info->thread_name) {
         pthread->thread_str = strdup(pthread_info->thread_name);
     }
+    *pthread_hdl = pthread;
+
+    return OLIBC_RETVAL_SUCCESS;
+}
+
+olibc_retval_t
+olibc_pthread_get_id (olibc_pthread_hdl pthread_hdl,
+                      uint32_t *pthread_id)
+{
+    if (!pthread_hdl || !pthread_id) {
+        return OLIBC_RETVAL_INVALID_INPUT;
+    }
+
+    *pthread_id = pthread_hdl->thread_id;
+    return OLIBC_RETVAL_SUCCESS;
 }
 
 olibc_retval_t
@@ -73,4 +88,5 @@ olibc_pthread_get_event_base (olibc_pthread_hdl pthread_hdl,
         pthread_hdl->evt_base = event_base_new();
     }
     *evt_base = pthread_hdl->evt_base;
+    return OLIBC_RETVAL_SUCCESS;
 }

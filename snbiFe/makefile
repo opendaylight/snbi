@@ -54,7 +54,10 @@ CC = gcc
 #OPTIM = -O3
 #CFLAGS = $(DEBUG) $(OPTIM) -Wall -std=c99 -pedantic -Wformat-security -Wno-format-zero-length -Werror -Wwrite-strings -Wformat
 
-CFLAGS = -g
+CFLAGS = -g -Wuninitialized -Wreturn-type \
+	-Wunused-label -Wunused-value -Wunused-variable \
+	-Wimplicit-function-declaration -Wimplicit-int -Wmissing-braces \
+	-Wnonnull -Wparentheses
 
 OLIBC_LD_LIB = -lpthread -levent
 
@@ -127,6 +130,7 @@ CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_avl_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_list_test.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_event_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_show.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_debug.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_logg.c \

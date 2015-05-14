@@ -46,6 +46,7 @@ olibc_timer_create (olibc_timer_hdl *timer_hdl, olibc_timer_info_t *timer_info)
 olibc_retval_t
 olibc_timer_destroy (olibc_timer_hdl *timer_hdl)
 {
+    return OLIBC_RETVAL_SUCCESS;
 }
 
 olibc_retval_t

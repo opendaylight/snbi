@@ -195,6 +195,7 @@ an_pak_enqueue (an_pak_t *pak)
     }
     return (FALSE);
 */
+    return FALSE;
 }
 
 boolean 
@@ -212,6 +213,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean
 an_process_get_boolean(an_watched_boolean *watch_bool) {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
+    return FALSE;
 }
 

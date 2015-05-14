@@ -416,6 +416,41 @@ cparser_glue_test_list_walk (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_event_pthread_create (cparser_t *parser)
+{
+    cparser_cmd_test_event_pthread_create(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_timer_create (cparser_t *parser)
+{
+    cparser_cmd_test_event_timer_create(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_timer_destroy (cparser_t *parser)
+{
+    cparser_cmd_test_event_timer_destroy(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_timer_start (cparser_t *parser)
+{
+    cparser_cmd_test_event_timer_start(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_timer_stop (cparser_t *parser)
+{
+    cparser_cmd_test_event_timer_stop(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_quit (cparser_t *parser)
 {
     cparser_cmd_test_quit(&parser->context);
@@ -438,6 +473,105 @@ cparser_node_t cparser_node_test_root_quit = {
     "Exit test submode",
     NULL,
     &cparser_node_test_root_quit_eol
+};
+
+cparser_node_t cparser_node_test_root_event_timer_stop_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_timer_stop,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_timer_stop = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "timer-stop",
+    "Stop the Timer",
+    NULL,
+    &cparser_node_test_root_event_timer_stop_eol
+};
+
+cparser_node_t cparser_node_test_root_event_timer_start_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_timer_start,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_timer_start = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "timer-start",
+    "Start the Timer",
+    &cparser_node_test_root_event_timer_stop,
+    &cparser_node_test_root_event_timer_start_eol
+};
+
+cparser_node_t cparser_node_test_root_event_timer_destroy_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_timer_destroy,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_timer_destroy = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "timer-destroy",
+    "Destroy a Timer",
+    &cparser_node_test_root_event_timer_start,
+    &cparser_node_test_root_event_timer_destroy_eol
+};
+
+cparser_node_t cparser_node_test_root_event_timer_create_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_timer_create,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_timer_create = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "timer-create",
+    "Create a Timer",
+    &cparser_node_test_root_event_timer_destroy,
+    &cparser_node_test_root_event_timer_create_eol
+};
+
+cparser_node_t cparser_node_test_root_event_pthread_create_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_pthread_create,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_pthread_create = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "pthread-create",
+    "Create a Pthread",
+    &cparser_node_test_root_event_timer_create,
+    &cparser_node_test_root_event_pthread_create_eol
+};
+
+cparser_node_t cparser_node_test_root_event = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "event",
+    "Event Test Commands",
+    &cparser_node_test_root_quit,
+    &cparser_node_test_root_event_pthread_create
 };
 
 cparser_node_t cparser_node_test_root_list_walk_eol = {
@@ -652,7 +786,7 @@ cparser_node_t cparser_node_test_root_list = {
     0,
     "list",
     "List Test commands",
-    &cparser_node_test_root_quit,
+    &cparser_node_test_root_event,
     &cparser_node_test_root_list_create
 };
 

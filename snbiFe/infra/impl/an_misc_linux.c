@@ -175,6 +175,7 @@ an_is_startup_config_exists(void)
 
 an_ifs_pathent *an_config_ifs_pathent_create (void)
 {
+    return NULL;
 }
 
 void

@@ -23,7 +23,7 @@ uint8_t buffer8[AN_STR_MAX_LEN] = {};
 uint8_t buffer9[AN_STR_MAX_LEN] = {};
 
 static uint8_t *buffer_p[10] = {};
-static uint8_t *hex_array = "0123456789abcdef";
+//static uint8_t *hex_array = "0123456789abcdef";
 
 uint8_t*
 an_strTrim (uint8_t *s)

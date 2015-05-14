@@ -4,6 +4,8 @@
 
 #include "test-list.cli"
 
+#include "test-event.cli"
+
 quit("Exit test submode")
 
 #endsubmode

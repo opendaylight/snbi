@@ -47,8 +47,6 @@ boolean
 an_udi_get_from_platform (an_udi_t *udi)
 {
 
-    uint32_t i;
-
     udi->data = NULL;
     udi->len = 0;
 

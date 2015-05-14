@@ -1,5 +1,3 @@
-#submode "test"
-
 avl("Avl Test commands") get-firstnode("Get avl first node")
 
 avl("Avl Test commands") init("Avl init")
@@ -33,7 +31,3 @@ list("List Test commands") remove-node("Remove a value from the list") <UINT:val
 list("List Test commands") get-head-data("Get the data in the head of the list")
 
 list("List Test commands") walk("List Walk")
-
-quit("Exit test submode")
-
-#endsubmode

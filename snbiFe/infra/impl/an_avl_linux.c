@@ -23,28 +23,30 @@ an_avl_get_first_node (an_avl_node_t *top_node, an_avl_tree *tree)
 boolean 
 an_avl_insert_node (an_avl_top_p *top_node, an_avl_node_t *node, an_avl_compare_f compare, an_avl_tree *tree) 
 {
-    void *val= NULL;
-
     if (!tree || !node) {
       return (FALSE);   
     }
-    avl_insert(tree, node); 
+    if (!avl_insert(tree, node)) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 boolean 
 an_avl_remove_node (an_avl_top_p *top_node, an_avl_node_t *node, an_avl_compare_f compare, an_avl_tree *tree)
 {
-    void *val= NULL;
     if (!tree || !node) {
       return (FALSE);   
     }
-    avl_remove(tree, node);
+    if (!avl_remove(tree, node)) {
+        return TRUE;
+    }
+    return FALSE;
 }
 
 an_avl_node_t* 
 an_avl_search_node (an_avl_top_p top_node, an_avl_node_t *node, an_avl_compare_f compare, an_avl_tree *tree)
 {
-    void *node_found=NULL;
     if (!tree || !node) {
       return (FALSE);   
     }

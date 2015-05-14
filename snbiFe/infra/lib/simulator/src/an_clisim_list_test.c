@@ -44,8 +44,6 @@ cparser_result_t
 cparser_cmd_test_list_is_valid (cparser_context_t *context)
 {
     boolean ret;
-    an_cerrno cerrno;
-
     ret = an_list_is_valid(test_list);
 
     printf("List is %s\n", ret ? "Valid":"Invalid");
@@ -56,10 +54,8 @@ cparser_result_t
 cparser_cmd_test_list_is_empty (cparser_context_t *context)
 {
     boolean ret;
-    an_cerrno crrno;
 
     ret = an_list_is_empty(test_list);
-
     printf("List is %s\n", ret ? "Empty":"Not empty");
     return CPARSER_OK;
 }
@@ -143,8 +139,8 @@ an_cerrno test_list_remove_walker_func (an_list_t  *list,
 
     elem_data = (uint32_t *)current->data;
     if (*data == *elem_data) {
-        if (ret_data = an_list_remove(list, 
-                    (an_list_element_t *) current, elem_data)) {
+        if ((ret_data = an_list_remove(list, 
+                    (an_list_element_t *) current, elem_data))) {
             printf("Remove data %d \n",*ret_data);
             free(ret_data);
         } else {
@@ -189,7 +185,6 @@ test_list_print_walker_func (an_list_t *list,
                              void *context)
 {
     uint32_t *elem_data = NULL;
-    uint32_t *data = (uint32_t *)context;
 
     if (!list || !current) {
         return 1;

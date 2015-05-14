@@ -109,8 +109,9 @@ cparser_result_t
 cparser_cmd_test_avl_remove_value (cparser_context_t *context,
                                    uint32_t *value_ptr)
 {
-    an_avl_test_node_t test_node = {0};
+    an_avl_test_node_t test_node;
 
+    an_memset(&test_node, 0, sizeof(an_avl_test_node_t));
     test_node.data = *value_ptr;
     printf("Inside test AVL remove data %d\n", test_node.data);
     an_avl_remove_node(NULL, (an_avl_node_t *)&test_node, 
@@ -135,8 +136,9 @@ cparser_cmd_test_avl_search_value  (cparser_context_t *context,
                                     uint32_t *value_ptr)
 {
     an_avl_test_node_t *test_node = NULL;
-    an_avl_test_node_t match_node = {0};
+    an_avl_test_node_t match_node;
 
+    an_memset(&match_node, 0, sizeof(an_avl_test_node_t));
     match_node.data =  *value_ptr;
     test_node = (an_avl_test_node_t *)an_avl_search_node(NULL,
                                                 (an_avl_node_t *) &match_node, 

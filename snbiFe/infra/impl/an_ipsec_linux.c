@@ -40,7 +40,7 @@ boolean
 an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return;
+        return FALSE;
 }
 
 void

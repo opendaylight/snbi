@@ -327,7 +327,6 @@ olibc_list_iterator_create (olibc_list_hdl list_hdl,
                             olibc_list_iterator_hdl *hdl) 
 {
     olibc_retval_t retval;
-    olibc_list_element_hdl elem_hdl = NULL;
     struct olibc_list_iterator_t_ *iter = NULL;
 
     if (!list_hdl || !iter) {

@@ -38,7 +38,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void an_cert_display (const an_cert_t cert)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
 }
 
 an_cert_api_ret_enum
@@ -198,7 +197,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 an_cert_api_ret_enum 
 an_cert_config_cert_renewal_on_trustpoint (void) {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
+    return (AN_CERT_UNKNOWN_FAILURE);
 }
 
 an_cert_api_ret_enum

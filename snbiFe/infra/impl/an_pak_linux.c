@@ -109,7 +109,6 @@ void
 an_linux_pak_create (an_pak_t *an_linux_pak, uint32_t ifhndl, char *data, 
                                          struct sockaddr_storage *sender)
 {
-    char ipstr[INET6_ADDRSTRLEN + 1];
     struct sockaddr_in6 *s = NULL;
 
     if (!an_linux_pak) {

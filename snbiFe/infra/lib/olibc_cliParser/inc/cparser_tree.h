@@ -67,6 +67,11 @@ cparser_result_t cparser_cmd_test_list_remove_node_value(cparser_context_t *cont
     uint32_t *value_ptr);
 cparser_result_t cparser_cmd_test_list_get_head_data(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_list_walk(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_pthread_create(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_timer_create(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_timer_destroy(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_timer_start(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_timer_stop(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_quit(cparser_context_t *context);
 
 #ifdef __cplusplus

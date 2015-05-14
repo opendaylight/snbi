@@ -128,7 +128,7 @@ static avl *do_insert (avl *node, avl_compare_cb_f cmp_fn, void *new)
     return(node);
 }
 
-static reset_node_count (void)
+static void reset_node_count (void)
 {
     node_count = 0;
 }
@@ -201,9 +201,6 @@ avl *remove_node (avl *node)
 
 static avl *do_remove (avl *node, avl_compare_cb_f cmp_fn, avl *del_node)
 {
-    avl *p;
-    avl *ret_node_t = NULL;
-
     if(!node || !cmp_fn || !del_node)
     {
         return(NULL);

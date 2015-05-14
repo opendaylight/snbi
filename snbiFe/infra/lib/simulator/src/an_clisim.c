@@ -28,7 +28,7 @@ main (int argc, char *argv[])
 
     if (argc < 2) {
         printf("\nInvalid options passed use -h to know the right command\n");
-        return;
+        return 1;
     }
 
 
@@ -46,7 +46,7 @@ main (int argc, char *argv[])
                 printf("\n-i \tEnter into interactive mode");
                 printf("\n-d \tEnable parser debug mode");
                 printf("\n\n");
-                return;
+                return 0;
                 break;
         }
     }

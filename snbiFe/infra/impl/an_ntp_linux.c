@@ -88,7 +88,8 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 an_unix_time_t 
 an_unix_time_get_elapsed_time(an_unix_time_t timestamp) {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
+    an_unix_time_t dummy_time={0};
+    return (dummy_time);
 }
 
 boolean

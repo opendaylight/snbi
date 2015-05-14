@@ -40,7 +40,7 @@ an_acp_remove_clock_sync_with_nbr (an_nbr_t *nbr)
 boolean
 an_acp_enable_clock_sync_with_nbr (an_nbr_t *nbr)
 {
-    return;
+    return FALSE;
 }
 
 void
