@@ -81,7 +81,9 @@ extern olibc_retval_t
 olibc_list_dequeue_node(olibc_list_hdl list_hdl, void **return_data);
 
 extern olibc_retval_t
-olibc_list_remove_node(olibc_list_hdl list_hdl, void *data,
+olibc_list_remove_node(olibc_list_hdl list_hdl, 
+                       olibc_list_element_t *elem,
+                       void *data,
                        olibc_list_comp_handler comp_handler, 
                        void **return_data);
 

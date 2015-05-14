@@ -1,0 +1,3 @@
+Run mk_parser.py against clisim.cli to generate the parser tree with all .cli included
+
+./mk_parser.py clisim.cli

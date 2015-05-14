@@ -31,7 +31,7 @@ CC_OLIBC_INCDIRS :=\
 	-I$(BASE_OLIBC_LIST_DIR)/inc \
 	-I$(BASE_OLIBC_EVENT_DIR)/inc \
 
-CC_INCDIRS :=\
+CC_SNBI_INCDIRS :=\
 	$(CC_OLIBC_INCDIRS) \
 	-I$(BASE_LINUX_AL_DIR) \
 	-I$(BASE_AL_DIR) \
@@ -39,7 +39,7 @@ CC_INCDIRS :=\
 
 SNBI_COMMON_SRC=$(BASE_COMMON_DIR)
 SNBI_LINUX_AL_SRC=$(BASE_LINUX_AL_DIR)
-SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)
+SNBI_CLISIM_SRC=$(BASE_SNBI_CLISIM_DIR)/src
 
 OLIBC_CLI_SRC=$(BASE_OLIBC_CLI_DIR)/src
 OLIBC_AVL_SRC=$(BASE_OLIBC_AVL_DIR)/src
@@ -126,6 +126,7 @@ CC_SNBI_LINUX_AL_SRCS :=\
 CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_avl_test.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_list_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_show.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_debug.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_logg.c \
@@ -173,22 +174,22 @@ mkdir:
 
 libolibc: $(CC_OLIBC_ALL_SRCS)
 	echo "Building target: $@" 
-	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
+	$(CC) -c $^ $(CC_SNBI_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
                 
 an_linux_al: $(CC_SNBI_LINUX_AL_SRCS)
 	@echo "Building target: $@"
-	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
+	$(CC) -c $^ $(CC_SNBI_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
 
 an_common: $(CC_SNBI_COMMON_SRCS)
 	@echo "Building target: $@"
-	$(CC) -c $^ $(CC_INCDIRS) $(CFLAGS)
+	$(CC) -c $^ $(CC_SNBI_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
 
 snbi_clisim: $(CC_SNBI_CLISIM_SRCS) $(CC_ALL_SRCS)
 	@echo "Building target: $@"
-	$(CC) -c $(CC_SNBI_CLISIM_SRCS) $(CC_INCDIRS) $(CFLAGS)
+	$(CC) -c $(CC_SNBI_CLISIM_SRCS) $(CC_SNBI_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
 	$(CC) -o $(SNBI_BIN)/$@ $(SNBI_OBJ)/*.o $(LD_LIB)
 	@echo 'Finished building target: $@'

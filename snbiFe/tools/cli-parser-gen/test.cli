@@ -1,0 +1,9 @@
+#submode "test"
+
+#include "test-avl.cli"
+
+#include "test-list.cli"
+
+quit("Exit test submode")
+
+#endsubmode

@@ -5,13 +5,11 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
-
-#include <an_types.h>
 #include <an_list.h>
+#include <an_olibc.h>
+#include <an_types.h>
 #include <an_logger.h>
 #include <olibc_list.h>
-#include <an_olibc.h>
 
 an_cerrno 
 an_list_create (an_list_t **list, 
@@ -85,7 +83,7 @@ an_list_remove (an_list_t *list, an_list_element_t *element, void *data)
 {
     void *return_data;
 
-    if (CERR_IS_OK(an_map_olibc_retval(olibc_list_remove_node(list,
+    if (CERR_IS_OK(an_map_olibc_retval(olibc_list_remove_node(list, element,
                                        data, NULL, &return_data)))) {
         return (return_data);
     }
@@ -121,4 +119,3 @@ an_list_walk (an_list_t *list, an_list_walk_handler func,
     return (an_map_olibc_retval(olibc_list_walk(list, 
                     (olibc_list_walk_handler)func, context)));
 }
-

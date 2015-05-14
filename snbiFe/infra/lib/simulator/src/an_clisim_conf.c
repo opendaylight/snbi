@@ -62,6 +62,21 @@ cparser_cmd_snbi_quit (cparser_context_t *context)
 }
 
 cparser_result_t
+cparser_cmd_test (cparser_context_t *context)
+{
+    char prompt[CPARSER_MAX_PROMPT];
+    snprintf(prompt, CPARSER_MAX_PROMPT, "clisim (test) > ");
+    return (cparser_submode_enter(context->parser, NULL, prompt));
+}
+
+cparser_result_t
+cparser_cmd_test_quit (cparser_context_t *context)
+{
+    assert(context && context->parser);
+    return cparser_submode_exit(context->parser);
+}
+
+cparser_result_t
 cparser_cmd_snbi_discovery (cparser_context_t *context)
 {
     int no = 0;

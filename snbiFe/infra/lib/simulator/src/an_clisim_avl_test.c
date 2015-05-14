@@ -28,7 +28,7 @@ an_avl_test_nodes_walk_func (an_avl_node_t *node, void *args)
     an_avl_test_node_t *test_node = (an_avl_test_node_t *)node;
 
     if (node) {
-        printf("\nAVL walking nodes :\n");
+        printf("AVL walking nodes :\n");
         printf("\tData : %d", test_node->data);
         if (args) {
             printf("\tArgs : %s\n", (char *) args);
@@ -65,7 +65,7 @@ an_avl_test_compare_func (an_avl_node_t *nodeA, an_avl_node_t *nodeB)
 cparser_result_t 
 cparser_cmd_test_avl_init (cparser_context_t *context)
 {
-    printf("\nInside test init");
+    printf("Inside test init\n");
     an_memset(&an_avl_test_tree, 0, sizeof(an_avl_tree));
     an_avl_init(&an_avl_test_tree, an_avl_test_compare_func);
     return (CPARSER_OK);
@@ -78,14 +78,14 @@ cparser_cmd_test_avl_insert_value (cparser_context_t *context,
     an_avl_test_node_t *test_node = an_malloc(sizeof(an_avl_test_node_t), 
                                              "AN AVL test node");
     if (!test_node) {
-        printf("\n Failed to allocate test node");
+        printf("Failed to allocate test node\n");
         return (CPARSER_NOT_OK);
     }
 
     an_memset(test_node, 0, sizeof(an_avl_test_node_t));
 
     test_node->data = *value_ptr;
-    printf("\nInside test insert data %d", test_node->data);
+    printf("Inside test insert data %d\n", test_node->data);
 
     an_avl_insert_node(NULL, (an_avl_node_t *)test_node, 
                        an_avl_test_compare_func,
@@ -96,7 +96,7 @@ cparser_cmd_test_avl_insert_value (cparser_context_t *context,
 cparser_result_t
 cparser_cmd_test_avl_walk (cparser_context_t *context)
 {
-    printf("\nInside test AVL tree");
+    printf("Inside test AVL tree\n");
 
     an_avl_walk_all_nodes(NULL, an_avl_test_nodes_walk_func,
                           an_avl_test_compare_func, 
@@ -112,7 +112,7 @@ cparser_cmd_test_avl_remove_value (cparser_context_t *context,
     an_avl_test_node_t test_node = {0};
 
     test_node.data = *value_ptr;
-    printf("\nInside test AVL remove data %d", test_node.data);
+    printf("Inside test AVL remove data %d\n", test_node.data);
     an_avl_remove_node(NULL, (an_avl_node_t *)&test_node, 
                        an_avl_test_compare_func, &an_avl_test_tree);
     return (CPARSER_OK);
@@ -125,7 +125,7 @@ cparser_cmd_test_avl_get_firstnode (cparser_context_t *context)
     test_node = (an_avl_test_node_t *)an_avl_get_first_node(NULL, 
                                                             &an_avl_test_tree);
     if (test_node) {
-        printf("\nInside test AVL get first node %d", test_node->data); 
+        printf("Inside test AVL get first node %d\n", test_node->data); 
     }
     return (CPARSER_OK);
 }
@@ -143,9 +143,9 @@ cparser_cmd_test_avl_search_value  (cparser_context_t *context,
                                                 NULL, &an_avl_test_tree);
 
     if (test_node) {
-        printf("\nInside avl search node found %d", test_node->data);
+        printf("Inside avl search node found %d\n", test_node->data);
     } else {
-        printf("\nFailed to find the node");
+        printf("Failed to find the node\n");
     }
     return (CPARSER_OK);
 }
@@ -153,6 +153,6 @@ cparser_cmd_test_avl_search_value  (cparser_context_t *context,
 cparser_result_t
 cparser_cmd_test_avl_uninit (cparser_context_t *context)
 {
-    printf("\nInside AVL uninit");
+    printf("Inside AVL uninit\n");
     return (CPARSER_OK);
 }

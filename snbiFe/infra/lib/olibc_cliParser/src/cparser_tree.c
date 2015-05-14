@@ -59,6 +59,27 @@ cparser_glue_show_snbi_intf_db (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_enable_privileged_mode (cparser_t *parser)
+{
+    cparser_cmd_enable_privileged_mode(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_disable_privileged_mode (cparser_t *parser)
+{
+    cparser_cmd_disable_privileged_mode(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_quit (cparser_t *parser)
+{
+    cparser_cmd_quit(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_snbi (cparser_t *parser)
 {
     cparser_cmd_snbi(&parser->context);
@@ -221,6 +242,13 @@ cparser_glue_snbi_debug_bootstrap_type_level (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test (cparser_t *parser)
+{
+    cparser_cmd_test(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_avl_get_firstnode (cparser_t *parser)
 {
     cparser_cmd_test_avl_get_firstnode(&parser->context);
@@ -294,99 +322,341 @@ cparser_glue_test_avl_walk (cparser_t *parser)
 }
 
 cparser_result_t
-cparser_glue_enable_privileged_mode (cparser_t *parser)
+cparser_glue_test_list_create (cparser_t *parser)
 {
-    cparser_cmd_enable_privileged_mode(&parser->context);
+    cparser_cmd_test_list_create(&parser->context);
     return CPARSER_OK;
 }
 
 cparser_result_t
-cparser_glue_disable_privileged_mode (cparser_t *parser)
+cparser_glue_test_list_destroy (cparser_t *parser)
 {
-    cparser_cmd_disable_privileged_mode(&parser->context);
+    cparser_cmd_test_list_destroy(&parser->context);
     return CPARSER_OK;
 }
 
 cparser_result_t
-cparser_glue_quit (cparser_t *parser)
+cparser_glue_test_list_is_valid (cparser_t *parser)
 {
-    cparser_cmd_quit(&parser->context);
+    cparser_cmd_test_list_is_valid(&parser->context);
     return CPARSER_OK;
 }
 
-cparser_node_t cparser_node_quit_eol = {
+cparser_result_t
+cparser_glue_test_list_is_empty (cparser_t *parser)
+{
+    cparser_cmd_test_list_is_empty(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_list_lookup_node_value (cparser_t *parser)
+{
+    uint32_t value_val;
+    uint32_t *value_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_uint(&parser->tokens[2], &value_val);
+    assert(CPARSER_OK == rc);
+    value_ptr = &value_val;
+    cparser_cmd_test_list_lookup_node_value(&parser->context,
+        value_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_list_enqueue_node_value (cparser_t *parser)
+{
+    uint32_t value_val;
+    uint32_t *value_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_uint(&parser->tokens[2], &value_val);
+    assert(CPARSER_OK == rc);
+    value_ptr = &value_val;
+    cparser_cmd_test_list_enqueue_node_value(&parser->context,
+        value_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_list_dequeue_node (cparser_t *parser)
+{
+    cparser_cmd_test_list_dequeue_node(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_list_remove_node_value (cparser_t *parser)
+{
+    uint32_t value_val;
+    uint32_t *value_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_uint(&parser->tokens[2], &value_val);
+    assert(CPARSER_OK == rc);
+    value_ptr = &value_val;
+    cparser_cmd_test_list_remove_node_value(&parser->context,
+        value_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_list_get_head_data (cparser_t *parser)
+{
+    cparser_cmd_test_list_get_head_data(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_list_walk (cparser_t *parser)
+{
+    cparser_cmd_test_list_walk(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_quit (cparser_t *parser)
+{
+    cparser_cmd_test_quit(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_node_t cparser_node_test_root_quit_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_quit,
+    cparser_glue_test_quit,
     NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_quit = {
+cparser_node_t cparser_node_test_root_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    "Quit the simulator",
+    "Exit test submode",
     NULL,
-    &cparser_node_quit_eol
+    &cparser_node_test_root_quit_eol
 };
 
-cparser_node_t cparser_node_disable_privileged_mode_eol = {
+cparser_node_t cparser_node_test_root_list_walk_eol = {
     CPARSER_NODE_END,
-    CPARSER_NODE_FLAGS_HIDDEN,
-    cparser_glue_disable_privileged_mode,
-    "Disable privileged mode",
+    0,
+    cparser_glue_test_list_walk,
+    NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_disable_privileged_mode = {
+cparser_node_t cparser_node_test_root_list_walk = {
     CPARSER_NODE_KEYWORD,
-    CPARSER_NODE_FLAGS_HIDDEN,
-    "privileged-mode",
-    "Privilege mode",
+    0,
+    "walk",
+    "List Walk",
     NULL,
-    &cparser_node_disable_privileged_mode_eol
+    &cparser_node_test_root_list_walk_eol
 };
 
-cparser_node_t cparser_node_disable = {
-    CPARSER_NODE_KEYWORD,
-    CPARSER_NODE_FLAGS_HIDDEN,
-    "disable",
-    "Disable",
-    &cparser_node_quit,
-    &cparser_node_disable_privileged_mode
-};
-
-cparser_node_t cparser_node_enable_privileged_mode_eol = {
+cparser_node_t cparser_node_test_root_list_get_head_data_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_enable_privileged_mode,
-    "Enable privileged mode",
+    cparser_glue_test_list_get_head_data,
+    NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_enable_privileged_mode = {
+cparser_node_t cparser_node_test_root_list_get_head_data = {
     CPARSER_NODE_KEYWORD,
     0,
-    "privileged-mode",
-    "Privilege mode requires a password",
+    "get-head-data",
+    "Get the data in the head of the list",
+    &cparser_node_test_root_list_walk,
+    &cparser_node_test_root_list_get_head_data_eol
+};
+
+cparser_node_t cparser_node_test_root_list_remove_node_value_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_remove_node_value,
     NULL,
-    &cparser_node_enable_privileged_mode_eol
+    NULL,
+    NULL
 };
 
-cparser_node_t cparser_node_enable = {
+cparser_node_t cparser_node_test_root_list_remove_node_value = {
+    CPARSER_NODE_UINT,
+    0,
+    "<UINT:value>",
+    "Integer value",
+    NULL,
+    &cparser_node_test_root_list_remove_node_value_eol
+};
+
+cparser_node_t cparser_node_test_root_list_remove_node = {
     CPARSER_NODE_KEYWORD,
     0,
-    "enable",
-    "Enable",
-    &cparser_node_disable,
-    &cparser_node_enable_privileged_mode
+    "remove-node",
+    "Remove a value from the list",
+    &cparser_node_test_root_list_get_head_data,
+    &cparser_node_test_root_list_remove_node_value
 };
 
-cparser_node_t cparser_node_test_avl_walk_eol = {
+cparser_node_t cparser_node_test_root_list_dequeue_node_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_dequeue_node,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_dequeue_node = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "dequeue-node",
+    "Dequeue the value from the head of the list",
+    &cparser_node_test_root_list_remove_node,
+    &cparser_node_test_root_list_dequeue_node_eol
+};
+
+cparser_node_t cparser_node_test_root_list_enqueue_node_value_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_enqueue_node_value,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_enqueue_node_value = {
+    CPARSER_NODE_UINT,
+    0,
+    "<UINT:value>",
+    "Integer value",
+    NULL,
+    &cparser_node_test_root_list_enqueue_node_value_eol
+};
+
+cparser_node_t cparser_node_test_root_list_enqueue_node = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "enqueue-node",
+    "Enqueue a value into the tail of the list",
+    &cparser_node_test_root_list_dequeue_node,
+    &cparser_node_test_root_list_enqueue_node_value
+};
+
+cparser_node_t cparser_node_test_root_list_lookup_node_value_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_lookup_node_value,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_lookup_node_value = {
+    CPARSER_NODE_UINT,
+    0,
+    "<UINT:value>",
+    "Integer value",
+    NULL,
+    &cparser_node_test_root_list_lookup_node_value_eol
+};
+
+cparser_node_t cparser_node_test_root_list_lookup_node = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "lookup-node",
+    "Lookup a value exists in the list",
+    &cparser_node_test_root_list_enqueue_node,
+    &cparser_node_test_root_list_lookup_node_value
+};
+
+cparser_node_t cparser_node_test_root_list_is_empty_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_is_empty,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_is_empty = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "is-empty",
+    "Check if the list is empty",
+    &cparser_node_test_root_list_lookup_node,
+    &cparser_node_test_root_list_is_empty_eol
+};
+
+cparser_node_t cparser_node_test_root_list_is_valid_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_is_valid,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_is_valid = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "is-valid",
+    "Check the validity of the list",
+    &cparser_node_test_root_list_is_empty,
+    &cparser_node_test_root_list_is_valid_eol
+};
+
+cparser_node_t cparser_node_test_root_list_destroy_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_destroy,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_destroy = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "destroy",
+    "Destroy the list",
+    &cparser_node_test_root_list_is_valid,
+    &cparser_node_test_root_list_destroy_eol
+};
+
+cparser_node_t cparser_node_test_root_list_create_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_list_create,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_list_create = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "create",
+    "Create a List",
+    &cparser_node_test_root_list_destroy,
+    &cparser_node_test_root_list_create_eol
+};
+
+cparser_node_t cparser_node_test_root_list = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "list",
+    "List Test commands",
+    &cparser_node_test_root_quit,
+    &cparser_node_test_root_list_create
+};
+
+cparser_node_t cparser_node_test_root_avl_walk_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_walk,
@@ -395,16 +665,16 @@ cparser_node_t cparser_node_test_avl_walk_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_walk = {
+cparser_node_t cparser_node_test_root_avl_walk = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-walk",
+    "walk",
     "Avl walk",
     NULL,
-    &cparser_node_test_avl_walk_eol
+    &cparser_node_test_root_avl_walk_eol
 };
 
-cparser_node_t cparser_node_test_avl_uninit_eol = {
+cparser_node_t cparser_node_test_root_avl_uninit_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_uninit,
@@ -413,16 +683,16 @@ cparser_node_t cparser_node_test_avl_uninit_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_uninit = {
+cparser_node_t cparser_node_test_root_avl_uninit = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-uninit",
+    "uninit",
     "Avl uninit",
-    &cparser_node_test_avl_walk,
-    &cparser_node_test_avl_uninit_eol
+    &cparser_node_test_root_avl_walk,
+    &cparser_node_test_root_avl_uninit_eol
 };
 
-cparser_node_t cparser_node_test_avl_search_value_eol = {
+cparser_node_t cparser_node_test_root_avl_search_value_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_search_value,
@@ -431,25 +701,25 @@ cparser_node_t cparser_node_test_avl_search_value_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_search_value = {
+cparser_node_t cparser_node_test_root_avl_search_value = {
     CPARSER_NODE_UINT,
     0,
     "<UINT:value>",
     "Integer value",
     NULL,
-    &cparser_node_test_avl_search_value_eol
+    &cparser_node_test_root_avl_search_value_eol
 };
 
-cparser_node_t cparser_node_test_avl_search = {
+cparser_node_t cparser_node_test_root_avl_search = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-search",
+    "search",
     "Avl search",
-    &cparser_node_test_avl_uninit,
-    &cparser_node_test_avl_search_value
+    &cparser_node_test_root_avl_uninit,
+    &cparser_node_test_root_avl_search_value
 };
 
-cparser_node_t cparser_node_test_avl_remove_value_eol = {
+cparser_node_t cparser_node_test_root_avl_remove_value_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_remove_value,
@@ -458,25 +728,25 @@ cparser_node_t cparser_node_test_avl_remove_value_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_remove_value = {
+cparser_node_t cparser_node_test_root_avl_remove_value = {
     CPARSER_NODE_UINT,
     0,
     "<UINT:value>",
     "Integer value",
     NULL,
-    &cparser_node_test_avl_remove_value_eol
+    &cparser_node_test_root_avl_remove_value_eol
 };
 
-cparser_node_t cparser_node_test_avl_remove = {
+cparser_node_t cparser_node_test_root_avl_remove = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-remove",
+    "remove",
     "Avl remove",
-    &cparser_node_test_avl_search,
-    &cparser_node_test_avl_remove_value
+    &cparser_node_test_root_avl_search,
+    &cparser_node_test_root_avl_remove_value
 };
 
-cparser_node_t cparser_node_test_avl_insert_value_eol = {
+cparser_node_t cparser_node_test_root_avl_insert_value_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_insert_value,
@@ -485,25 +755,25 @@ cparser_node_t cparser_node_test_avl_insert_value_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_insert_value = {
+cparser_node_t cparser_node_test_root_avl_insert_value = {
     CPARSER_NODE_UINT,
     0,
     "<UINT:value>",
     "Integer value",
     NULL,
-    &cparser_node_test_avl_insert_value_eol
+    &cparser_node_test_root_avl_insert_value_eol
 };
 
-cparser_node_t cparser_node_test_avl_insert = {
+cparser_node_t cparser_node_test_root_avl_insert = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-insert",
+    "insert",
     "Avl insert",
-    &cparser_node_test_avl_remove,
-    &cparser_node_test_avl_insert_value
+    &cparser_node_test_root_avl_remove,
+    &cparser_node_test_root_avl_insert_value
 };
 
-cparser_node_t cparser_node_test_avl_init_eol = {
+cparser_node_t cparser_node_test_root_avl_init_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_init,
@@ -512,16 +782,16 @@ cparser_node_t cparser_node_test_avl_init_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_init = {
+cparser_node_t cparser_node_test_root_avl_init = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-init",
+    "init",
     "Avl init",
-    &cparser_node_test_avl_insert,
-    &cparser_node_test_avl_init_eol
+    &cparser_node_test_root_avl_insert,
+    &cparser_node_test_root_avl_init_eol
 };
 
-cparser_node_t cparser_node_test_avl_get_firstnode_eol = {
+cparser_node_t cparser_node_test_root_avl_get_firstnode_eol = {
     CPARSER_NODE_END,
     0,
     cparser_glue_test_avl_get_firstnode,
@@ -530,22 +800,49 @@ cparser_node_t cparser_node_test_avl_get_firstnode_eol = {
     NULL
 };
 
-cparser_node_t cparser_node_test_avl_get_firstnode = {
+cparser_node_t cparser_node_test_root_avl_get_firstnode = {
     CPARSER_NODE_KEYWORD,
     0,
-    "avl-get-firstnode",
+    "get-firstnode",
     "Get avl first node",
-    &cparser_node_test_avl_init,
-    &cparser_node_test_avl_get_firstnode_eol
+    &cparser_node_test_root_avl_init,
+    &cparser_node_test_root_avl_get_firstnode_eol
+};
+
+cparser_node_t cparser_node_test_root_avl = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "avl",
+    "Avl Test commands",
+    &cparser_node_test_root_list,
+    &cparser_node_test_root_avl_get_firstnode
+};
+
+cparser_node_t cparser_node_test_root = {
+    CPARSER_NODE_ROOT,
+    0,
+    NULL,
+    "Root of submode test",
+    NULL,
+    &cparser_node_test_root_avl
+};
+
+cparser_node_t cparser_node_test_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test,
+    NULL,
+    NULL,
+    &cparser_node_test_root
 };
 
 cparser_node_t cparser_node_test = {
     CPARSER_NODE_KEYWORD,
     0,
     "test",
-    "Test command",
-    &cparser_node_enable,
-    &cparser_node_test_avl_get_firstnode
+    "Test mode",
+    NULL,
+    &cparser_node_test_eol
 };
 
 cparser_node_t cparser_node_snbi_root_debug_bootstrap_type_level_eol = {
@@ -1065,6 +1362,78 @@ cparser_node_t cparser_node_snbi = {
     &cparser_node_snbi_eol
 };
 
+cparser_node_t cparser_node_quit_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_quit,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_quit = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "quit",
+    "Quit the simulator",
+    &cparser_node_snbi,
+    &cparser_node_quit_eol
+};
+
+cparser_node_t cparser_node_disable_privileged_mode_eol = {
+    CPARSER_NODE_END,
+    CPARSER_NODE_FLAGS_HIDDEN,
+    cparser_glue_disable_privileged_mode,
+    "Disable privileged mode",
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_disable_privileged_mode = {
+    CPARSER_NODE_KEYWORD,
+    CPARSER_NODE_FLAGS_HIDDEN,
+    "privileged-mode",
+    "Privilege mode",
+    NULL,
+    &cparser_node_disable_privileged_mode_eol
+};
+
+cparser_node_t cparser_node_disable = {
+    CPARSER_NODE_KEYWORD,
+    CPARSER_NODE_FLAGS_HIDDEN,
+    "disable",
+    "Disable",
+    &cparser_node_quit,
+    &cparser_node_disable_privileged_mode
+};
+
+cparser_node_t cparser_node_enable_privileged_mode_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_enable_privileged_mode,
+    "Enable privileged mode",
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_enable_privileged_mode = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "privileged-mode",
+    "Privilege mode requires a password",
+    NULL,
+    &cparser_node_enable_privileged_mode_eol
+};
+
+cparser_node_t cparser_node_enable = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "enable",
+    "Enable",
+    &cparser_node_disable,
+    &cparser_node_enable_privileged_mode
+};
+
 cparser_node_t cparser_node_show_snbi_intf_db_eol = {
     CPARSER_NODE_END,
     0,
@@ -1205,7 +1574,7 @@ cparser_node_t cparser_node_show = {
     0,
     "show",
     "Show running system information",
-    &cparser_node_snbi,
+    &cparser_node_enable,
     &cparser_node_show_autonomic
 };
 

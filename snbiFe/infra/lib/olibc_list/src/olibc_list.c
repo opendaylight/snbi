@@ -200,7 +200,7 @@ olibc_list_dequeue_node (olibc_list_t *list, void **return_data)
         return retval;
     }
 
-    retval = olibc_list_remove_node(list,
+    retval = olibc_list_remove_node(list, NULL,
             data, NULL, return_data);
 
     if (retval != OLIBC_RETVAL_SUCCESS)  {
@@ -212,27 +212,31 @@ olibc_list_dequeue_node (olibc_list_t *list, void **return_data)
 
 olibc_retval_t
 olibc_list_remove_node (olibc_list_t *list,
+                        olibc_list_element_t *element,
                         void *data,
                         olibc_list_comp_handler comp_handler,
                         void **return_data)
 {
     void *elem_data = NULL;
-    olibc_list_element_t *element = NULL;
     int ret = 0;
 
     if (!list || !data) {
         return (OLIBC_RETVAL_INVALID_INPUT);
-    } 
-    OLIBC_FOR_ALL_DATA_IN_LIST(list, element, elem_data) {
-        if (comp_handler) {
-            ret = comp_handler(elem_data, data); 
-            if (ret == 0) {
-                /* Match found */    
+    }
+
+    if (!element) {
+        // No user element found find it.
+        OLIBC_FOR_ALL_DATA_IN_LIST(list, element, elem_data) {
+            if (comp_handler) {
+                ret = comp_handler(elem_data, data); 
+                if (ret == 0) {
+                    /* Match found */    
+                    break;
+                }
+            } else if (data == elem_data) {
+                // Just compare the pointers.
                 break;
             }
-        } else if (data == elem_data) {
-            // Just compare the pointers.
-            break;
         }
     }
 

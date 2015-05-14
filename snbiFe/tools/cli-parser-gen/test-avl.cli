@@ -1,0 +1,39 @@
+#submode "test"
+
+avl("Avl Test commands") get-firstnode("Get avl first node")
+
+avl("Avl Test commands") init("Avl init")
+
+avl("Avl Test commands") insert("Avl insert") <UINT:value>("Integer value")
+
+avl("Avl Test commands") remove("Avl remove") <UINT:value>("Integer value")
+
+avl("Avl Test commands") search("Avl search") <UINT:value>("Integer value")
+
+avl("Avl Test commands") uninit("Avl uninit")
+
+avl("Avl Test commands") walk("Avl walk")
+
+list("List Test commands") create("Create a List")
+
+list("List Test commands") destroy("Destroy the list")
+
+list("List Test commands") is-valid("Check the validity of the list")
+
+list("List Test commands") is-empty("Check if the list is empty")
+
+list("List Test commands") lookup-node("Lookup a value exists in the list") <UINT:value>("Integer value")
+
+list("List Test commands") enqueue-node("Enqueue a value into the tail of the list") <UINT:value>("Integer value")
+
+list("List Test commands") dequeue-node("Dequeue the value from the head of the list")
+
+list("List Test commands") remove-node("Remove a value from the list") <UINT:value>("Integer value")
+
+list("List Test commands") get-head-data("Get the data in the head of the list")
+
+list("List Test commands") walk("List Walk")
+
+quit("Exit test submode")
+
+#endsubmode
