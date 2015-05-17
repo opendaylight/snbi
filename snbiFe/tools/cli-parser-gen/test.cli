@@ -6,6 +6,8 @@
 
 #include "test-event.cli"
 
+#include "test-hash.cli"
+
 quit("Exit test submode")
 
 #endsubmode

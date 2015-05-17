@@ -1,0 +1,6 @@
+hash("Hash Test Command") create("Create hash")
+hash("Hash Test Command") destory("Destroy hash")
+hash("Hash Test Command") insert("Insert a value") <STRING:key>("Key") <STRING:value>("Value")
+hash("Hash Test Command") lookup("Lookup a key") <STRING:key>("Key")
+hash("Hash Test Command") remove("Remove a value") <STRING:key>("Key")
+hash("Hash Test Command") walk("Hash walk")
