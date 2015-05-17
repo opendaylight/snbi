@@ -9,26 +9,32 @@
 #
 
 BASE_DIR = .
-BASE_LINUX_AL_DIR = $(BASE_DIR)/infra/impl
+BASE_LINUX_AL_DIR = $(BASE_DIR)/impl
 BASE_COMMON_DIR = $(BASE_DIR)/common
 BASE_AL_DIR = $(BASE_DIR)/al
-BASE_LIB_DIR = $(BASE_DIR)/infra/lib
-BASE_SNBI_CLISIM_DIR = $(BASE_LIB_DIR)/simulator
+BASE_LIB_DIR = $(BASE_DIR)/lib
+BASE_SNBI_CLISIM_DIR = $(BASE_DIR)/simulator
+BASE_TOOLS_DIR = $(BASE_DIR)/tools
 
 BASE_OLIBC_AVL_DIR = $(BASE_LIB_DIR)/olibc_avl
 BASE_OLIBC_LIST_DIR = $(BASE_LIB_DIR)/olibc_list
 BASE_OLIBC_EVENT_DIR= $(BASE_LIB_DIR)/olibc_event
 BASE_OLIBC_CLI_DIR = $(BASE_LIB_DIR)/olibc_cliParser
 BASE_OLIBC_COMMON_DIR = $(BASE_LIB_DIR)/olibc_common
+BASE_OLIBC_HASH_DIR = $(BASE_LIB_DIR)/olibc_hash
+
 
 SNBI_BIN=$(BASE_DIR)/bin
 SNBI_OBJ=$(BASE_DIR)/obj
+
+CLI_PARSER_DIR = $(BASE_TOOLS_DIR)/cli-parser-gen
 
 CC_OLIBC_INCDIRS :=\
 	-I$(BASE_OLIBC_COMMON_DIR)/inc \
 	-I$(BASE_OLIBC_CLI_DIR)/inc \
 	-I$(BASE_OLIBC_AVL_DIR)/inc \
 	-I$(BASE_OLIBC_LIST_DIR)/inc \
+	-I$(BASE_OLIBC_HASH_DIR)/inc \
 	-I$(BASE_OLIBC_EVENT_DIR)/inc \
 
 CC_SNBI_INCDIRS :=\
@@ -46,6 +52,7 @@ OLIBC_AVL_SRC=$(BASE_OLIBC_AVL_DIR)/src
 OLIBC_LIST_SRC=$(BASE_OLIBC_LIST_DIR)/src
 OLIBC_EVENT_SRC=$(BASE_OLIBC_EVENT_DIR)/src
 OLIBC_COMMON_SRC=$(BASE_OLIBC_COMMON_DIR)/src
+OLIBC_HASH_SRC=$(BASE_OLIBC_HASH_DIR)/src
 
 
 CC = gcc
@@ -130,6 +137,7 @@ CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_avl_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_list_test.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_hash_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_event_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_show.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_debug.c \
@@ -156,11 +164,14 @@ CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/avl.c
 CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_proc.c \
 	$(OLIBC_EVENT_SRC)/olibc_timer.c
 
+CC_OLIBC_HASH_SRCS := $(OLIBC_HASH_SRC)/olibc_hash.c
+
 CC_OLIBC_ALL_SRCS :=\
 	$(CC_OLIBC_COMMON_SRCS) \
 	$(CC_OLIBC_LIST_SRCS) \
 	$(CC_OLIBC_AVL_SRCS) \
 	$(CC_OLIBC_CLI_SRCS) \
+	$(CC_OLIBC_HASH_SRCS) \
 	$(CC_OLIBC_EVENT_SRCS) \
 
 CC_ALL_SRCS := $(CC_OLIBC_ALL_SRCS) \
@@ -175,6 +186,11 @@ mkdir:
 	mkdir -p $(SNBI_BIN)
 	mkdir -p $(SNBI_OBJ)
 	@echo ' '
+
+parser:
+	echo "Building target: $@"
+	cd $(CLI_PARSER_DIR)
+	./mk_parser.py clisim.cli
 
 libolibc: $(CC_OLIBC_ALL_SRCS)
 	echo "Building target: $@" 

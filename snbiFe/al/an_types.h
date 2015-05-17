@@ -9,7 +9,7 @@
 #ifndef __AN_TYPES_H__
 #define __AN_TYPES_H__
 
-#include "../infra/impl/an_types_linux.h"
+#include <an_types_linux.h>
 
 #define AN_HOSTSIZE 256
 #define AN_LABELSIZE 64

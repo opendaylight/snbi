@@ -17,3 +17,5 @@ list("List Test commands") remove-node("Remove a value from the list") <UINT:val
 list("List Test commands") get-head-data("Get the data in the head of the list")
 
 list("List Test commands") walk("List Walk")
+
+list("List Test Commands") iterator-walk("Walk using an iterator")

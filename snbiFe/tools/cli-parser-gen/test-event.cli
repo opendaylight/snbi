@@ -4,6 +4,6 @@ event("Event Test Commands") timer-create("Create a Timer")
 
 event("Event Test Commands") timer-destroy("Destroy a Timer")
 
-event("Event Test Commands") timer-start("Start the Timer")
+event("Event Test Commands") timer-start("Start the Timer") <UINT:value>("Seconds of expiry")
 
 event("Event Test Commands") timer-stop("Stop the Timer")

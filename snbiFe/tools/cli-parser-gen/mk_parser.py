@@ -781,8 +781,8 @@ def main():
     filelist = []
     labels = {}
     mode = 'compile'
-    c_out_dir = '../../infra/lib/olibc_cliParser/src'
-    h_out_dir = '../../infra/lib/olibc_cliParser/inc'
+    c_out_dir = '../../lib/olibc_cliParser/src'
+    h_out_dir = '../../lib/olibc_cliParser/inc'
     c_fname = 'cparser_tree.c'
     h_fname = 'cparser_tree.h'
     # Parse input arguments

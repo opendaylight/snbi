@@ -1,0 +1,8 @@
+TODO
+----
+Unit Test infra
+makefile parser-gen
+feature abstraction gcc flags
+common name for all function pointers.
+list destory free_data callback.
+avl code fixes.
