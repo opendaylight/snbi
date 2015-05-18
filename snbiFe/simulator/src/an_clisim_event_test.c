@@ -20,20 +20,23 @@
 olibc_pthread_hdl test_pthread_hdl = NULL;
 olibc_timer_hdl test_timer_hdl = NULL;
 
-int  SLEEP_TIME = 60*1;
+int  SLEEP_TIME = 10*1;
 
 static void* 
 test_pthread_routine (void *arg)
 {
     printf("Test pthread routine started thread id %u\n", 
             (uint32_t)pthread_self());
-    sleep(SLEEP_TIME);
+    olibc_pthread_dispatch_events(test_pthread_hdl);
+//    sleep(SLEEP_TIME);
+
+
     printf("Exiting pthread routine \n");
     return NULL;
 }
 
 cparser_result_t 
-cparser_cmd_test_event_pthread_create(cparser_context_t *context)
+cparser_cmd_test_event_pthread_create (cparser_context_t *context)
 {
     olibc_retval_t retval;
     olibc_pthread_info_t pthread_info = {0};
@@ -99,8 +102,8 @@ cparser_result_t cparser_cmd_test_event_timer_create(cparser_context_t *context)
     return CPARSER_OK;
 }
 
-cparser_result_t cparser_cmd_test_event_timer_destroy(cparser_context_t
-        *context)
+cparser_result_t 
+cparser_cmd_test_event_timer_destroy(cparser_context_t *context)
 {
     return CPARSER_OK;
 }

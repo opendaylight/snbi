@@ -21,6 +21,7 @@ typedef enum olibc_hash_algorithm_e_ {
 } olibc_hash_algorithm_e;
 
 typedef struct olibc_hash_info_t_ {
+    char *name;
     uint32_t size;
     olibc_hash_gen_func_t gen_func;
     olibc_hash_free_data_func_t free_data_func;

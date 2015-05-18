@@ -1,3 +1,12 @@
+Building And install libevent
+=============================
+git clone https://github.com/libevent/libevent.git
+sudo apt-get install autotools-dev
+sudo apt-get install automake
+sudo apt-get install libtool
+sudo ldconfig
+
+
 TODO
 ----
 Unit Test infra
@@ -6,3 +15,4 @@ feature abstraction gcc flags
 common name for all function pointers.
 list destory free_data callback.
 avl code fixes.
+libevent check which library to link
