@@ -473,6 +473,13 @@ cparser_glue_test_event_timer_stop (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_event_timer_running (cparser_t *parser)
+{
+    cparser_cmd_test_event_timer_running(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_hash_create (cparser_t *parser)
 {
     cparser_cmd_test_hash_create(&parser->context);
@@ -722,6 +729,24 @@ cparser_node_t cparser_node_test_root_hash = {
     &cparser_node_test_root_hash_create
 };
 
+cparser_node_t cparser_node_test_root_event_timer_running_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_timer_running,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_timer_running = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "timer-running",
+    "Check if the timer is running",
+    NULL,
+    &cparser_node_test_root_event_timer_running_eol
+};
+
 cparser_node_t cparser_node_test_root_event_timer_stop_eol = {
     CPARSER_NODE_END,
     0,
@@ -736,7 +761,7 @@ cparser_node_t cparser_node_test_root_event_timer_stop = {
     0,
     "timer-stop",
     "Stop the Timer",
-    NULL,
+    &cparser_node_test_root_event_timer_running,
     &cparser_node_test_root_event_timer_stop_eol
 };
 

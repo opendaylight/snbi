@@ -10,3 +10,4 @@ event("Event Test Commands") timer-start("Start the Timer") <UINT:value>("Second
 
 event("Event Test Commands") timer-stop("Stop the Timer")
 
+event("Event Test Commands") timer-running("Check if the timer is running")

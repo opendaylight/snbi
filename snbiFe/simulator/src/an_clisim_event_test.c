@@ -58,17 +58,27 @@ cparser_cmd_test_event_pthread_create (cparser_context_t *context)
     return CPARSER_OK;
 }
 
-static void test_timer_routine_cbk (int fd, short ev_type, void *args)
+static boolean
+test_timer_routine_cbk (olibc_timer_event_hdl tmp_event_hdl)
 {
-    char *context = NULL;
-    olibc_timer_hdl timer_hdl = (olibc_timer_hdl) args;
-    olibc_retval_t retval;
     uint32_t type;
+    char *context = NULL;
+    olibc_retval_t retval;
+    olibc_timer_hdl timer_hdl = NULL;
 
     printf("\nInside test timer routine cbk\n");
 
-    if (!args) {
-        return;
+    if (!tmp_event_hdl) {
+        printf("\nNull event handle");
+        return FALSE;
+    }
+
+    retval = olibc_timer_event_get_hdl(tmp_event_hdl, &timer_hdl);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to get timer handle from event handle %s",
+                olibc_retval_get_string(retval));
+        return FALSE;
     }
 
     retval = olibc_timer_get_type(timer_hdl, &type);
@@ -76,7 +86,7 @@ static void test_timer_routine_cbk (int fd, short ev_type, void *args)
         printf("\nTimer type %d", type);
     } else {
         printf("\nFailed to get timer type");
-        return;
+        return FALSE;
     }
 
     retval = olibc_timer_get_context(timer_hdl, (void **)&context);
@@ -86,6 +96,7 @@ static void test_timer_routine_cbk (int fd, short ev_type, void *args)
     } else {
         printf("\nFailed to get context\n");
     }
+    return TRUE;
 }
 
 cparser_result_t 
@@ -151,5 +162,18 @@ cparser_cmd_test_event_stop_evnt_loop (cparser_context_t *context)
 
     printf("Stop event returned %s \n", olibc_retval_get_string(retval));
 
+    return CPARSER_OK;
+}
+
+cparser_result_t 
+cparser_cmd_test_event_timer_running (cparser_context_t *context)
+{
+    olibc_retval_t retval;
+    boolean is_running = FALSE;
+
+    retval = olibc_timer_is_running(test_timer_hdl, &is_running);
+
+    printf("Timer is running returned %s is running = %s\n",
+            olibc_retval_get_string(retval), is_running ? "TRUE":"FALSE");
     return CPARSER_OK;
 }

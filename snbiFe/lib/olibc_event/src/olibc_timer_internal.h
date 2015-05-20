@@ -7,10 +7,18 @@
 #include <olibc_timer.h>
 
 typedef struct olibc_timer_t_ {
+    void *context;
     uint32_t type;
     uint32_t delay;
-    void *context;
+    uint32_t flags;
+    boolean running;
+    boolean expired;
+    olibc_timer_event_func_t event_cbk;
     struct event *event_handle;
 } olibc_timer_t;
+
+typedef struct olibc_timer_event_t_ {
+    olibc_timer_hdl timer_hdl;
+} olibc_timer_event_t;
 
 #endif

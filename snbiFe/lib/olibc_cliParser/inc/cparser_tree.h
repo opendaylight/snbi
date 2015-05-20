@@ -75,6 +75,7 @@ cparser_result_t cparser_cmd_test_event_timer_destroy(cparser_context_t *context
 cparser_result_t cparser_cmd_test_event_timer_start_value(cparser_context_t *context,
     uint32_t *value_ptr);
 cparser_result_t cparser_cmd_test_event_timer_stop(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_timer_running(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_hash_create(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_hash_destory(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_hash_insert_key_value(cparser_context_t *context,
