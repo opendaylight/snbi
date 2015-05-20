@@ -1,10 +1,10 @@
 /**
-  *
+  * Vijay Anand R <vanandr@cisco.com>
   */
 #ifndef __OLIBC_TIMER_H__
 #define __OLIBC_TIMER_H__
 
-#include <olibc_proc.h>
+#include <olibc_pthread.h>
 #include <olibc_common.h>
 
 #define  OLIBC_ONSHOT_TIMER 0x01

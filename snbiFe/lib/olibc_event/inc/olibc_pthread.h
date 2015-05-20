@@ -1,5 +1,5 @@
 /**
-  *
+  * Vijay Anand R <vanandr@cisco.com>
   */
 #ifndef __OLIBC_PROC_H__
 #define __OLIBC_PROC_H__
@@ -24,5 +24,11 @@ olibc_pthread_get_id(olibc_pthread_hdl pthread_hdl, uint32_t *thread_id);
 
 extern olibc_retval_t
 olibc_pthread_destroy(olibc_pthread_hdl *pthread_hdl);
+
+extern olibc_retval_t
+olibc_pthread_dispatch_events(olibc_pthread_hdl pthread_hdl);
+
+extern olibc_retval_t
+olibc_pthread_dispatch_events_stop(olibc_pthread_hdl pthread_hdl);
 
 #endif

@@ -1,5 +1,6 @@
 /**
-  *
+  * 
+  * Vijay Anand R <vanandr@cisco.com>
   */
 #ifndef __OLIBC_HASH_INTERNAL_H__
 #define __OLIBC_HASH_INTERNAL_H__

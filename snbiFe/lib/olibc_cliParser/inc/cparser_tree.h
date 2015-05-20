@@ -69,6 +69,7 @@ cparser_result_t cparser_cmd_test_list_get_head_data(cparser_context_t *context)
 cparser_result_t cparser_cmd_test_list_walk(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_list_iterator_walk(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_event_pthread_create(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_event_stop_evnt_loop(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_event_timer_create(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_event_timer_destroy(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_event_timer_start_value(cparser_context_t *context,

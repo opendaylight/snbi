@@ -1,9 +1,10 @@
 /**
+  * Vijay Anand R <vanandr@cisco.com>
   */
 #include <string.h>
 #include <stdlib.h>
 #include <event2/event.h>
-#include "olibc_proc_internal.h"
+#include "olibc_pthread_internal.h"
 
 //olibc_hash_hdl pthread_hash_list_hdl = NULL;
 
@@ -37,15 +38,6 @@ olibc_pthread_create (olibc_pthread_hdl *pthread_hdl,
     }
 #endif
         
-    if (pthread_create(&pthread_id, NULL, pthread_info->start_routine,
-                       pthread_info->arg)) {
-        return (OLIBC_RETVAL_FAILED);
-    }
-
-    if (!pthread_hdl) {
-        return (OLIBC_RETVAL_INVALID_INPUT);
-    }
-
     retval = olibc_malloc((void **)&pthread, 
                            sizeof(olibc_pthread_t), 
                           __THIS_FUNCTION__);
@@ -58,14 +50,41 @@ olibc_pthread_create (olibc_pthread_hdl *pthread_hdl,
         return OLIBC_RETVAL_MEM_ALLOC_FAILED;
     }
 
-    pthread->thread_id = pthread_id;
-
     if (pthread_info->thread_name) {
         pthread->thread_str = strdup(pthread_info->thread_name);
     }
+    pthread->arg = pthread_info->arg;
+
+    pthread->evt_base = event_base_new();
+    if (!pthread->evt_base) {
+        free(pthread->thread_str);
+        olibc_free((void **)&pthread);
+        return OLIBC_RETVAL_FAILED;
+    }
+
+    if (pthread_create(&pthread_id, NULL, pthread_info->start_routine,
+                       pthread)) {
+        free(pthread->thread_str);
+        olibc_free((void **)&pthread);
+        return (OLIBC_RETVAL_FAILED);
+    }
+
+    pthread->thread_id = pthread_id;
+
     *pthread_hdl = pthread;
 
     return OLIBC_RETVAL_SUCCESS;
+}
+
+olibc_retval_t
+olibc_pthread_get_arg (olibc_pthread_hdl pthread_hdl, void** arg)
+{
+    if (!pthread_hdl || !arg) {
+        return (OLIBC_RETVAL_INVALID_INPUT);
+    }
+
+    *arg = pthread_hdl->arg;
+    return (OLIBC_RETVAL_SUCCESS);
 }
 
 olibc_retval_t
@@ -74,12 +93,7 @@ olibc_pthread_dispatch_events (olibc_pthread_hdl pthread_hdl)
     if (!pthread_hdl) {
         return OLIBC_RETVAL_INVALID_INPUT;
     }
-    if (!pthread_hdl->evt_base) {
-        pthread_hdl->evt_base = event_base_new();
-    }
-
     event_base_loop(pthread_hdl->evt_base, EVLOOP_NO_EXIT_ON_EMPTY);
-//    event_base_dispatch(pthread_hdl->evt_base);
 
     return OLIBC_RETVAL_SUCCESS;
 }
@@ -119,9 +133,6 @@ olibc_pthread_get_event_base (olibc_pthread_hdl pthread_hdl,
         return OLIBC_RETVAL_INVALID_INPUT;
     }
 
-    if (!pthread_hdl->evt_base) {
-        pthread_hdl->evt_base = event_base_new();
-    }
     *evt_base = pthread_hdl->evt_base;
     return OLIBC_RETVAL_SUCCESS;
 }

@@ -1,7 +1,8 @@
 /*
  * AN test cli for testing events.
  *
- * Vijay Anand R
+ * Vijay Anand R <vanandr@cisco.com>
+ *
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
@@ -13,22 +14,22 @@
 #include "an_mem.h"
 #include <unistd.h>
 #include <cparser.h>
-#include <olibc_proc.h>
+#include <olibc_pthread.h>
 #include <cparser_tree.h>
 
 
 olibc_pthread_hdl test_pthread_hdl = NULL;
 olibc_timer_hdl test_timer_hdl = NULL;
 
-int  SLEEP_TIME = 10*1;
+int  SLEEP_TIME = 60*1;
 
 static void* 
 test_pthread_routine (void *arg)
 {
-    printf("Test pthread routine started thread id %u\n", 
+    printf("\nTest pthread routine started thread id %u\n", 
             (uint32_t)pthread_self());
+    sleep(SLEEP_TIME);
     olibc_pthread_dispatch_events(test_pthread_hdl);
-//    sleep(SLEEP_TIME);
 
 
     printf("Exiting pthread routine \n");
@@ -64,7 +65,7 @@ static void test_timer_routine_cbk (int fd, short ev_type, void *args)
     olibc_retval_t retval;
     uint32_t type;
 
-    printf("\nInside test timer routine cbk");
+    printf("\nInside test timer routine cbk\n");
 
     if (!args) {
         return;
@@ -72,22 +73,23 @@ static void test_timer_routine_cbk (int fd, short ev_type, void *args)
 
     retval = olibc_timer_get_type(timer_hdl, &type);
     if (retval == OLIBC_RETVAL_SUCCESS) {
-        printf("Timer type %d", type);
+        printf("\nTimer type %d", type);
     } else {
-        printf("Failed to get timer type");
+        printf("\nFailed to get timer type");
         return;
     }
 
     retval = olibc_timer_get_context(timer_hdl, (void **)&context);
 
     if (retval == OLIBC_RETVAL_SUCCESS) {
-        printf("Context returned is %s",context ? context:"NULL");
+        printf("\nContext returned is %s\n",context ? context:"NULL");
     } else {
-        printf("Failed to get context");
+        printf("\nFailed to get context\n");
     }
 }
 
-cparser_result_t cparser_cmd_test_event_timer_create(cparser_context_t *context)
+cparser_result_t 
+cparser_cmd_test_event_timer_create (cparser_context_t *context)
 {
     olibc_retval_t retval;
     olibc_timer_info_t timer_info;
@@ -103,8 +105,14 @@ cparser_result_t cparser_cmd_test_event_timer_create(cparser_context_t *context)
 }
 
 cparser_result_t 
-cparser_cmd_test_event_timer_destroy(cparser_context_t *context)
+cparser_cmd_test_event_timer_destroy (cparser_context_t *context)
 {
+    olibc_retval_t retval;
+
+    retval = olibc_timer_destroy(&test_timer_hdl);
+
+    printf("\nOlibc timer destroy returned %s",
+            olibc_retval_get_string(retval));
     return CPARSER_OK;
 }
 
@@ -124,7 +132,24 @@ cparser_cmd_test_event_timer_start_value (cparser_context_t *context,
     return CPARSER_OK;
 }
 
-cparser_result_t cparser_cmd_test_event_timer_stop(cparser_context_t *context)
+cparser_result_t 
+cparser_cmd_test_event_timer_stop (cparser_context_t *context)
 {
+    olibc_retval_t retval;
+
+    retval = olibc_timer_stop(test_timer_hdl);
+
+    printf("\nTimer stop returned %s", olibc_retval_get_string(retval));
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_cmd_test_event_stop_evnt_loop (cparser_context_t *context)
+{
+    olibc_retval_t retval;
+    retval = olibc_pthread_dispatch_events_stop(test_pthread_hdl);
+
+    printf("Stop event returned %s \n", olibc_retval_get_string(retval));
+
     return CPARSER_OK;
 }

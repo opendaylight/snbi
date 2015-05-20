@@ -1,5 +1,7 @@
 event("Event Test Commands") pthread-create("Create a Pthread")
 
+event("Event Test Commands") stop-evnt-loop("Stop the event loop")
+
 event("Event Test Commands") timer-create("Create a Timer")
 
 event("Event Test Commands") timer-destroy("Destroy a Timer")
@@ -7,3 +9,4 @@ event("Event Test Commands") timer-destroy("Destroy a Timer")
 event("Event Test Commands") timer-start("Start the Timer") <UINT:value>("Seconds of expiry")
 
 event("Event Test Commands") timer-stop("Stop the Timer")
+

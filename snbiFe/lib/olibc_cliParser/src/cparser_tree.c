@@ -430,6 +430,13 @@ cparser_glue_test_event_pthread_create (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_event_stop_evnt_loop (cparser_t *parser)
+{
+    cparser_cmd_test_event_stop_evnt_loop(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_event_timer_create (cparser_t *parser)
 {
     cparser_cmd_test_event_timer_create(&parser->context);
@@ -796,6 +803,24 @@ cparser_node_t cparser_node_test_root_event_timer_create = {
     &cparser_node_test_root_event_timer_create_eol
 };
 
+cparser_node_t cparser_node_test_root_event_stop_evnt_loop_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_stop_evnt_loop,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_stop_evnt_loop = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "stop-evnt-loop",
+    "Stop the event loop",
+    &cparser_node_test_root_event_timer_create,
+    &cparser_node_test_root_event_stop_evnt_loop_eol
+};
+
 cparser_node_t cparser_node_test_root_event_pthread_create_eol = {
     CPARSER_NODE_END,
     0,
@@ -810,7 +835,7 @@ cparser_node_t cparser_node_test_root_event_pthread_create = {
     0,
     "pthread-create",
     "Create a Pthread",
-    &cparser_node_test_root_event_timer_create,
+    &cparser_node_test_root_event_stop_evnt_loop,
     &cparser_node_test_root_event_pthread_create_eol
 };
 
