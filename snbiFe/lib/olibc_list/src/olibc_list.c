@@ -263,11 +263,14 @@ olibc_list_remove_node (olibc_list_hdl list,
                 break;
             }
         }
+    } else if (element->data != data) {
+        return (OLIBC_RETVAL_INVALID_INPUT);
     }
 
-    if ((element->list != list) || (element->data != data)) {
+    if (element->list != list) {
         return (OLIBC_RETVAL_INVALID_INPUT);
-    }     
+    }
+
     if (element->next) {
         element->next->prev = element->prev;
     }
