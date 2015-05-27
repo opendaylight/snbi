@@ -1,9 +1,14 @@
 Building And install libevent
 =============================
-git clone https://github.com/libevent/libevent.git
 sudo apt-get install autotools-dev
 sudo apt-get install automake
 sudo apt-get install libtool
+git clone https://github.com/libevent/libevent.git
+cd libevent
+./autogen.sh
+./configure
+make 
+sudo make install
 sudo ldconfig
 
 

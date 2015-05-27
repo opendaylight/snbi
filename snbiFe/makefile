@@ -66,7 +66,8 @@ CFLAGS = -g -Wuninitialized -Wreturn-type \
 	-Wimplicit-function-declaration -Wimplicit-int -Wmissing-braces \
 	-Wnonnull -Wparentheses
 
-OLIBC_LD_LIB = -lpthread -levent
+#OLIBC_LD_LIB = -lpthread -levent -levent_pthreads
+OLIBC_LD_LIB = -levent -levent_pthreads
 
 #LD_LIB = -lcrypt -lpthread -lrt
 LD_LIB = -lcrypt $(OLIBC_LD_LIB)
@@ -162,7 +163,8 @@ CC_OLIBC_LIST_SRCS := $(OLIBC_LIST_SRC)/olibc_list.c
 CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/avl.c
 
 CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_pthread.c \
-	$(OLIBC_EVENT_SRC)/olibc_timer.c
+	$(OLIBC_EVENT_SRC)/olibc_timer.c \
+	$(OLIBC_EVENT_SRC)/olibc_msg_q.c
 
 CC_OLIBC_HASH_SRCS := $(OLIBC_HASH_SRC)/olibc_hash.c
 

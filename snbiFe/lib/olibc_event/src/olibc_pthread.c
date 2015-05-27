@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <event2/event.h>
+#include <event2/thread.h>
 #include "olibc_pthread_internal.h"
 
 //olibc_hash_hdl pthread_hash_list_hdl = NULL;
@@ -38,6 +39,10 @@ olibc_pthread_create (olibc_pthread_hdl *pthread_hdl,
     }
 #endif
         
+    if (evthread_use_pthreads() < 0) {
+        return OLIBC_RETVAL_FAILED;
+    }
+
     retval = olibc_malloc((void **)&pthread, 
                            sizeof(olibc_pthread_t), 
                           __THIS_FUNCTION__);
@@ -55,6 +60,7 @@ olibc_pthread_create (olibc_pthread_hdl *pthread_hdl,
     }
     pthread->arg = pthread_info->arg;
 
+
     pthread->evt_base = event_base_new();
     if (!pthread->evt_base) {
         free(pthread->thread_str);
@@ -62,8 +68,17 @@ olibc_pthread_create (olibc_pthread_hdl *pthread_hdl,
         return OLIBC_RETVAL_FAILED;
     }
 
+    if (evthread_make_base_notifiable(pthread->evt_base) < 0) {
+        event_base_free(pthread->evt_base);
+        free(pthread->thread_str);
+        olibc_free((void **)&pthread);
+        return OLIBC_RETVAL_FAILED;
+    }
+
+
     if (pthread_create(&pthread_id, NULL, pthread_info->start_routine,
                        pthread)) {
+        event_base_free(pthread->evt_base);
         free(pthread->thread_str);
         olibc_free((void **)&pthread);
         return (OLIBC_RETVAL_FAILED);
@@ -120,6 +135,7 @@ olibc_pthread_destory (olibc_pthread_hdl *pthread_hdl)
 
     pthread = *pthread_hdl;
 
+    event_base_free(pthread->evt_base);
     free(pthread->thread_str);
     olibc_free((void **)pthread_hdl);
     return OLIBC_RETVAL_SUCCESS;

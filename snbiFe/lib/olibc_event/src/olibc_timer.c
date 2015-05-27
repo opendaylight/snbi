@@ -23,7 +23,7 @@ void olibc_timer_cbk (int fd, short type, void *args)
     timer_event.timer_hdl = timer_hdl;
     event_cbk = timer_hdl->event_cbk;
 
-    if (timer_hdl->flags & OLIBC_ONSHOT_TIMER) {
+    if (timer_hdl->flags & OLIBC_ONESHOT_TIMER) {
         timer_hdl->expired = TRUE;
     }
 
@@ -67,7 +67,7 @@ olibc_timer_create (olibc_timer_hdl *timer_hdl, olibc_timer_info_t *timer_info)
         event_flags |= EV_PERSIST;
     }
 
-    timer->event_handle = event_new(evt_base, -1, EV_PERSIST,
+    timer->event_handle = event_new(evt_base, -1, event_flags,
                                     olibc_timer_cbk, timer);
 
     if (!timer->event_handle) {
@@ -187,7 +187,7 @@ olibc_retval_t
 olibc_timer_is_expired (olibc_timer_hdl timer_hdl, boolean *is_expired)
 {
     if (!timer_hdl || !is_expired || 
-        !(timer_hdl->flags & OLIBC_ONSHOT_TIMER)) {
+        !(timer_hdl->flags & OLIBC_ONESHOT_TIMER)) {
         return OLIBC_RETVAL_INVALID_INPUT;
     }
 
