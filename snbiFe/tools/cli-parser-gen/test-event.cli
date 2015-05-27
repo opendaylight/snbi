@@ -11,3 +11,11 @@ event("Event Test Commands") timer-start("Start the Timer") <UINT:value>("Second
 event("Event Test Commands") timer-stop("Stop the Timer")
 
 event("Event Test Commands") timer-running("Check if the timer is running")
+
+event("Event Test Commands") msg-q-create("Create a Message queue")
+
+event("Event Test Commands") msg-q-destroy("Destroy a Message Queue")
+
+event("Event Test Commands") msg-q-enqueue("Enqueue a message") <UINT:msgtype>("Message Type") <UINT:valarg>("Value arguement") <STRING:ptrarg>("Pointer argument")
+
+event("Event Test Commands") msg-q-scale("Scale test message queues")

@@ -162,7 +162,8 @@ CC_OLIBC_LIST_SRCS := $(OLIBC_LIST_SRC)/olibc_list.c
 CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/avl.c
 
 CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_pthread.c \
-	$(OLIBC_EVENT_SRC)/olibc_timer.c
+	$(OLIBC_EVENT_SRC)/olibc_timer.c \
+	$(OLIBC_EVENT_SRC)/olibc_msg_q.c
 
 CC_OLIBC_HASH_SRCS := $(OLIBC_HASH_SRC)/olibc_hash.c
 

@@ -480,6 +480,54 @@ cparser_glue_test_event_timer_running (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_event_msg_q_create (cparser_t *parser)
+{
+    cparser_cmd_test_event_msg_q_create(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_msg_q_destroy (cparser_t *parser)
+{
+    cparser_cmd_test_event_msg_q_destroy(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_msg_q_enqueue_msgtype_valarg_ptrarg (cparser_t *parser)
+{
+    uint32_t msgtype_val;
+    uint32_t *msgtype_ptr = NULL;
+    uint32_t valarg_val;
+    uint32_t *valarg_ptr = NULL;
+    char *ptrarg_val;
+    char **ptrarg_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_uint(&parser->tokens[2], &msgtype_val);
+    assert(CPARSER_OK == rc);
+    msgtype_ptr = &msgtype_val;
+    rc = cparser_get_uint(&parser->tokens[3], &valarg_val);
+    assert(CPARSER_OK == rc);
+    valarg_ptr = &valarg_val;
+    rc = cparser_get_string(&parser->tokens[4], &ptrarg_val);
+    assert(CPARSER_OK == rc);
+    ptrarg_ptr = &ptrarg_val;
+    cparser_cmd_test_event_msg_q_enqueue_msgtype_valarg_ptrarg(&parser->context,
+        msgtype_ptr,
+        valarg_ptr,
+        ptrarg_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_event_msg_q_scale (cparser_t *parser)
+{
+    cparser_cmd_test_event_msg_q_scale(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_hash_create (cparser_t *parser)
 {
     cparser_cmd_test_hash_create(&parser->context);
@@ -729,6 +777,105 @@ cparser_node_t cparser_node_test_root_hash = {
     &cparser_node_test_root_hash_create
 };
 
+cparser_node_t cparser_node_test_root_event_msg_q_scale_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_msg_q_scale,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_scale = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "msg-q-scale",
+    "Scale test message queues",
+    NULL,
+    &cparser_node_test_root_event_msg_q_scale_eol
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_enqueue_msgtype_valarg_ptrarg_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_msg_q_enqueue_msgtype_valarg_ptrarg,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_enqueue_msgtype_valarg_ptrarg = {
+    CPARSER_NODE_STRING,
+    0,
+    "<STRING:ptrarg>",
+    "Pointer argument",
+    NULL,
+    &cparser_node_test_root_event_msg_q_enqueue_msgtype_valarg_ptrarg_eol
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_enqueue_msgtype_valarg = {
+    CPARSER_NODE_UINT,
+    0,
+    "<UINT:valarg>",
+    "Value arguement",
+    NULL,
+    &cparser_node_test_root_event_msg_q_enqueue_msgtype_valarg_ptrarg
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_enqueue_msgtype = {
+    CPARSER_NODE_UINT,
+    0,
+    "<UINT:msgtype>",
+    "Message Type",
+    NULL,
+    &cparser_node_test_root_event_msg_q_enqueue_msgtype_valarg
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_enqueue = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "msg-q-enqueue",
+    "Enqueue a message",
+    &cparser_node_test_root_event_msg_q_scale,
+    &cparser_node_test_root_event_msg_q_enqueue_msgtype
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_destroy_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_msg_q_destroy,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_destroy = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "msg-q-destroy",
+    "Destroy a Message Queue",
+    &cparser_node_test_root_event_msg_q_enqueue,
+    &cparser_node_test_root_event_msg_q_destroy_eol
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_create_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_msg_q_create,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_msg_q_create = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "msg-q-create",
+    "Create a Message queue",
+    &cparser_node_test_root_event_msg_q_destroy,
+    &cparser_node_test_root_event_msg_q_create_eol
+};
+
 cparser_node_t cparser_node_test_root_event_timer_running_eol = {
     CPARSER_NODE_END,
     0,
@@ -743,7 +890,7 @@ cparser_node_t cparser_node_test_root_event_timer_running = {
     0,
     "timer-running",
     "Check if the timer is running",
-    NULL,
+    &cparser_node_test_root_event_msg_q_create,
     &cparser_node_test_root_event_timer_running_eol
 };
 

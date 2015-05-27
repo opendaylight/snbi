@@ -7,7 +7,7 @@
 #include <olibc_pthread.h>
 #include <olibc_common.h>
 
-#define  OLIBC_ONSHOT_TIMER 0x01
+#define  OLIBC_ONESHOT_TIMER 0x01
 #define  OLIBC_PERSIST_TIMER 0x02
 
 typedef struct olibc_timer_t_ *olibc_timer_hdl;
