@@ -16,19 +16,47 @@
 #include <cparser.h>
 #include <olibc_pthread.h>
 #include <cparser_tree.h>
+#include <olibc_msg_q.h>
+#include <event2/event.h>
 
 
 olibc_pthread_hdl test_pthread_hdl = NULL;
 olibc_timer_hdl test_timer_hdl = NULL;
+olibc_msg_q_hdl test_msg_q_hdl = NULL;
 
 int  SLEEP_TIME = 60*1;
+
+static 
+void write_to_stdbout_cb (int severity, const char *msg)
+{
+   const char *s;
+
+    switch (severity) {
+        case _EVENT_LOG_DEBUG: s = "debug"; break;
+        case _EVENT_LOG_MSG:   s = "msg";   break;
+        case _EVENT_LOG_WARN:  s = "warn";  break;
+        case _EVENT_LOG_ERR:   s = "error"; break;
+        default:               s = "?";     break; /* never reached */
+    }
+    printf("[%s] %s\n", s, msg);
+}
+
+cparser_result_t 
+cparser_cmd_test_event_logging_stdout (cparser_context_t *context)
+{
+    event_enable_debug_mode();
+    event_enable_debug_logging(EVENT_DBG_ALL);
+    event_set_log_callback(write_to_stdbout_cb);
+            
+    return CPARSER_OK;
+}
 
 static void* 
 test_pthread_routine (void *arg)
 {
     printf("\nTest pthread routine started thread id %u\n", 
             (uint32_t)pthread_self());
-    sleep(SLEEP_TIME);
+//    sleep(SLEEP_TIME);
     olibc_pthread_dispatch_events(test_pthread_hdl);
 
 
@@ -175,5 +203,89 @@ cparser_cmd_test_event_timer_running (cparser_context_t *context)
 
     printf("Timer is running returned %s is running = %s\n",
             olibc_retval_get_string(retval), is_running ? "TRUE":"FALSE");
+    return CPARSER_OK;
+}
+
+boolean
+test_msg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
+{
+    olibc_retval_t retval;
+    int64_t val;
+    uint32_t type;
+    char *ptr = NULL;
+
+    if (!q_event_hdl)
+        return FALSE;
+
+    retval = olibc_msg_q_event_get_type(q_event_hdl, &type);
+
+    printf("\nIn test_msg_q_cbk get_type returned %s",
+            olibc_retval_get_string(retval));
+
+    retval = olibc_msg_q_event_get_args(q_event_hdl, &val, 
+                                        (void **)&ptr);
+    
+    printf("\nIn test_msg_q_cbk get_arg returned %s",
+            olibc_retval_get_string(retval));
+
+    printf("\nIn test_msg_q_cbk msg Type %d, msg val %ld msg_ptr %s",
+            type, (long)val, ptr ? (char *)ptr:"NULL");
+    sleep(5);
+    printf("\nIn test_msg_q_cbk return from sleep");
+    return TRUE;
+}
+
+cparser_result_t 
+cparser_cmd_test_event_msg_q_create (cparser_context_t *context)
+{
+    olibc_retval_t retval;
+    olibc_msg_q_info_t msg_q_info;
+
+    memset(&msg_q_info, 0, sizeof(msg_q_info));
+
+    msg_q_info.max_q_len = 10;
+    msg_q_info.pthread_hdl = test_pthread_hdl;
+    msg_q_info.msg_q_cbk = test_msg_q_cbk;
+
+    retval = olibc_msg_q_create(&test_msg_q_hdl, &msg_q_info);
+    printf("Msg q create returned %s", olibc_retval_get_string(retval));
+    return CPARSER_OK;
+}
+
+cparser_result_t 
+cparser_cmd_test_event_msg_q_destroy(cparser_context_t *context)
+{
+    //olibc_retval_t retval;
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_cmd_test_event_msg_q_enqueue_msgtype_valarg_ptrarg (
+        cparser_context_t *context, uint32_t *msgtype_ptr, 
+        uint32_t *valarg_ptr, char **ptrarg_ptr)
+{
+    olibc_retval_t retval;
+    char *str = strdup((char *)*ptrarg_ptr);
+
+    retval = olibc_msg_q_enqueue(test_msg_q_hdl, 
+            *msgtype_ptr, (int64_t)
+            (*valarg_ptr), (void *)str);
+
+    printf("Msg Q enqueue returned %s", olibc_retval_get_string(retval));
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_cmd_test_event_msg_q_scale (cparser_context_t *context)
+{
+    olibc_retval_t retval;
+    int i = 20;
+    while (i) {
+        retval = olibc_msg_q_enqueue(test_msg_q_hdl, i+9900, i, "Hello world");
+        printf("\nolibc_msg_q_enqueue returned %s",
+                olibc_retval_get_string(retval));
+        i--;
+    }
+
     return CPARSER_OK;
 }

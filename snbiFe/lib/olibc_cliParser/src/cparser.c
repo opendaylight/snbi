@@ -103,7 +103,7 @@ cparser_help_print_node (cparser_t *parser, cparser_node_t *node,
 	    }
             break;
         default:
-	    sprintf(cli_keyword,"%-20s",node->param);
+	    sprintf(cli_keyword,"%-20s",(char *)node->param);
 	    parser->cfg.prints(parser, "\t");
             parser->cfg.prints(parser, cli_keyword);
             if (print_desc && node->desc) {
