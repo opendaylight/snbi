@@ -61,7 +61,6 @@
     <modules>
         <module>southplugin</module>
         <module>shellplugin</module>
-        <module>distribution/base</module>
         <module>distribution/karaf</module>
         <module>features</module>
   </modules>
