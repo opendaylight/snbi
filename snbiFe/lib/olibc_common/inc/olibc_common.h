@@ -15,6 +15,19 @@ typedef bool boolean;
 
 #define __THIS_FUNCTION__ (char *)__FUNCTION__
 
+#define OLIBC_MALLOC_CHECK(_var, _size, _str, _ret)       \
+    do {                                                  \
+        _ret = olibc_malloc((void **)&_var, _size, _str); \
+        if (_ret != OLIBC_RETVAL_SUCCESS) {               \
+            return _ret;                                  \
+        }                                                 \
+        if (!_var) {                                      \
+            return OLIBC_RETVAL_MEM_ALLOC_FAILED;         \
+        }                                                 \ 
+    } while (0)
+ 
+
+
 #define FOR_EACH_RETVAL_ENUM_GENERATOR(GENERATOR)                         \
     GENERATOR(OLIBC_RETVAL_MIN, "Minimum retval")                         \
     GENERATOR(OLIBC_RETVAL_SUCCESS, "Api returned success")               \
