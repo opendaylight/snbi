@@ -227,6 +227,12 @@ cparser_cmd_test_list_iterator_walk (cparser_context_t *context)
         OLIBC_RETVAL_SUCCESS) {
         printf("--->[%d]", *return_data);
     }
+
+    retval = olibc_list_iterator_destroy(&iter_hdl);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to destroy iterator %s",
+                olibc_retval_get_string(retval));
+    }
     printf("\n");
     return CPARSER_OK;
 }
