@@ -160,7 +160,7 @@ CC_OLIBC_COMMON_SRCS := $(OLIBC_COMMON_SRC)/olibc_common.c \
 
 CC_OLIBC_LIST_SRCS := $(OLIBC_LIST_SRC)/olibc_list.c
 
-CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/avl.c
+CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/olibc_avl.c
 
 CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_pthread.c \
 	$(OLIBC_EVENT_SRC)/olibc_timer.c \
