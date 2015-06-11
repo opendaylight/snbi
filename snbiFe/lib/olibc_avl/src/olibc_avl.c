@@ -8,14 +8,14 @@
 
 #include<stdio.h>
 #include<stdlib.h>
-#include"avl.h"
+#include<olibc_avl.h>
 
 static int node_count;
 
 /*******************
  * Local Functions *
  *******************/
-static int get_height (avl *node)
+static int get_height (olibc_avl *node)
 {
     int lh, rh;
 
@@ -35,7 +35,7 @@ static int get_height (avl *node)
     return((lh>rh) ? lh : rh);
 }
 
-static int bal_factor (avl *node)
+static int bal_factor (olibc_avl *node)
 {
     int lh, rh;
 
@@ -55,9 +55,9 @@ static int bal_factor (avl *node)
     return(lh - rh);
 }
 
-static avl * rotate_right (avl *nodeA)
+static olibc_avl * rotate_right (olibc_avl *nodeA)
 {
-    avl *nodeB;
+    olibc_avl *nodeB;
 
     nodeB         = nodeA->left;
     nodeA->left   = nodeB->right;
@@ -68,9 +68,9 @@ static avl * rotate_right (avl *nodeA)
     return(nodeB);
 }
 
-static avl * rotate_left (avl *nodeA)
+static olibc_avl * rotate_left (olibc_avl *nodeA)
 {
-    avl *nodeB;
+    olibc_avl *nodeB;
 
     nodeB         = nodeA->right;
     nodeA->right  = nodeB->left;
@@ -81,20 +81,20 @@ static avl * rotate_left (avl *nodeA)
     return(nodeB);
 }
 
-static avl *do_insert (avl *node, avl_compare_cb_f cmp_fn, void *new)
+static olibc_avl *do_insert (olibc_avl *node, olibc_avl_compare_cb_f cmp_fn, void *new)
 {
     if(node==NULL)
     {
         return(new);
     }
 
-    if(cmp_fn(new, node) == AVL_COMPARE_GT)
+    if(cmp_fn(new, node) == OLIBC_AVL_COMPARE_GT)
     {
         node->right = do_insert(node->right, cmp_fn, new);
 
         if(bal_factor(node)==-2)
         {
-            if(cmp_fn(new, node->right) == AVL_COMPARE_GT)
+            if(cmp_fn(new, node->right) == OLIBC_AVL_COMPARE_GT)
             {
                 node = rotate_left(node);
             }
@@ -105,13 +105,13 @@ static avl *do_insert (avl *node, avl_compare_cb_f cmp_fn, void *new)
             }
         }
     }
-    else if(cmp_fn(new, node) == AVL_COMPARE_LT)
+    else if(cmp_fn(new, node) == OLIBC_AVL_COMPARE_LT)
     {
         node->left = do_insert(node->left, cmp_fn, new);
 
         if(bal_factor(node)==2)
         {
-            if(cmp_fn(new, node->left) == AVL_COMPARE_LT)
+            if(cmp_fn(new, node->left) == OLIBC_AVL_COMPARE_LT)
             {
                 node = rotate_right(node);
             }
@@ -133,7 +133,7 @@ static void reset_node_count (void)
     node_count = 0;
 }
 
-static int get_count (avl *node)
+static int get_count (olibc_avl *node)
 {
     if(node!=NULL)
     {
@@ -144,10 +144,10 @@ static int get_count (avl *node)
     return(node_count);
 }
 
-avl *remove_node (avl *node)
+olibc_avl *remove_node (olibc_avl *node)
 {
-    avl *temp1;
-    avl *temp = node;
+    olibc_avl *temp1;
+    olibc_avl *temp = node;
     if(node->right == NULL)
     {
         if(node->left)
@@ -199,7 +199,7 @@ avl *remove_node (avl *node)
     }
 }
 
-static avl *do_remove (avl *node, avl_compare_cb_f cmp_fn, avl *del_node)
+static olibc_avl *do_remove (olibc_avl *node, olibc_avl_compare_cb_f cmp_fn, olibc_avl *del_node)
 {
     if(!node || !cmp_fn || !del_node)
     {
@@ -207,7 +207,7 @@ static avl *do_remove (avl *node, avl_compare_cb_f cmp_fn, avl *del_node)
     }
     else
     {
-        if(cmp_fn(del_node, node) == AVL_COMPARE_GT)
+        if(cmp_fn(del_node, node) == OLIBC_AVL_COMPARE_GT)
         {
             node->right = do_remove(node->right, cmp_fn, del_node);
 
@@ -227,7 +227,7 @@ static avl *do_remove (avl *node, avl_compare_cb_f cmp_fn, avl *del_node)
         }
         else
         {
-            if(cmp_fn(del_node, node) == AVL_COMPARE_LT)
+            if(cmp_fn(del_node, node) == OLIBC_AVL_COMPARE_LT)
             {
                 node->left = do_remove(node->left, cmp_fn, del_node);
 
@@ -258,7 +258,7 @@ static avl *do_remove (avl *node, avl_compare_cb_f cmp_fn, avl *del_node)
     return(node);
 }
 
-int do_walk (avl *node, avl_walk_cb_f walk_cb, void *args)
+int do_walk (olibc_avl *node, olibc_avl_walk_cb_f walk_cb, void *args)
 {
     if (node == NULL) {
         return 0;
@@ -282,10 +282,10 @@ int do_walk (avl *node, avl_walk_cb_f walk_cb, void *args)
     return 1;
 }
 
-int do_search (avl *node, avl *search_node, avl_compare_cb_f cmp_fn,
-               avl **found_node)
+int do_search (olibc_avl *node, olibc_avl *search_node, olibc_avl_compare_cb_f cmp_fn,
+               olibc_avl **found_node)
 {
-    avl_compare_e diff;
+    olibc_avl_compare_e diff;
 
     if (!node) {
         return 0;
@@ -293,9 +293,9 @@ int do_search (avl *node, avl *search_node, avl_compare_cb_f cmp_fn,
 
     diff = cmp_fn(search_node, node);
 
-    if (diff == AVL_COMPARE_LT) { 
+    if (diff == OLIBC_AVL_COMPARE_LT) { 
         return(do_search(node->left, search_node, cmp_fn, found_node));
-    } else if (diff == AVL_COMPARE_GT) {
+    } else if (diff == OLIBC_AVL_COMPARE_GT) {
         return(do_search(node->right, search_node, cmp_fn, found_node));
     } else {
         *found_node = node;
@@ -306,7 +306,7 @@ int do_search (avl *node, avl *search_node, avl_compare_cb_f cmp_fn,
 /********************
  * Public Functions *
  ********************/
-int avl_tree_init (avl_tree *tree, avl_compare_cb_f cmp_fn)
+int olibc_avl_tree_init (olibc_avl_tree *tree, olibc_avl_compare_cb_f cmp_fn)
 {
     if(!tree  || !cmp_fn)
         return(-1);
@@ -316,7 +316,7 @@ int avl_tree_init (avl_tree *tree, avl_compare_cb_f cmp_fn)
     return(0);
 }
 
-int avl_insert (avl_tree *tree, void *new)
+int olibc_avl_insert (olibc_avl_tree *tree, void *new)
 {
     if(!tree || !tree->compare_fun)
         return(-1);
@@ -325,7 +325,7 @@ int avl_insert (avl_tree *tree, void *new)
     return(0);
 }
 
-int avl_remove (avl_tree *tree, void *del_node)
+int olibc_avl_remove (olibc_avl_tree *tree, void *del_node)
 {
     if(!tree || !tree->compare_fun)
         return(-1);
@@ -334,7 +334,7 @@ int avl_remove (avl_tree *tree, void *del_node)
     return(0);
 }
 
-int avl_tree_uninit (avl_tree *tree) {
+int olibc_avl_tree_uninit (olibc_avl_tree *tree) {
     if (!tree || tree->root) {
         //The tree is not empty.
         return (-1);
@@ -344,7 +344,7 @@ int avl_tree_uninit (avl_tree *tree) {
     return 0;
 }
 
-int avl_get_count (avl_tree *tree)
+int olibc_avl_get_count (olibc_avl_tree *tree)
 {
     if(!tree || !tree->compare_fun)
         return(-1);
@@ -353,26 +353,25 @@ int avl_get_count (avl_tree *tree)
     return (get_count(tree->root));
 }
 
-/* function 'avl_tree_walk_all_nodes'
+/* function 'olibc_avl_tree_walk_all_nodes'
  * returning 0 for failure and 1 for success, unlike all other functions
  * which are written to return 0 in success case and -1 in failure case
  * This is done make sure that this library is compatible to 
  * already existing application using this.
  */
-int avl_tree_walk_all_nodes (avl_tree *tree, 
-                             avl_walk_cb_f walk_fn,
-                             void *args)
+int olibc_avl_tree_walk_all_nodes (olibc_avl_tree *tree, olibc_avl_walk_cb_f walk_fn,
+        void *args)
 {
     return (do_walk(tree->root, walk_fn, args));
 }
 
-/* function 'avl_get_first_node'
+/* function 'olibc_avl_get_first_node'
  * returning 0 for failure and 1 for success, unlike all other functions
  * which are written to return 0 in success case and -1 in failure case
  * This is done make sure that this library is compatible to 
  * already existing application using this.
  */
-int avl_get_first_node (avl_tree *tree, avl **node)
+int olibc_avl_get_first_node (olibc_avl_tree *tree, olibc_avl **node)
 {
     if (!tree || !node) {
         return 0;
@@ -382,15 +381,15 @@ int avl_get_first_node (avl_tree *tree, avl **node)
     return 1;
 }
 
-/* function 'avl_search'
+/* function 'olibc_avl_search'
  * returning 0 for failure and 1 for success, unlike all other functions
  * which are written to return 0 in success case and -1 in failure case
  * This is done make sure that this library is compatible to 
  * already existing application using this.
  */
-avl* avl_search (avl_tree* tree, avl* node)
+olibc_avl* olibc_avl_search (olibc_avl_tree* tree, olibc_avl* node)
 {
-    avl *found_node = NULL;
+    olibc_avl *found_node = NULL;
     if (!tree || !tree->root || !tree->compare_fun) {
         return NULL;
     }
@@ -399,3 +398,4 @@ avl* avl_search (avl_tree* tree, avl* node)
     }
     return NULL;
 }
+
