@@ -9,10 +9,10 @@
 #ifndef __AN_AVL_LINUX_H__
 #define __AN_AVL_LINUX_H__
 
-#include <avl.h>
+#include <olibc_avl.h>
 
-typedef avl an_avl_node_t;
-typedef avl* an_avl_top_p;
-typedef avl_tree an_avl_tree;
+typedef olibc_avl an_avl_node_t;
+typedef olibc_avl* an_avl_top_p;
+typedef olibc_avl_tree an_avl_tree;
 
 #endif
