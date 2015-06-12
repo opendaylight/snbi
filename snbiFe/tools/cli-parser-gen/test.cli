@@ -8,6 +8,8 @@
 
 #include "test-hash.cli"
 
+#include "test-net.cli"
+
 quit("Exit test submode")
 
 #endsubmode

@@ -607,6 +607,13 @@ cparser_glue_test_hash_walk (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_if_list (cparser_t *parser)
+{
+    cparser_cmd_test_if_list(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_quit (cparser_t *parser)
 {
     cparser_cmd_test_quit(&parser->context);
@@ -629,6 +636,33 @@ cparser_node_t cparser_node_test_root_quit = {
     "Exit test submode",
     NULL,
     &cparser_node_test_root_quit_eol
+};
+
+cparser_node_t cparser_node_test_root_if_list_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_if_list,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_if_list = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "list",
+    "list the interface information",
+    NULL,
+    &cparser_node_test_root_if_list_eol
+};
+
+cparser_node_t cparser_node_test_root_if = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "if",
+    "Interface",
+    &cparser_node_test_root_quit,
+    &cparser_node_test_root_if_list
 };
 
 cparser_node_t cparser_node_test_root_hash_walk_eol = {
@@ -780,7 +814,7 @@ cparser_node_t cparser_node_test_root_hash = {
     0,
     "hash",
     "Hash Test Command",
-    &cparser_node_test_root_quit,
+    &cparser_node_test_root_if,
     &cparser_node_test_root_hash_create
 };
 
