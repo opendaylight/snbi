@@ -1,7 +1,9 @@
 #ifndef __OLIBC_NETLINK_H__
 #define __OLIBC_NETLINK_H__
 
+#include <sys/uio.h>
 #include <linux/netlink.h>
+#include <olibc_common.h>
 
 typedef struct olibc_nl_sock_t_ {
     int pid;
@@ -21,7 +23,10 @@ extern boolean
 olibc_nl_sock_uninit(olibc_nl_sock_t *nl_sock);
 
 extern boolean
-olibc_nl_send_request(olibc_nl_sock_t *nl_sock, uint32_t nlmsg_type, uint32_t
-        req_family, uint32_t flags);
+olibc_nl_send_req(olibc_nl_sock_t *nl_sock, struct iovec *io, uint32_t io_cnt);
+
+extern boolean 
+olibc_nl_msg_recv(olibc_nl_sock_t *nl_sock, char *nlmsg_buf, 
+                  uint32_t max_buf_len, uint32_t *nlmsg_len);
 
 #endif

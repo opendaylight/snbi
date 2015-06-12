@@ -1,10 +1,15 @@
+#include <string.h>
+#include <unistd.h>
+#include <sys/uio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include "olibc_netlink.h"
 #include <olibc_common.h>
 
 boolean
 olibc_nl_sock_init (olibc_nl_sock_t *nl_sock, uint32_t nl_pf)
 {
-    int sock_fd;
+    int fd;
     int pid;
     struct sockaddr_nl local_nl_addr;
 
@@ -35,12 +40,12 @@ olibc_nl_sock_bind (olibc_nl_sock_t *nl_sock, uint32_t mgroups)
     memset(&local_nl_addr, 0, sizeof(local_nl_addr));
 
     local_nl_addr.nl_family = AF_NETLINK;
-    local_nl_addr.nl_pid = pid;
+    local_nl_addr.nl_pid = nl_sock->pid;
     local_nl_addr.nl_groups = mgroups;
 
     if (bind(nl_sock->nl_fd, (struct sockaddr *)&local_nl_addr,
             sizeof(local_nl_addr)) < 0) {
-        close(fd);
+        close(nl_sock->nl_fd);
         return FALSE;
     }
 
@@ -71,7 +76,7 @@ olibc_nl_send_req (olibc_nl_sock_t *nl_sock,
     msg.msg_name = &kernel_nl_addr;
     msg.msg_namelen = sizeof(kernel_nl_addr);
 
-    if (sendmsg(nl_sock->fd, (struct msghdr *) &msg, 0) < 0) {
+    if (sendmsg(nl_sock->nl_fd, (struct msghdr *) &msg, 0) < 0) {
         return FALSE;
     }
 
@@ -89,7 +94,7 @@ olibc_nl_msg_recv (olibc_nl_sock_t *nl_sock, char *nlmsg_buf, uint32_t
 
     kernel_nl_addr.nl_family = AF_NETLINK;
 
-    if (!msg_buf || !msg_buf->msg) {
+    if (!nlmsg_buf) {
         return FALSE;
     }
 
@@ -103,7 +108,7 @@ olibc_nl_msg_recv (olibc_nl_sock_t *nl_sock, char *nlmsg_buf, uint32_t
     msg.msg_iovlen = 1;
     msg.msg_name = &kernel_nl_addr;
     msg.msg_namelen = sizeof(kernel_nl_addr);
-    *nlmsg_len = recvmsg(rt_nl_sock->fd, &msg, 0);
+    *nlmsg_len = recvmsg(nl_sock->nl_fd, &msg, 0);
 
     nl_msg_resp_hdr = (struct nlmsghdr *)nlmsg_buf;
 

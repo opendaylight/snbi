@@ -23,7 +23,7 @@ typedef bool boolean;
         }                                                 \
         if (!_var) {                                      \
             return OLIBC_RETVAL_MEM_ALLOC_FAILED;         \
-        }                                                 \ 
+        }                                                 \
     } while (0)
  
 
