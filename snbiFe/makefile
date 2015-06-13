@@ -175,7 +175,9 @@ CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_pthread.c \
 CC_OLIBC_HASH_SRCS := $(OLIBC_HASH_SRC)/olibc_hash.c
 
 CC_OLIBC_NET_SRCS := $(OLIBC_NET_SRC)/olibc_if_rt_netlink.c \
-	$(OLIBC_NET_SRC)/olibc_netlink.c \
+	$(OLIBC_NET_SRC)/olibc_addr_rt_netlink.c \
+	$(OLIBC_NET_SRC)/olibc_rt_netlink.c \
+	$(OLIBC_NET_SRC)/olibc_netlink.c
 
 CC_OLIBC_ALL_SRCS :=\
 	$(CC_OLIBC_COMMON_SRCS) \

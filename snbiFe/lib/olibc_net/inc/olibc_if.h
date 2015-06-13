@@ -2,6 +2,7 @@
 #define __OLIBC_IF_H__
 
 #include <olibc_common.h>
+#include <olibc_net.h>
 
 #define MAX_IF_NAME_LEN 30
 #define MAX_IF_HW_ADDR 6 // 48 bits of MAC address.
@@ -28,9 +29,6 @@ typedef struct olibc_if_event_info_t_ {
     uint32_t filter_flags;
 } olibc_if_event_info_t;
 
-
-#define IF_ITER_FILTER_FLAG_IPV4 0x01
-#define IF_ITER_FILTER_FLAG_IPV6 0x02
 
 typedef struct olibc_if_iterator_filer_t_ {
     uint32_t flags;

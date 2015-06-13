@@ -3,6 +3,8 @@
 
 #define DEBUG_LOG 0
 
+#define DEBUG_LOG_ERROR 0
+
 #define olibc_log_debug(...)                            \
     do {                                                \
         if (DEBUG_LOG) {                                \
@@ -13,7 +15,7 @@
 #define olibc_log_error(...)                            \
     do {                                                \
         if (DEBUG_LOG_ERROR)                            \
-            printf(__VA_ARGS);                          \
+            printf(__VA_ARGS__);                        \
     } while (0)                                         \
 
 #endif
