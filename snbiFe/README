@@ -21,3 +21,5 @@ common name for all function pointers.
 list destory free_data callback.
 avl code fixes.
 libevent check which library to link
+logger
+libnetlink link with existing library ?
