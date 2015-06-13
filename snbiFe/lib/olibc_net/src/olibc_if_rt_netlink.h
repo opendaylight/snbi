@@ -4,8 +4,6 @@
 #include <olibc_if.h>
 #include "olibc_netlink.h"
 
-#define MAX_NL_MSG_LEN 8192
-
 typedef struct olibc_if_iterator_t_ {
     olibc_nl_sock_t nl_sock;
     uint32_t filter_flags;

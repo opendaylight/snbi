@@ -6,7 +6,9 @@
 #include <string.h>
 #include <cparser.h>
 #include <olibc_if.h>
+#include <olibc_addr.h>
 #include <cparser_tree.h>
+#include <arpa/inet.h>
 
 cparser_result_t 
 cparser_cmd_test_if_list (cparser_context_t *context)
@@ -39,5 +41,124 @@ cparser_cmd_test_if_list (cparser_context_t *context)
         printf("\n");
         memset(&if_info, 0, sizeof(if_info));
     }
+    printf("\nIf iterator destroy returned %s",
+           olibc_retval_get_string(olibc_if_iterator_destroy(&if_iter_hdl)));
+    return CPARSER_OK;
+}
+
+cparser_result_t 
+cparser_cmd_test_if_ip_address (cparser_context_t *context)
+{ 
+    uint32_t if_index;
+    olibc_retval_t retval;
+    olibc_addr_info_t addr_info;
+    char ip_str[INET6_ADDRSTRLEN];
+    olibc_addr_iterator_hdl iter_hdl;
+    olibc_addr_iterator_filter_t filter;
+
+    filter.flags |= (OLIBC_FLAG_IPV4 | OLIBC_FLAG_IPV6);
+    retval = olibc_addr_iterator_create(&filter, &iter_hdl);
+    printf("\nAddr iterator create returned %s",
+            olibc_retval_get_string(retval));
+
+    if (retval != OLIBC_RETVAL_SUCCESS) { 
+        return CPARSER_OK;
+    }
+    memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
+            == OLIBC_RETVAL_SUCCESS) {
+        printf("\nif_index %d", if_index);
+        if (addr_info.addr_family == AF_INET) {
+            inet_ntop(addr_info.addr_family, &addr_info.addrv4, ip_str,
+                    sizeof(ip_str));
+        }
+        if (addr_info.addr_family == AF_INET6) {
+            inet_ntop(addr_info.addr_family, &addr_info.addrv6, ip_str,
+                     sizeof(ip_str));
+        }
+        printf("\nIP address %s/%d",ip_str, addr_info.prefixlen);
+        printf("\n");
+        memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    }
+    printf("\nIf iterator destroy returned %s",
+           olibc_retval_get_string(olibc_addr_iterator_destroy(&iter_hdl)));
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_cmd_test_if_ipv6_address (cparser_context_t *context)
+{
+    uint32_t if_index;
+    olibc_retval_t retval;
+    olibc_addr_info_t addr_info;
+    char ip_str[INET6_ADDRSTRLEN];
+    olibc_addr_iterator_hdl iter_hdl;
+    olibc_addr_iterator_filter_t filter;
+
+    filter.flags |= OLIBC_FLAG_IPV6;
+    retval = olibc_addr_iterator_create(&filter, &iter_hdl);
+    printf("\nAddr iterator create returned %s",
+            olibc_retval_get_string(retval));
+
+    if (retval != OLIBC_RETVAL_SUCCESS) { 
+        return CPARSER_OK;
+    }
+    memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
+            == OLIBC_RETVAL_SUCCESS) {
+        printf("\nif_index %d", if_index);
+        if (addr_info.addr_family == AF_INET) {
+            inet_ntop(addr_info.addr_family, &addr_info.addrv4, ip_str,
+                    sizeof(ip_str));
+        }
+        if (addr_info.addr_family == AF_INET6) {
+            inet_ntop(addr_info.addr_family, &addr_info.addrv6, ip_str,
+                     sizeof(ip_str));
+        }
+        printf("\nIP address %s/%d",ip_str, addr_info.prefixlen);
+        printf("\n");
+        memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    }
+    printf("\nIf iterator destroy returned %s",
+           olibc_retval_get_string(olibc_addr_iterator_destroy(&iter_hdl)));
+    return CPARSER_OK;
+}
+
+cparser_result_t 
+cparser_cmd_test_if_ipv4_address(cparser_context_t *context)
+{
+    uint32_t if_index;
+    olibc_retval_t retval;
+    olibc_addr_info_t addr_info;
+    char ip_str[INET6_ADDRSTRLEN];
+    olibc_addr_iterator_hdl iter_hdl;
+    olibc_addr_iterator_filter_t filter;
+
+    filter.flags |= (OLIBC_FLAG_IPV4);
+    retval = olibc_addr_iterator_create(&filter, &iter_hdl);
+    printf("\nAddr iterator create returned %s",
+            olibc_retval_get_string(retval));
+
+    if (retval != OLIBC_RETVAL_SUCCESS) { 
+        return CPARSER_OK;
+    }
+    memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
+            == OLIBC_RETVAL_SUCCESS) {
+        printf("\nif_index %d", if_index);
+        if (addr_info.addr_family == AF_INET) {
+            inet_ntop(addr_info.addr_family, &addr_info.addrv4, ip_str,
+                    sizeof(ip_str));
+        }
+        if (addr_info.addr_family == AF_INET6) {
+            inet_ntop(addr_info.addr_family, &addr_info.addrv6, ip_str,
+                     sizeof(ip_str));
+        }
+        printf("\nIP address %s/%d",ip_str, addr_info.prefixlen);
+        printf("\n");
+        memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    }
+    printf("\nIf iterator destroy returned %s",
+           olibc_retval_get_string(olibc_addr_iterator_destroy(&iter_hdl)));
     return CPARSER_OK;
 }
