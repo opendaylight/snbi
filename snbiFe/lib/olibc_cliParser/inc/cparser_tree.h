@@ -95,6 +95,9 @@ cparser_result_t cparser_cmd_test_hash_remove_key(cparser_context_t *context,
     char **key_ptr);
 cparser_result_t cparser_cmd_test_hash_walk(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_if_list(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_if_ipv4_address(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_if_ipv6_address(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_if_ip_address(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_quit(cparser_context_t *context);
 
 #ifdef __cplusplus

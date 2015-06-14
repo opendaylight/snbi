@@ -614,6 +614,27 @@ cparser_glue_test_if_list (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_if_ipv4_address (cparser_t *parser)
+{
+    cparser_cmd_test_if_ipv4_address(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_if_ipv6_address (cparser_t *parser)
+{
+    cparser_cmd_test_if_ipv6_address(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_if_ip_address (cparser_t *parser)
+{
+    cparser_cmd_test_if_ip_address(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_quit (cparser_t *parser)
 {
     cparser_cmd_test_quit(&parser->context);
@@ -638,6 +659,60 @@ cparser_node_t cparser_node_test_root_quit = {
     &cparser_node_test_root_quit_eol
 };
 
+cparser_node_t cparser_node_test_root_if_ip_address_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_if_ip_address,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_if_ip_address = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "ip-address",
+    "get the IP addresses of the interfaces",
+    NULL,
+    &cparser_node_test_root_if_ip_address_eol
+};
+
+cparser_node_t cparser_node_test_root_if_ipv6_address_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_if_ipv6_address,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_if_ipv6_address = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "ipv6-address",
+    "get the IPV6 addresses of the interfaces",
+    &cparser_node_test_root_if_ip_address,
+    &cparser_node_test_root_if_ipv6_address_eol
+};
+
+cparser_node_t cparser_node_test_root_if_ipv4_address_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_if_ipv4_address,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_if_ipv4_address = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "ipv4-address",
+    "get the IPV4 addresses of the interfaces",
+    &cparser_node_test_root_if_ipv6_address,
+    &cparser_node_test_root_if_ipv4_address_eol
+};
+
 cparser_node_t cparser_node_test_root_if_list_eol = {
     CPARSER_NODE_END,
     0,
@@ -652,7 +727,7 @@ cparser_node_t cparser_node_test_root_if_list = {
     0,
     "list",
     "list the interface information",
-    NULL,
+    &cparser_node_test_root_if_ipv4_address,
     &cparser_node_test_root_if_list_eol
 };
 
