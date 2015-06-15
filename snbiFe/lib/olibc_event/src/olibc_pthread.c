@@ -126,7 +126,7 @@ olibc_pthread_get_id (olibc_pthread_hdl pthread_hdl,
 }
 
 olibc_retval_t
-olibc_pthread_destory (olibc_pthread_hdl *pthread_hdl)
+olibc_pthread_destroy (olibc_pthread_hdl *pthread_hdl)
 {
     olibc_pthread_t *pthread  = NULL;
     if (!pthread_hdl) {
@@ -135,7 +135,11 @@ olibc_pthread_destory (olibc_pthread_hdl *pthread_hdl)
 
     pthread = *pthread_hdl;
 
+    event_base_loopexit(pthread->evt_base, NULL);
     event_base_free(pthread->evt_base);
+
+    pthread_join(pthread->thread_id, NULL);
+
     free(pthread->thread_str);
     olibc_free((void **)pthread_hdl);
     return OLIBC_RETVAL_SUCCESS;
