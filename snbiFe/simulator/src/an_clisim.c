@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <cparser.h>
 #include <cparser_tree.h>
+#include "../impl/an_conf_linux.h"
 
 extern int an_debug_map[];
 
@@ -67,6 +68,10 @@ main (int argc, char *argv[])
     strcpy(parser.cfg.prompt, "clisim > ");
     parser.cfg.fd = STDOUT_FILENO;
     cparser_io_config(&parser);
+
+    if (!an_system_init_linux()) {
+        return -1;
+    }
 
 
     if (CPARSER_OK != cparser_init(&parser.cfg, &parser)) {
