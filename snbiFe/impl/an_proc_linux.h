@@ -66,8 +66,8 @@ extern an_watched_boolean *an_setup_done_by_user;
 extern an_watched_boolean *an_manual_config_detected;
 void an_process_send_message (an_thread_t pid, const char *key, ulong message_num, void *pointer, ulong message_arg);
 
-void an_init(void);
-void an_uninit(void);
+void an_proc_init(void);
+void an_proc_uninit(void);
 
 void an_process_call(void );
 void an_process_call_shut(void);

@@ -17,6 +17,7 @@
 #include <an_if_mgr.h>
 #include <cparser_tree.h>
 #include <an_event_mgr.h>
+#include <an_conf_linux.h>
 
 cparser_result_t 
 cparser_cmd_clear_screen (cparser_context_t *context)
@@ -28,9 +29,10 @@ cparser_cmd_clear_screen (cparser_context_t *context)
 cparser_result_t
 cparser_cmd_snbi_start (cparser_context_t *context)
 {
-    printf("\n*********Starting Autonomic Process************\n");
-    an_event_db_init();
-    an_autonomic_enable();
+    if (!an_autonomic_start_cmd_handler()) {
+        return CPARSER_NOT_OK;
+    }
+
     return (CPARSER_OK);
 }
 

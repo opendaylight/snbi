@@ -137,7 +137,8 @@ CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_syslog_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_timer_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_tunnel_linux.c \
-	$(SNBI_LINUX_AL_SRC)/an_udp_linux.c
+	$(SNBI_LINUX_AL_SRC)/an_udp_linux.c \
+	$(SNBI_LINUX_AL_SRC)/an_conf_linux.c
 
 CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \

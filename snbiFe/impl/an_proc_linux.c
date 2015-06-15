@@ -6,17 +6,15 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
-
 #include <an_proc_linux.h>
 #include <an_types_linux.h>
-#include <pthread.h>
+#include <olibc_pthread.h>
+#include <olibc_msg_q.h>
 
 #define AN_GROUP "FF02::150"
 
-pthread_t an_thread;
+olibc_pthread_hdl an_pthread_hdl = NULL;
 boolean an_initialised = FALSE;
-boolean an_socket_open = FALSE;
 int an_sockfd = 0;
 struct sockaddr_in6 serv_addr, client_addr;
 struct sockaddr_storage sender;
@@ -53,10 +51,13 @@ an_udp_pak_enqueue (an_pak_t *pak, char *udp_block)
     return (TRUE);
 }
 
-static void
-an_process (void)
+static void*
+an_linux_process (void *arg)
 {
     printf("\n Inside AN PROCESS func..!");
+
+    olibc_pthread_dispatch_events(an_pthread_hdl);
+#if 0
     struct ipv6_mreq mreq;
     int no_of_bytes_received = 0;
     char buffer[256];
@@ -97,27 +98,30 @@ an_process (void)
                 }
             }    
         }
-
-
-
     }
-
-
+#endif
+    return NULL;
 } 
 
-void
-an_init (void) {
+void an_proc_init (void) 
+{
+    olibc_retval_t retval;
+    olibc_pthread_info_t pthread_info;
 
-    int retval;
+    memset(&pthread_info, 0,sizeof(olibc_pthread_info_t));
+    pthread_info.start_routine = an_linux_process;
+    pthread_info.thread_name = "AN Process";
+    pthread_info.arg = NULL;
 
-    retval = pthread_create(&an_thread, NULL, (void *) &an_process, NULL);
+    retval = olibc_pthread_create(&an_pthread_hdl, &pthread_info);
 
-    if (retval != 0) {
-        DEBUG_AN_LOG(AN_LOG_SRVC_NTP, AN_DEBUG_SEVERE, NULL,
-                                 "\n AN Thread creation failed..!!");
-       exit(0);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\n*********************************************");
+        printf("\n****** AN System initialization failed ******");
+        printf("\n*********************************************");
+        exit(0);
     }
-
+    return;
 }
 
 void
@@ -134,25 +138,19 @@ an_attach_to_environment (void) {
 
     printf("\n Socket Created Succesfully..");
 
-    an_socket_open = TRUE;
-
-    an_init();    
     /* Infra enable for AN */
 //    an_if_services_init();
     return;
 }
 
 void
-an_uninit (void) {
-
+an_proc_uninit (void) 
+{
     /* Wait till threads are complete before an_init continues. Unless we  */
     /* wait we run the risk of executing an exit which will terminate      */
     /* the process and all threads before the threads have completed.      */
-
-    pthread_join(an_thread, NULL);
-
+    olibc_pthread_destroy(&an_pthread_hdl);
     printf("\npthread_join() - Thread stopped...\n");
-    
 }
 
 boolean
