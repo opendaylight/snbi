@@ -8,6 +8,13 @@
 
 #include "an_types.h"
 #define AN_RSA_KEY_MODULUS 3072
+#define PUBLIC_KEY_LOCATION "./public.pem"
+#define PRIVATE_KEY_LOCATION "./private.pem"
+#define DEVICE_CERT_LOCATION "./device-cert-file.pem"
+#define CA_CERT_LOCATION "./ca-cert-file.pem"
+#define CA_CERT_DER_LOCATION "./ca-cert-file.der"
+#define CSR_REQ_LOCATION "./x509Request.csr"
+#define CSR_REQ_DER_LOCATION "./x509Request_der.csr"
 
 boolean an_key_generate_keypair(uint8_t *key_label);
 boolean an_key_remove_keypair(uint8_t *key_label);

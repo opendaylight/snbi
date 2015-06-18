@@ -19,6 +19,7 @@
 #include <an_misc.h>
 #include <an.h>
 #include <an_if.h>
+#include "an_cert_linux.h"
 
 
 #define AN_IPSEC_MSG_ID 0x0
@@ -95,6 +96,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void 
 an_platform_specific_init (void)
 {
+    an_openssl_init();
     an_if_services_init();
     return;
 }

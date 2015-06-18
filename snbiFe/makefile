@@ -72,7 +72,7 @@ CFLAGS = -g -Wuninitialized -Wreturn-type \
 	-Wnonnull -Wparentheses
 
 #OLIBC_LD_LIB = -lpthread -levent -levent_pthreads
-OLIBC_LD_LIB = -levent -levent_pthreads
+OLIBC_LD_LIB = -levent -levent_pthreads -lpthread -lssl -lcrypto
 
 #LD_LIB = -lcrypt -lpthread -lrt
 LD_LIB = -lcrypt $(OLIBC_LD_LIB)
