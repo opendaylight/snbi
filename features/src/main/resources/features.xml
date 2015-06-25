@@ -18,7 +18,7 @@
     <repository>mvn:org.opendaylight.controller/features-restconf/${mdsal.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.controller/features-netconf-connector/${mdsal.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.controller/features-nsf/${nsf.version}/xml/features</repository>
-    <repository>mvn:org.opendaylight.dlux/features-dlux/0.2.0-Lithium/xml/features</repository>
+    <repository>mvn:org.opendaylight.dlux/features-dlux/0.2.1-SNAPSHOT/xml/features</repository>
 
     <feature name='odl-snbi-all' version='${project.version}' description='OpenDaylight :: snbi :: All'>
         <feature version='${project.version}'>odl-snbi-southplugin</feature>
@@ -65,8 +65,8 @@
 			<feature version='${mdsal.version}'>odl-restconf</feature>
 			<feature version='${mdsal.version}'>odl-mdsal-apidocs</feature>
                         <feature version='${nsf.version}'>odl-nsf-all</feature>
-			<feature version='0.2.0-Lithium'>odl-dlux-core</feature>
-			<!--feature version='0.2.0-Lithium'>odl-dlux-core</feature-->	
+			<feature version='0.2.1-SNAPSHOT'>odl-dlux-core</feature>
+			<!--feature version='0.2.1-SNAPSHOT'>odl-dlux-core</feature-->	
 	</feature>
 
 </features>
