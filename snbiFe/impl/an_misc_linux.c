@@ -95,7 +95,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void 
 an_platform_specific_init (void)
 {
-    an_if_services_init();
     return;
 }
 

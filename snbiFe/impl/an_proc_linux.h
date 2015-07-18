@@ -29,37 +29,8 @@
 #include <an_if_mgr.h>
 #include <an_acp.h>
 #include <an.h>
-#if 0
-typedef enum an_proc_messages_ {
-    AN_PMSG_IF_DOWN,
-    AN_PMSG_IF_UP,
-    AN_PMSG_IF_ERASED,
-    AN_PMSG_ANRA_UP,
-    AN_PMSG_ANRA_SHUT_PENDING,
-    AN_PMSG_ANRA_NO_REGISTRAR,
-    AN_PMSG_LOCAL_FILE_WRITE,
-    AN_PMSG_COPY_TO_STANDBY,
-    AN_PMSG_SERVICE_RESOLVED,
-    AN_PMSG_MAX,
-} an_proc_messages;
-#endif
 
-typedef struct an_pthread_t_ {
-    int pid;
-    char *thread_name;
-} an_pthread_t;
-
-typedef enum an_proc_retval_t_ {
-    AN_PROC_API_SUCCESS,
-    AN_PROC_API_FAILED,
-    AN_PROC_API_INVALID_INPUT,
-    AN_PROC_API_EVNT_BASE_ALLOC_FAILED
-} an_proc_retval_t;
-
-extern an_proc_retval_t an_pthread_create(an_pthread_t *an_pthread, 
-                                          char *thread_name,
-                                          void *(*start_routine) (void *), 
-                                          void *arg);
+extern olibc_pthread_hdl an_pthread_hdl;
 
 extern an_watched_boolean *an_wb_node_discovered;
 extern an_watched_boolean *an_setup_done_by_user;

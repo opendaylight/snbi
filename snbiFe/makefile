@@ -24,6 +24,7 @@ BASE_OLIBC_COMMON_DIR = $(BASE_LIB_DIR)/olibc_common
 BASE_OLIBC_HASH_DIR = $(BASE_LIB_DIR)/olibc_hash
 BASE_OLIBC_NET_DIR = $(BASE_LIB_DIR)/olibc_net
 BASE_OLIBC_LOG_DIR = $(BASE_LIB_DIR)/olibc_log
+BASE_OLIBC_PAK_DIR = $(BASE_LIB_DIR)/olibc_pak
 
 
 SNBI_BIN=$(BASE_DIR)/bin
@@ -40,6 +41,7 @@ CC_OLIBC_INCDIRS :=\
 	-I$(BASE_OLIBC_EVENT_DIR)/inc \
 	-I$(BASE_OLIBC_NET_DIR)/inc \
 	-I$(BASE_OLIBC_LOG_DIR)/inc \
+	-I$(BASE_OLIBC_PAK_DIR)/inc \
 
 CC_SNBI_INCDIRS :=\
 	$(CC_OLIBC_INCDIRS) \
@@ -58,6 +60,7 @@ OLIBC_EVENT_SRC=$(BASE_OLIBC_EVENT_DIR)/src
 OLIBC_COMMON_SRC=$(BASE_OLIBC_COMMON_DIR)/src
 OLIBC_HASH_SRC=$(BASE_OLIBC_HASH_DIR)/src
 OLIBC_NET_SRC=$(BASE_OLIBC_NET_DIR)/src
+OLIBC_PAK_SRC=$(BASE_OLIBC_PAK_DIR)/src
 
 
 CC = gcc
@@ -72,7 +75,7 @@ CFLAGS = -g -Wuninitialized -Wreturn-type \
 	-Wnonnull -Wparentheses
 
 #OLIBC_LD_LIB = -lpthread -levent -levent_pthreads
-OLIBC_LD_LIB = -levent -levent_pthreads
+OLIBC_LD_LIB = -levent -levent_pthreads -lpthread
 
 #LD_LIB = -lcrypt -lpthread -lrt
 LD_LIB = -lcrypt $(OLIBC_LD_LIB)
@@ -117,7 +120,6 @@ CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_ike_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ipsec_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ipv6_linux.c  \
-	$(SNBI_LINUX_AL_SRC)/an_ipv6_nd_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_ipv6_send_linux.c\
 	$(SNBI_LINUX_AL_SRC)/an_key_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_l2_linux.c \
@@ -171,7 +173,7 @@ CC_OLIBC_AVL_SRCS := $(OLIBC_AVL_SRC)/olibc_avl.c
 
 CC_OLIBC_EVENT_SRCS := $(OLIBC_EVENT_SRC)/olibc_pthread.c \
 	$(OLIBC_EVENT_SRC)/olibc_timer.c \
-	$(OLIBC_EVENT_SRC)/olibc_file_event.c \
+	$(OLIBC_EVENT_SRC)/olibc_fd_event.c \
 	$(OLIBC_EVENT_SRC)/olibc_msg_q.c
 
 CC_OLIBC_HASH_SRCS := $(OLIBC_HASH_SRC)/olibc_hash.c
@@ -181,6 +183,8 @@ CC_OLIBC_NET_SRCS := $(OLIBC_NET_SRC)/olibc_if_rt_netlink.c \
 	$(OLIBC_NET_SRC)/olibc_rt_netlink.c \
 	$(OLIBC_NET_SRC)/olibc_netlink.c
 
+CC_OLIBC_PAK_SRCS := $(OLIBC_PAK_SRC)/olibc_pak.c
+
 CC_OLIBC_ALL_SRCS :=\
 	$(CC_OLIBC_COMMON_SRCS) \
 	$(CC_OLIBC_LIST_SRCS) \
@@ -189,6 +193,7 @@ CC_OLIBC_ALL_SRCS :=\
 	$(CC_OLIBC_HASH_SRCS) \
 	$(CC_OLIBC_EVENT_SRCS) \
 	$(CC_OLIBC_NET_SRCS) \
+	$(CC_OLIBC_PAK_SRCS) \
 
 CC_ALL_SRCS := $(CC_OLIBC_ALL_SRCS) \
 	$(CC_SNBI_LINUX_AL_SRCS) \
