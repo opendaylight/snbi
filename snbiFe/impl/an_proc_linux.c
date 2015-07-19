@@ -10,13 +10,13 @@
 #include <an_types_linux.h>
 #include <olibc_pthread.h>
 #include <olibc_msg_q.h>
+#include "an_linux_sock.h"
 
 #define AN_GROUP "FF02::150"
 
 olibc_pthread_hdl an_pthread_hdl = NULL;
 boolean an_initialised = FALSE;
 int an_sockfd = 0;
-struct sockaddr_in6 serv_addr, client_addr;
 struct sockaddr_storage sender;
 socklen_t sendsize = sizeof(sender);
 boolean platform_ready = FALSE;
@@ -57,49 +57,6 @@ an_linux_process (void *arg)
     printf("\n Inside AN PROCESS func..!");
 
     olibc_pthread_dispatch_events(an_pthread_hdl);
-#if 0
-    struct ipv6_mreq mreq;
-    int no_of_bytes_received = 0;
-    char buffer[256];
-    an_pak_t *pak;
-    uint32_t ifhndl;    
-   
-    serv_addr.sin6_family = AF_INET6;
-    serv_addr.sin6_addr = in6addr_any;
-    serv_addr.sin6_port = htons(AN_UDP_PORT);
-
-    if (bind(an_sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) != 0) {
-    //      perror( "Bind Failure: " );
-  //      exit( 1 );
-    }
-
-//    inet_pton(AF_INET6, AN_GROUP, &mreq.ipv6mr_multiaddr);
-    mreq.ipv6mr_multiaddr = an_ll_scope_all_node_mcast.ipv6_addr;
-    mreq.ipv6mr_interface = 0;
-
-    if (setsockopt(an_sockfd, IPPROTO_IPV6, IPV6_JOIN_GROUP, (char *)&mreq, sizeof(mreq)) != 0) {
-       // perror( "IPV6_JOIN_GROUP" );
-       // exit( 1 );
-    }
-
-
-    while (TRUE) {
-
-        memset(buffer, '\0', 256);
-        no_of_bytes_received = recvfrom(an_sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&sender, &sendsize);
-
-        if (no_of_bytes_received>0) {
-            pak = (an_pak_t*)an_malloc(sizeof(an_pak_t), "AN Linux Pak");
-            if (pak) {
-                ifhndl = an_get_ifhndl_from_sockaddr (&sender);
-                an_linux_pak_create(pak, ifhndl, buffer, &sender);
-                if(an_udp_pak_enqueue(pak, NULL)){
-                    printf("\n AN_UDP_PAK_ENQUEUE Succesfull");
-                }
-            }    
-        }
-    }
-#endif
     return NULL;
 } 
 
@@ -125,21 +82,12 @@ void an_proc_init (void)
 }
 
 void
-an_attach_to_environment (void) {
+an_attach_to_environment (void) 
+{
     /* Create AN socket */
-
-    an_sockfd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
-    if (an_sockfd < 0) {
-        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
-                                 "\nSocket Opening failed, exiting..!!");
-        exit(0);
-    }
-
-    printf("\n Socket Created Succesfully..");
-
+    an_linux_sock_create();
     /* Infra enable for AN */
-//    an_if_services_init();
+    an_if_services_init();
     return;
 }
 

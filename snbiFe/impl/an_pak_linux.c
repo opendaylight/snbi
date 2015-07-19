@@ -5,24 +5,188 @@
  * the terms of the Eclipse License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
-
-#include <an_types.h>
-#include <an_logger.h>
-#include <an_if_mgr.h>
-#include <an_l2_linux.h>
 #include <an_pak.h>
 #include <an_str.h>
-#include <an_pak_linux.h>
 #include <net/if.h>
 #include <an_ipv6.h>
 #include <an_mem.h>
+#include <an_types.h>
+#include <an_logger.h>
+#include <an_if_mgr.h>
+#include <olibc_pak.h>
+#include <an_l2_linux.h>
+#include <an_pak_linux.h>
+#include <an_proc_linux.h>
+#include <olibc_fd_event.h>
 
+int an_sock_fd = 0;
+olibc_fd_event_hdl an_sock_fd_event_hdl = NULL;
+
+static boolean 
+an_pak_init_ipv6_udp_hdr (olibc_pak_hdl pak_hdl) 
+{
+    uint32_t data_length = 0;
+    uint8_t *data_buff = NULL;
+    olibc_retval_t retval;
+    struct sockaddr_storage src_addr, dst_addr;
+    struct sockaddr_in6 *s6_src = NULL, *s6_dst = NULL;
+
+    retval = olibc_pak_get_data_buffer(pak_hdl, &data_buff, &data_length);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                  "\nFailed to get data buffer");
+        return FALSE;
+    }
+
+    memset(&src_addr, 0, sizeof(struct sockaddr_storage));
+    memset(&dst_addr, 0, sizeof(struct sockaddr_storage));
+
+    retval = olibc_pak_get_src_addr(pak_hdl, &src_addr);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                  "\nFailed to get IPv6 Src address");
+        return FALSE;
+    }
+
+    retval = olibc_pak_get_dst_addr(pak_hdl, &dst_addr);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                  "\nFailed to get IPv6 dst address");
+        return FALSE;
+    }
+
+    if (src_addr.ss_family != AF_INET6 || dst_addr.ss_family != AF_INET6) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\nInvalid addres family found src_af %d, "
+                "dst _af %d",src_addr.ss_family, dst_addr.ss_family);
+        return FALSE;
+    }
+
+    s6_src = (struct sockaddr_in6 *)&src_addr;
+    s6_dst = (struct sockaddr_in6 *)&dst_addr;
+
+    if (!an_ipv6_hdr_init(data_buff,
+                AN_DEFAULT_TOS, AN_DEFAULT_FLOW_LABEL,
+                data_length, AN_UDP_PROTOCOL, AN_DEFAULT_HOP_LIMIT,
+                &s6_src->sin6_addr, &s6_dst->sin6_addr)) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                  "\nFailed to init packet header");
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+boolean
+an_linux_sock_fd_read_cbk (int fd, uint32_t ev_type)
+{
+    olibc_retval_t retval;
+    olibc_pak_info_t pak_info;
+    olibc_pak_hdl pak_hdl = NULL;
+    uint32_t ipv6_udp_offset = 0;
+
+    if (!(ev_type & OLIBC_FD_READ)) {
+        return FALSE;
+    }
+
+    memset(&pak_info, 0, sizeof(olibc_pak_info_t));
+    pak_info.addr_family = AF_INET6;
+
+    retval = olibc_pak_create(&pak_hdl, &pak_info); 
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to create a packet");
+        return FALSE;
+    }
+
+    ipv6_udp_offset = AN_IPV6_HDR_SIZE + AN_UDP_HDR_SIZE;
+
+    retval = olibc_pak_recv(pak_hdl, fd, ipv6_udp_offset);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        olibc_pak_destroy(&pak_hdl);
+        return FALSE;
+    }
+
+    if (!an_pak_init_ipv6_udp_hdr(pak_hdl)) {
+        olibc_pak_destroy(&pak_hdl);
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+void
+an_linux_sock_create (void)
+{
+    olibc_retval_t retval;
+    struct ipv6_mreq mreq;
+    struct sockaddr_in6 serv_addr;
+    olibc_fd_event_info_t fd_event_info;
+    int enable; 
+
+    an_sock_fd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+
+    if (an_sock_fd < 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+                     "\nSocket Opening failed, exiting..!!");
+        exit(0);
+    }
+
+//    inet_pton(AF_INET6, AN_GROUP, &mreq.ipv6mr_multiaddr);
+    mreq.ipv6mr_multiaddr = an_ll_scope_all_node_mcast.ipv6_addr;
+    mreq.ipv6mr_interface = 0;
+
+    if (setsockopt(an_sock_fd, IPPROTO_IPV6,
+                   IPV6_JOIN_GROUP, (char *)&mreq,
+                   sizeof(mreq)) != 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+                "\nFailed to bind AN socket");
+        exit(0);
+    }
+
+    serv_addr.sin6_family = AF_INET6;
+    serv_addr.sin6_addr = in6addr_any;
+    serv_addr.sin6_port = htons(AN_UDP_PORT);
+
+    if (bind(an_sock_fd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) != 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+                "\nFailed to bind AN socket");
+        exit(0);
+    }
+
+    enable = TRUE;
+    if (setsockopt(an_sock_fd, IPPROTO_IPV6, 
+                   IPV6_RECVPKTINFO, &enable, sizeof(enable)) < 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+        "\nFailed to set RECVPKT options");
+        exit(0);
+    }
+
+    enable = FALSE;
+    if (setsockopt(an_sock_fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &enable,
+                sizeof(enable)) < 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+                "\nFailed to disable multicast loopback");
+        exit(0);
+    }
+
+    memset(&fd_event_info, 0, sizeof(olibc_fd_event_info_t));
+
+    fd_event_info.fd = an_sock_fd;
+    fd_event_info.fd_event_filter |= OLIBC_FD_READ;
+    fd_event_info.pthread_hdl = an_pthread_hdl;
+    fd_event_info.fd_event_cbk = an_linux_sock_fd_read_cbk;
+
+    retval = olibc_fd_event_create(&an_sock_fd_event_hdl, &fd_event_info);
+}
 
 inline uint8_t* an_pak_get_network_hdr (an_pak_t *pak) 
 {   
     if (pak) {
-        return ((uint8_t*)&pak->ipv6_hdr);
+        printf("\nTodo get network hdr");
     }
     return NULL;
 }
@@ -88,35 +252,39 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline void an_pak_set_datagram_size (an_pak_t *pak, uint16_t paklen)
 {
-    pak->datagramsize = paklen;
+    printf("\nTodo set datagram size");
+//    pak->datagramsize = paklen;
     return;
 }
 
 inline void an_pak_set_linktype (an_pak_t *pak, uint8_t linktype)
 {
-    pak->linktype = linktype;
+    printf("\nTodo set linktype");
+    //pak->linktype = linktype;
     return;
 }
 
 inline uint8_t 
 an_pak_get_linktype (an_pak_t *pak)
 {
-    if (pak->linktype) {
-        return (pak->linktype);
-    }
+    printf("\nTodo get linktype");
+ //   if (pak->linktype) {
+//        return (pak->linktype);
+//    }
     return (0);
 }
 
 void
 an_linux_pak_create (an_pak_t *an_linux_pak, uint32_t ifhndl, char *data, 
-                                         struct sockaddr_storage *sender)
+                    struct sockaddr_storage *sender)
 {
-    struct sockaddr_in6 *s = NULL;
+//    struct sockaddr_in6 *s = NULL;
 
     if (!an_linux_pak) {
         return;
     }
-
+    printf("\nTodo an linux pak_create");
+#if 0
     an_linux_pak->data = data;
     an_linux_pak->ifhndl = ifhndl;
     
@@ -132,23 +300,15 @@ an_linux_pak_create (an_pak_t *an_linux_pak, uint32_t ifhndl, char *data,
 
 //        an_linux_pak->ipv6_hdr.ip6_src = s->sin6_addr;
     }
+#endif
     return;
 }
 
-an_pak_t* an_getbuffer (uint16_t pak_len)
-{
-    an_pak_t *pak = (an_pak_t *)malloc(sizeof(an_pak_t)); 
-    an_linux_pak_create(pak, 0, NULL, NULL); 
-    if (pak) { 
-        return pak;
-    }
-    return NULL;
-}
 
 inline void an_pak_free (an_pak_t *pak)
 {
     if (pak) {
-        an_free(pak);
+        olibc_pak_destroy(&pak);
     }
     return;
 }
@@ -182,31 +342,6 @@ void an_pak_subblock_setsize(an_pak_subblock_index_t idx, size_t size)
 {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
-}
-
-uint32_t
-an_get_ifhndl_from_sockaddr (struct sockaddr_storage *sender) {
-
-    char ipstr[INET6_ADDRSTRLEN + 1];
-    uint32_t sender_port = 0, sender_index = 0;
- 
-// Deal with both Ipv4 and IPv6 addresses
-    if (sender->ss_family == AF_INET) {
-        struct sockaddr_in *s = (struct sockaddr_in *)sender;
-        sender_port = ntohs(s->sin_port);
-        inet_ntop(AF_INET, &s->sin_addr, ipstr, sizeof ipstr);
-    }
-    else { // AF_INET6
-        struct sockaddr_in6 *s = (struct sockaddr_in6 *)sender;
-        sender_port = ntohs(s->sin6_port);
-        inet_ntop(AF_INET6, &s->sin6_addr, ipstr, sizeof ipstr);
-        sender_index = s->sin6_scope_id;
-    }
-
-//    printf("Peer IP address: %s    , Port: %d\n", ipstr, sender_port);
-//    printf("Sender Index: %d,        Index_name:%s\n", sender_index,index_name);
-
-    return (sender_index);
 }
 
 an_pak_t *

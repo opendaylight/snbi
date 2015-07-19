@@ -40,9 +40,9 @@ typedef bool boolean;
     GENERATOR(OLIBC_RETVAL_DUPLICATE_DATA,                                \
             "The collection has already a data element")                  \
     GENERATOR(OLIBC_RETVAL_NO_MATCHING_DATA,                              \
-            "The collection has no matching data element")                \
+            "No matching data")                                           \
     GENERATOR(OLIBC_RETVAL_NO_MORE_DATA,                                  \
-            "The iterator doesnt have any more data")                     \
+            "No more data")                                               \
     GENERATOR(OLIBC_RETVAL_MAX, "Max retval")
 
 #define OLIBC_GENERATE_ENUM(ENUM,STRING) ENUM,
