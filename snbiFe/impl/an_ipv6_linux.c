@@ -26,7 +26,7 @@
 #define IPV6_FLOWINFO_MASK      htonl(0x0FFFFFFF)
 
 boolean an_ipv6_unicast_routing_enabled = FALSE;
-extern int an_sockfd;
+extern int an_sock_fd;
 
 inline boolean an_ipv6_enable_on_interface (an_if_t ifhndl)
 {
@@ -115,41 +115,58 @@ boolean an_ipv6_preroute_pak (an_pak_t *pak, an_if_t ifhndl, an_addr_t nhop)
     return (TRUE);
 }
 
-boolean an_ipv6_forward_pak (an_pak_t *pak, uint8_t *msg_block,uint32_t
-        *msg_pkg,uint16_t msgb_len)
+boolean an_ipv6_forward_pak (an_pak_t *pak, uint8_t *msg_block,
+                             uint32_t *msg_pkg_,uint16_t msgb_len)
 {
-    struct sockaddr_in6 dest;
-    char ipstr[INET6_ADDRSTRLEN + 1];
-    unsigned int ifhndl= 0;
+    olibc_retval_t retval;
     an_addr_t *src, *dst;
+    struct sockaddr_in6 src_sock, dst_sock;
+    an_msg_package *msg_pkg = (an_msg_package *)msg_pkg_;
 
-    an_msg_package *msg_pk = (an_msg_package *)msg_pkg;
-    ifhndl = msg_pk->ifhndl;
-    src    = &(msg_pk->src);
-    dst   = &(msg_pk->dest);
+    memset(&src_sock, 0, sizeof(struct sockaddr_in6));
+    memset(&dst_sock, 0, sizeof(struct sockaddr_in6));
 
-    memset(&dest, 0, sizeof(dest));
-    dest.sin6_family = AF_INET6;
-    dest.sin6_port = htons(AN_UDP_PORT);
-    dest.sin6_addr = dst->ipv6_addr;
+    src    = &(msg_pkg->src);
+    dst   = &(msg_pkg->dest);
+    retval = olibc_pak_set_out_if_index(pak, msg_pkg->ifhndl);
 
-    inet_ntop(AF_INET6, &dest.sin6_addr, ipstr, sizeof ipstr);
-    printf("\n****Ipv6 DEST address before sending is %s", ipstr);
-
-    if (setsockopt(an_sockfd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (char *)&ifhndl,sizeof(an_if_t)) != 0) {
-        perror("Set socket opt failure");
-        return (FALSE);
-    }
-    
-
-    if (sendto(an_sockfd, msg_block, msgb_len, 0, (struct sockaddr *)&dest, sizeof(dest)) == -1 ) {
-            perror ("Send failed:");
-        return (FALSE);
-    }
-    else {
-            printf("\n***********Packet sent out on SNBI_UDP_PORT***************\n");
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\nFailed to set out ifhandle");
+        return FALSE;
     }
 
+    src_sock.sin6_port = htons(AN_UDP_PORT);
+    dst_sock.sin6_port = htons(AN_UDP_PORT);
+
+    src_sock.sin6_family = AF_INET6;
+    dst_sock.sin6_family = AF_INET6;
+
+    src_sock.sin6_addr = src->ipv6_addr;
+    dst_sock.sin6_addr = dst->ipv6_addr;
+
+    retval = olibc_pak_set_src_addr(pak, (struct sockaddr *)&src_sock);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\nFailed to set src socket address");
+        return FALSE;
+    }
+
+    retval = olibc_pak_set_dst_addr(pak, (struct sockaddr *)&dst_sock);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\nFailed to set dst socket address");
+        return FALSE;
+    }
+
+    retval = olibc_pak_send(pak, an_sock_fd, AN_IPV6_HDR_SIZE+AN_UDP_HDR_SIZE);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\nFailed to send pak");
+        return FALSE;
+    }
+        
     return (TRUE);
 }
 
@@ -220,9 +237,11 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (FALSE);
 }
 
-inline boolean an_ipv6_hdr_init (uint8_t *ipv6_hdr, uint8_t tos, uint32_t flow_label, 
-        uint16_t payload_len, uint8_t protocol, uint8_t hop_lim,
-        an_v6addr_t *source, an_v6addr_t *destination)
+inline boolean 
+an_ipv6_hdr_init (uint8_t *ipv6_hdr, uint8_t tos, 
+                  uint32_t flow_label, uint16_t payload_len, 
+                  uint8_t protocol, uint8_t hop_lim,
+                  an_v6addr_t *source, an_v6addr_t *destination)
 {
     an_ipv6_hdr_t *ipv6_header = NULL;
 

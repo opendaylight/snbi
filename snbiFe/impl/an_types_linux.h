@@ -283,8 +283,4 @@ typedef enum {
 #define AN_AAA_SECRET_KEY_LENGTH  255
 
 extern an_if_t an_source_if;
-/*
- * Temp PATCH : TODO
- */
-extern boolean platform_ready;
 #endif

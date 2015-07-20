@@ -68,23 +68,6 @@ inline const uint8_t * an_if_get_name (an_if_t ifhndl)
 
 inline boolean an_if_is_up (an_if_t ifhndl)
 {
-    uint8_t *iface_name = NULL;
-    struct ifreq ifr;
-
-    if (!ifhndl) {
-        return (FALSE);
-    }
-
-    iface_name = (uint8_t *)an_if_get_name(ifhndl); 
-    /* get interface name */
-    strncpy(ifr.ifr_name, iface_name, IFNAMSIZ);
-    /* Read interface flags */
-    if (ioctl(an_sockfd, SIOCGIFFLAGS, &ifr) < 0) {
-        return (FALSE);
-    }
-    if ((ifr.ifr_flags & IFF_UP)) {
-        return (TRUE);
-    }
     return (FALSE);
 }
 

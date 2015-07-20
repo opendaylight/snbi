@@ -921,22 +921,10 @@ an_ntp_clock_sync_from_ntp (void)
     an_event_clock_synchronized();
 }
 
-an_pak_t * an_pak_alloc (uint16_t pak_len)
-{
-    an_pak_t *pak = NULL;
-    pak = an_getbuffer(pak_len);
-
-    if (!pak) {
-        return NULL;
-    }
-
-    an_pak_set_datagram_size(pak, pak_len);
-    an_pak_set_linktype(pak, AN_LINK_IPV6);
-
-    return (pak);
-}
 an_pak_t *
-an_pak_alloc_common_api(uint16_t paklen, an_if_t ifhndl,uint16_t len)
+an_pak_alloc_common_api (uint16_t paklen, 
+                         an_if_t ifhndl,
+                         uint16_t len)
 {
     return (an_plat_pak_alloc(paklen,ifhndl,len));
 }
