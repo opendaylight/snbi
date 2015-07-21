@@ -1,0 +1,157 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7a7fa997_f6731ce5",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiNode.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "please change this to have wrapper function.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_9682e892",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiNode.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "please change this to wrapper function.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_b67da4b3",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "please check the TLVHEADER length and make appropriate changes if required to exclude subtlv type length.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_b654c421",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "we are assuming this is only for BS message, please put appropriate check to assert this. Especially please use the msg_type",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_5633f013",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "please check explicitly for BS type, if not please return NULL.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_163d78de",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 391,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "can u pls change the comment here :-)",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_b147ee4a",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "We are adding a tlv to the packet, so hashlist.get() will return NULL, please add the input tlv to the hashlist, may be you can get and check if its already existing in the hashlist or not.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_9630a802",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 462,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "just getIPV6TLV will work here ?, previously there used to be REGISTER_IPADDR tlv type.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7a7fa997_f13d66bc",
+        "filename": "southplugin/src/main/java/org/opendaylight/snbi/southplugin/SnbiPkt.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-07-21T09:09:17Z",
+      "side": 1,
+      "message": "please update the TLVHEADER length.",
+      "revId": "b85f3f51a1f7c2898a7aa40c94e6cf6036acb7d1",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
