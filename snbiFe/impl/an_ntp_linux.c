@@ -20,8 +20,7 @@
 void
 an_clock_set (void)
 {   
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-            return;
+    return;
 }
 
 boolean an_ntp_add_remove_master (uint32_t stratum, boolean remove)

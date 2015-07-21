@@ -14,67 +14,76 @@
 #include <an_timer.h>
 #include <an_l2_linux.h>
 #include <an_if_mgr.h>
-//#include <an_if_linux.h>
-//#include <an_parse_linux.h">
+#include <an_mem.h>
 
 #define AN_LOOP_VIS_BW 8000000
-char if_name_asked_for[IFNAMSIZ] = {0};
-extern boolean gAN_platform_is_iol;
 extern an_avl_tree  an_if_info_tree;
 
-extern int an_sockfd;
+olibc_list_hdl an_if_list_hdl = NULL;
 
-const uint8_t *an_cd_state_str [] = {
-     "Init",
-     "Reuse",
-     "Probing",
-     "Active",
-     "Inactive",
-};
+static 
+olibc_list_cbk_return_t
+an_if_node_compare_cbk (void *data1, void *data2)
+{
+    an_if_linux_info_t *an_linux_if_info1, *an_linux_if_info2;
+
+    if (!data1 || !data2) {
+        return (OLIBC_LIST_CBK_RET_STOP);
+    }
+
+    an_linux_if_info1 = data1;
+    an_linux_if_info2 = data2;
+
+    if (an_linux_if_info1->if_index == an_linux_if_info2->if_index) {
+        return (OLIBC_LIST_CBK_RET_EQUAL);
+    }
+    return OLIBC_LIST_CBK_RET_CONTINUE;
+}
 
 inline const uint8_t * an_if_get_short_name (an_if_t ifhndl)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (NULL);
+    return (an_if_get_name(ifhndl));
 }
 
 inline const uint8_t * an_if_get_name (an_if_t ifhndl)
 {
-#if 0   
-    an_buffer_t *buffer;
-    an_str_get_temp_buffer(buffer);
-    if_indextoname(ifhndl, buffer->data);
-    return (buffer->data);
-/*
-    uint8_t *if_name;
-    if_name = (uint8_t*)an_malloc(sizeof(char) * (AN_STR_MAX_LEN)+1);
+    olibc_retval_t retval;
+    an_if_linux_info_t *an_linux_if_info = NULL, an_compare_if_info;
 
-    if_indextoname(ifhndl, if_name);
-        return (NULL);
+    memset(&an_compare_if_info, 0, sizeof(an_if_linux_info_t));
+
+    an_compare_if_info.if_index = ifhndl;
+
+    retval = olibc_list_lookup_node(an_if_list_hdl, &an_compare_if_info,
+                                    an_if_node_compare_cbk, (void **)&an_linux_if_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS || !an_linux_if_info) {
+        return NULL;
     }
-    return(if_name);
-// Free this "if_name" in caller.
-*/
-    char *if_name;
-    if_name = malloc(IFNAMSIZ); 
-
-    if_indextoname(ifhndl, if_name);
-
-    return (if_name);
-#endif   
-    if_indextoname(ifhndl, if_name_asked_for);
-    return (if_name_asked_for);
+    return (an_linux_if_info->if_name);
 }
 
 inline boolean an_if_is_up (an_if_t ifhndl)
 {
-    return (FALSE);
+    olibc_retval_t retval;
+    an_if_linux_info_t *an_linux_if_info = NULL, an_compare_if_info;
+
+    memset(&an_compare_if_info, 0, sizeof(an_if_linux_info_t));
+
+    an_compare_if_info.if_index = ifhndl;
+
+    retval = olibc_list_lookup_node(an_if_list_hdl, &an_compare_if_info,
+                                    an_if_node_compare_cbk, (void **)&an_linux_if_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS || !an_linux_if_info) {
+        return FALSE;
+    }
+    return (an_linux_if_info->if_state == IF_UP);
 }
 
 an_if_t 
 an_if_check_vlan_exists (uint32_t unit) 
 {     
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (0);
 }
 
@@ -104,17 +113,42 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (FALSE);
 }
 
+
 boolean
 an_if_is_loopback (an_if_t ifhndl)
 {   
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (FALSE);
+    olibc_retval_t retval;
+    an_if_linux_info_t *an_linux_if_info = NULL, an_compare_if_info;
+
+    memset(&an_compare_if_info, 0, sizeof(an_if_linux_info_t));
+
+    an_compare_if_info.if_index = ifhndl;
+
+    retval = olibc_list_lookup_node(an_if_list_hdl, &an_compare_if_info,
+                                    an_if_node_compare_cbk, (void **)&an_linux_if_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS || !an_linux_if_info) {
+        return FALSE;
+    }
+    return (an_linux_if_info->is_loopback);
 }
 
 void
 an_if_walk (an_if_walk_func func, void *data)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    olibc_retval_t retval;
+    an_if_linux_info_t *if_linux_info = NULL;
+    olibc_list_iterator_hdl if_list_iter = NULL;
+
+    retval = olibc_list_iterator_create(an_if_list_hdl, &if_list_iter);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return;
+    }
+    while (olibc_list_iterator_get_next(if_list_iter, 
+                                        (void *)&if_linux_info) ==
+            OLIBC_RETVAL_SUCCESS) {
+        func(if_linux_info->if_index, data);
+    }
     return;
 }
 
@@ -214,20 +248,97 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 an_if_services_init (void)
 {
-   an_cerrno rc = EOK;
+    olibc_retval_t retval;    
+    an_cerrno rc = EOK;
 
     rc = an_avl_init(&an_if_info_tree, an_if_info_compare);
     if (CERR_IS_NOTOK(rc)) {
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                  "\n%s AN IF DB Init Failed", an_nd_event);
+        return;
     }
+
+    if (an_if_list_hdl == NULL) {
+        olibc_if_info_t if_info;
+        olibc_if_iterator_filter_t if_iter_filter;
+        olibc_if_iterator_hdl if_iter_hdl = NULL;
+        an_if_linux_info_t *if_linux_info;
+
+        retval = olibc_list_create(&an_if_list_hdl, "AN if list");
+        if (retval != OLIBC_RETVAL_SUCCESS) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN If list creation failed", an_nd_event);
+            return;
+        }
+        memset(&if_iter_filter, 0, sizeof(olibc_if_iterator_filter_t));
+        if_iter_filter.flags = OLIBC_FLAG_IPV4 | OLIBC_FLAG_IPV4;
+
+        retval = olibc_if_iterator_create(&if_iter_filter, &if_iter_hdl);
+
+        if (retval != OLIBC_RETVAL_SUCCESS) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN If iterator creation failed", an_nd_event);
+            olibc_list_destroy(&an_if_list_hdl, NULL);
+            return;
+        }
+
+        memset(&if_info, 0, sizeof(olibc_if_info_t));
+        while (olibc_if_iterator_get_next(if_iter_hdl, (void *)&if_info) ==
+                OLIBC_RETVAL_SUCCESS) {
+            if_linux_info = an_malloc(sizeof(an_if_linux_info_t), 
+                                                "AN linux info");
+            if (!if_linux_info) {
+                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                        "\n%s AN If creation failed", an_nd_event);
+                return;
+            }
+
+            memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
+            if_linux_info->if_index = if_info.if_index;
+            if_linux_info->if_state = if_info.if_state;
+            if_linux_info->is_loopback = if_info.is_loopback;
+            if_linux_info->is_loopback = if_info.is_loopback;
+            memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
+            if_linux_info->hw_addr_len = if_info.hw_addr_len;
+
+            retval = olibc_list_insert_node(an_if_list_hdl, NULL, 
+                                            if_linux_info);
+
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                        "\n%s AN interface insert failed", an_nd_event);
+                return;
+            }
+            
+            memset(&if_info, 0, sizeof(olibc_if_info_t));
+        }
+        olibc_if_iterator_destroy(&if_iter_hdl);
+    }
+}
+
+static
+olibc_list_cbk_return_t 
+an_if_linux_free_func (void *data)
+{
+    an_if_linux_info_t *if_info = NULL;
+
+    if_info = (an_if_linux_info_t *)data;
+
+    if (if_info) {
+        an_free(if_info);
+    }
+
+    return OLIBC_LIST_CBK_RET_CONTINUE;
 }
 
 void
 an_if_services_uninit (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-   return;
+    olibc_retval_t retval;    
+    if (an_if_list_hdl) {
+        retval = olibc_list_destroy(&an_if_list_hdl, an_if_linux_free_func);
+    }
+    return;
 }
 
 boolean

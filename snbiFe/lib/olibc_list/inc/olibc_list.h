@@ -75,7 +75,7 @@ extern olibc_retval_t
 olibc_list_destroy(olibc_list_hdl *hdl, olibc_list_free_data_func_t free_func);
 
 extern olibc_retval_t
-olibc_list_lookup_node(olibc_list_hdl list_hdl, void* data, 
+olibc_list_lookup_node(olibc_list_hdl list_hdl, void* comp_data, 
                        olibc_list_comp_func_t comp_func,
                        void **return_data);
 

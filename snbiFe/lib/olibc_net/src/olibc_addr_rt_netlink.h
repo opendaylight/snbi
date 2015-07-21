@@ -16,7 +16,7 @@
 
 typedef struct olibc_addr_iterator_t_ {
     olibc_nl_sock_t nl_sock;
-    char nlmsg_buf[MAX_NL_MSG_LEN];
+    char nlmsg_buf[OLIBC_MAX_NL_MSG_LEN];
     uint32_t nlmsg_len;
     uint32_t pending_data_len;
     char *curr_buff_ptr;

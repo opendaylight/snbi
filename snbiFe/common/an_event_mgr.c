@@ -190,6 +190,8 @@ an_event_autonomics_uninit (void)
     an_timer_stop(&an_generictimer);
     an_timer_stop(&an_revoke_check_timer);
 
+    an_detach_from_environment();
+
     an_crl_expire_interval = 0;
 }    
 

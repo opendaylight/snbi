@@ -4,8 +4,8 @@
 #include <olibc_common.h>
 #include <olibc_net.h>
 
-#define MAX_IF_NAME_LEN 30
-#define MAX_IF_HW_ADDR 6 // 48 bits of MAC address.
+#define OLIBC_MAX_IF_NAME_LEN 30
+#define OLIBC_MAX_IF_HW_ADDR_LEN 6 // 48 bits of MAC address.
 
 typedef struct olibc_if_iterator_t_ *olibc_if_iterator_hdl;
 typedef struct olibc_if_event_t_ *olibc_if_event_hdl;
@@ -16,12 +16,12 @@ typedef enum olibc_if_state_e_ {
 } olibc_if_state_e;
 
 typedef struct olibc_if_info_t_ {
-    char if_name[MAX_IF_NAME_LEN];
+    char if_name[OLIBC_MAX_IF_NAME_LEN];
     uint32_t if_index;
     olibc_if_state_e if_state;
     boolean is_loopback;
     uint32_t hw_type;
-    uint8_t hw_addr[MAX_IF_HW_ADDR];
+    uint8_t hw_addr[OLIBC_MAX_IF_HW_ADDR_LEN];
     uint32_t hw_addr_len;
 } olibc_if_info_t;
 

@@ -5,7 +5,7 @@
 #include <linux/netlink.h>
 #include <olibc_common.h>
 
-#define MAX_NL_MSG_LEN 8192
+#define OLIBC_MAX_NL_MSG_LEN 8192
 
 
 typedef struct olibc_nl_sock_t_ {

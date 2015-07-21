@@ -34,8 +34,6 @@
 #define AN_MIN_VLAN        300
 #define AN_VLAN_START     2000
 
-boolean gAN_platform_is_iol = FALSE;
-
 uint8 an_multicast[] =  {0x01, 0x00, 0x0C, 0xCD, 0xCD, 0xDC};
 
 an_cd_info_t *

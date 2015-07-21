@@ -22,16 +22,6 @@ cparser_result_t cparser_cmd_disable_privileged_mode(cparser_context_t *context)
 cparser_result_t cparser_cmd_quit(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_quit(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_discovery(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_no_discovery(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_no_debug_neighbor_discovery_type_level(cparser_context_t *context,
-    char **type_ptr,
-    char **level_ptr);
-cparser_result_t cparser_cmd_snbi_no_debug_bootstrap_type_level(cparser_context_t *context,
-    char **type_ptr,
-    char **level_ptr);
-cparser_result_t cparser_cmd_snbi_interface_start(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_interface_stop(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_start(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_stop(cparser_context_t *context);
 cparser_result_t cparser_cmd_snbi_debug_log_console(cparser_context_t *context);
@@ -41,6 +31,12 @@ cparser_result_t cparser_cmd_snbi_debug_neighbor_discovery_type_level(cparser_co
     char **type_ptr,
     char **level_ptr);
 cparser_result_t cparser_cmd_snbi_debug_bootstrap_type_level(cparser_context_t *context,
+    char **type_ptr,
+    char **level_ptr);
+cparser_result_t cparser_cmd_snbi_no_debug_neighbor_discovery_type_level(cparser_context_t *context,
+    char **type_ptr,
+    char **level_ptr);
+cparser_result_t cparser_cmd_snbi_no_debug_bootstrap_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
 cparser_result_t cparser_cmd_test(cparser_context_t *context);

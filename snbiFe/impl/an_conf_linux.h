@@ -9,4 +9,7 @@ an_system_init_linux(void);
 extern boolean
 an_autonomic_start_cmd_handler(void);
 
+extern boolean
+an_autonomic_stop_cmd_handler(void);
+
 #endif

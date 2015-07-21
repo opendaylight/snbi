@@ -5,7 +5,7 @@
 
 #include <olibc_timer.h>
 
-typedef olibc_timer_hdl an_timer;
-typedef olibc_timer_hdl an_mgd_timer;
+typedef struct olibc_timer_t_ an_timer;
+typedef struct olibc_timer_t_ an_mgd_timer;
 
 #endif

@@ -20,8 +20,6 @@ boolean an_initialised = FALSE;
 static void*
 an_linux_process (void *arg)
 {
-    printf("\n Inside AN PROCESS func..!");
-
     olibc_pthread_dispatch_events(an_pthread_hdl);
     return NULL;
 } 
@@ -55,6 +53,12 @@ an_attach_to_environment (void)
     /* Infra enable for AN */
     an_if_services_init();
     return;
+}
+
+void
+an_detach_from_environment (void)
+{
+    an_if_services_uninit();
 }
 
 void

@@ -2,14 +2,6 @@
 
 quit("Exit from SNBI mode")
 
-discovery("Enable SNBI neighbor discovery")
-
-no("Negate a command") discovery("SNBI neighbor discovery")
-
-interface("SNBI interface") start("Start neighbor discovery")
-
-interface("SNBI interface") stop("Stop neighbor discovery")
-
 start("Enable SNBI protocol")
 
 stop("Disable SNBI protocol")

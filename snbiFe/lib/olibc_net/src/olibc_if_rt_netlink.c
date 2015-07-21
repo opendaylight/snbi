@@ -37,12 +37,12 @@ olibc_if_rt_netlink_parse_info (struct nlmsghdr *nlh,
             case IFLA_IFNAME:
                 strncpy(if_info->if_name, 
                         (char *) RTA_DATA(attribute), 
-                        MAX_IF_NAME_LEN);
+                        OLIBC_MAX_IF_NAME_LEN);
                 break;
             case IFLA_ADDRESS:
                 hw_addr_len = RTA_PAYLOAD(attribute);
-                hw_addr_len = hw_addr_len > MAX_IF_HW_ADDR ? 
-                                    MAX_IF_HW_ADDR : hw_addr_len;
+                hw_addr_len = hw_addr_len > OLIBC_MAX_IF_HW_ADDR_LEN ? 
+                                    OLIBC_MAX_IF_HW_ADDR_LEN : hw_addr_len;
                 if_info->hw_addr_len = hw_addr_len;
                 memcpy(if_info->hw_addr, RTA_DATA(attribute), hw_addr_len);
                 break;
@@ -144,7 +144,7 @@ olibc_if_iterator_get_next (olibc_if_iterator_hdl if_iter_hdl,
     if (!if_iter_hdl->pending_data_len) {
         if (!olibc_nl_msg_recv(&if_iter_hdl->nl_sock,
                     if_iter_hdl->nlmsg_buf,
-                    MAX_NL_MSG_LEN, 
+                    OLIBC_MAX_NL_MSG_LEN, 
                     &if_iter_hdl->nlmsg_len)) {
             return OLIBC_RETVAL_FAILED;
         }

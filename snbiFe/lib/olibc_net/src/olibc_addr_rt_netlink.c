@@ -150,10 +150,10 @@ olibc_addr_recv (olibc_addr_iterator_hdl iter_hdl,
     struct nlmsghdr *curr_data_ptr;
 
     if (!(iter_hdl->pending_data_len)) {
-        memset(iter_hdl->nlmsg_buf, 0, MAX_NL_MSG_LEN);
+        memset(iter_hdl->nlmsg_buf, 0, OLIBC_MAX_NL_MSG_LEN);
         if (!olibc_nl_msg_recv(&iter_hdl->nl_sock,
                     iter_hdl->nlmsg_buf,
-                    MAX_NL_MSG_LEN,
+                    OLIBC_MAX_NL_MSG_LEN,
                     &iter_hdl->nlmsg_len)) {
             return OLIBC_RETVAL_FAILED;
         }

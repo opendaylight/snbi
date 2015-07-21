@@ -213,7 +213,7 @@ an_file_write_fs (an_file_descr_t fd, const char *fmt, va_list args)
         return (AN_FILE_INVALID_DESCR);
     }
 
-    dprintf(fd, fmt, args);
+    vdprintf(fd, fmt, args);
 
     return (AN_FILE_API_SUCCESS);
 }

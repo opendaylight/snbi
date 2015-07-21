@@ -39,8 +39,10 @@ cparser_cmd_snbi_start (cparser_context_t *context)
 cparser_result_t
 cparser_cmd_snbi_stop (cparser_context_t *context)
 {
-    an_autonomic_disable();
-    printf("\n*************Ending Autonomic Process**********\n");
+    if (!an_autonomic_stop_cmd_handler()) {
+        return CPARSER_NOT_OK;
+    }
+
     return (CPARSER_OK);
 }
 
@@ -116,33 +118,6 @@ cparser_cmd_snbi_discovery (cparser_context_t *context)
 //    return 0;
 }
 
-
-cparser_result_t 
-cparser_cmd_snbi_interface_start (cparser_context_t *context)
-{
-    an_if_t ifhndl = 0;
-    an_if_info_t *an_if_info = NULL;
-
-// Replace netio0 with av[1] after taking input from user
-    ifhndl = if_nametoindex("netio0");
-    if (!ifhndl) {
-        return (CPARSER_NOT_OK);
-    }
-    an_if_info = an_if_info_db_search(ifhndl, TRUE);
-    if (!an_if_info) {
-        return (CPARSER_NOT_OK);
-    }
-
-/*  if (an_if_is_cfg_autonomic_enabled(an_if_info)) {
-        printf("\n [SRK_printf] Autonomic already enabled on interface.. return...!");
-        return;
-        }
-*/
-printf("\n [SRK_printf] Setting interface mode autonomic...!");
-    an_if_set_cfg_autonomic_enable(an_if_info, TRUE);
-    an_if_autonomic_enable(ifhndl);
-     return (CPARSER_OK);
-}
 
 cparser_result_t 
 cparser_cmd_snbi_interface_stop (cparser_context_t *context)

@@ -9,6 +9,7 @@ olibc_msg_q_hdl an_conf_q_hdl = NULL;
 
 typedef enum an_conf_e_ {
     AN_AUTONOMIC_START,
+    AN_AUTONOMIC_STOP
 } an_conf_e;
 
 boolean
@@ -22,6 +23,22 @@ an_autonomic_start_cmd_handler (void)
     retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_AUTONOMIC_START, 
                                  0, NULL);
 
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+boolean
+an_autonomic_stop_cmd_handler (void)
+{
+    olibc_retval_t retval;
+
+    if (!an_conf_q_hdl) {
+        return FALSE;
+    }
+    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_AUTONOMIC_STOP,
+                                0, NULL);
     if (retval != OLIBC_RETVAL_SUCCESS) {
         return FALSE;
     }
@@ -49,6 +66,10 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
         case AN_AUTONOMIC_START:
             an_event_db_init();
             an_autonomic_enable();
+            break;
+
+        case AN_AUTONOMIC_STOP:
+            an_autonomic_disable();
             break;
         default:
             printf("\nUnknown type command received");

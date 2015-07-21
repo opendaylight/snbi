@@ -89,7 +89,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 boolean an_system_is_configured (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
@@ -97,7 +96,6 @@ void
 an_platform_specific_init (void)
 {
     an_openssl_init();
-    an_if_services_init();
     return;
 }
 
@@ -148,7 +146,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 boolean 
 an_is_active_rp (void) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+printf("\n%s", __FUNCTION__,__LINE__);
     return FALSE;
 }
 

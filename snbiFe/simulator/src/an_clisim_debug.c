@@ -69,6 +69,7 @@ cparser_cmd_snbi_debug_neighbor_discovery_type_level
     type = an_clisim_get_nd_log_type(*type_ptr);
     lev = an_clisim_get_debug_level(*level_ptr);
     an_config_debug_log(type, lev, TRUE);
+    printf("\n");
     return (CPARSER_OK);
 }
 
@@ -84,6 +85,7 @@ cparser_cmd_snbi_no_debug_neighbor_discovery_type_level
     type = an_clisim_get_nd_log_type(*type_ptr);
     lev = an_clisim_get_debug_level(*level_ptr);
     an_config_debug_log(type, lev, FALSE);
+    printf("\n");
     return (CPARSER_OK);
 }
 
@@ -99,6 +101,7 @@ cparser_cmd_snbi_debug_bootstrap_type_level
     type = an_clisim_get_bs_log_type(*type_ptr);
     lev = an_clisim_get_debug_level(*level_ptr);
     an_config_debug_log(type, lev, TRUE);
+    printf("\n");
     return (CPARSER_OK);
 }
 
@@ -114,5 +117,6 @@ cparser_cmd_snbi_no_debug_bootstrap_type_level
     type = an_clisim_get_bs_log_type(*type_ptr);
     lev = an_clisim_get_debug_level(*level_ptr);
     an_config_debug_log(type, lev, FALSE);
+    printf("\n");
     return (CPARSER_OK);
 }

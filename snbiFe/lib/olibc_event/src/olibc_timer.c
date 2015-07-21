@@ -1,7 +1,7 @@
 /**
  * Vijay Anand R <vanandr@cisco.com>
  */
-
+#include <string.h>
 #include "olibc_timer_internal.h"
 #include "olibc_pthread_internal.h"
 
@@ -31,6 +31,46 @@ void olibc_timer_cbk (int fd, short type, void *args)
         event_cbk(&timer_event);
     }
 }
+
+olibc_retval_t
+olibc_timer_init (olibc_timer_hdl timer_hdl, olibc_timer_info_t *timer_info)
+{
+    int event_flags = 0;
+    olibc_retval_t retval;
+    struct event_base *evt_base = NULL;
+
+    if (!timer_hdl || !timer_info) {
+        return OLIBC_RETVAL_INVALID_INPUT;
+    }
+
+    if ((retval = olibc_pthread_get_event_base(timer_info->pthread_hdl,
+                    &evt_base)) != OLIBC_RETVAL_SUCCESS) {
+        return retval;
+    }
+
+    memset(timer_hdl, 0, sizeof(olibc_timer_t));
+
+    timer_hdl->running = FALSE;
+    timer_hdl->expired = FALSE;
+    timer_hdl->type = timer_info->type;
+    timer_hdl->flags = timer_info->flags;
+    timer_hdl->context = timer_info->context;
+    timer_hdl->event_cbk = timer_info->timer_cbk;
+
+    if (timer_info->flags & OLIBC_PERSIST_TIMER) {
+        event_flags |= EV_PERSIST;
+    }
+
+    timer_hdl->event_handle = event_new(evt_base, -1, event_flags,
+                                    olibc_timer_cbk, timer_hdl);
+
+    if (!timer_hdl->event_handle) {
+        return OLIBC_RETVAL_FAILED;
+    }
+
+    return OLIBC_RETVAL_SUCCESS;
+}
+
 
 olibc_retval_t
 olibc_timer_create (olibc_timer_hdl *timer_hdl, olibc_timer_info_t *timer_info)
@@ -76,6 +116,24 @@ olibc_timer_create (olibc_timer_hdl *timer_hdl, olibc_timer_info_t *timer_info)
     }
 
     *timer_hdl = timer;
+
+    return OLIBC_RETVAL_SUCCESS;
+}
+
+olibc_retval_t
+olibc_timer_uninit (olibc_timer_hdl timer_hdl)
+{
+    if (!timer_hdl) {
+        return OLIBC_RETVAL_INVALID_INPUT;
+    }
+
+    if (evtimer_del(timer_hdl->event_handle)) {
+        return OLIBC_RETVAL_FAILED;
+    }
+    
+    event_free(timer_hdl->event_handle);
+
+    timer_hdl->event_handle = NULL;
 
     return OLIBC_RETVAL_SUCCESS;
 }

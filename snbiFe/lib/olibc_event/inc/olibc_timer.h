@@ -15,6 +15,17 @@ typedef struct olibc_timer_event_t_ *olibc_timer_event_hdl;
 
 typedef boolean (*olibc_timer_event_func_t) (olibc_timer_event_hdl timer_event);
 
+typedef struct olibc_timer_t_ {
+    void *context;
+    uint32_t type;
+    uint32_t delay;
+    uint32_t flags;
+    boolean running;
+    boolean expired;
+    olibc_timer_event_func_t event_cbk;
+    struct event *event_handle;
+} olibc_timer_t;
+
 typedef struct olibc_timer_info_t_ {
     int flags;
     void *context;
@@ -54,5 +65,11 @@ olibc_timer_is_expired(olibc_timer_hdl timer_hdl, boolean *is_expired);
 extern olibc_retval_t
 olibc_timer_event_get_hdl(olibc_timer_event_hdl timer_event,
                           olibc_timer_hdl *timer_hdl);
+
+extern olibc_retval_t
+olibc_timer_init(olibc_timer_hdl timer_hdl, olibc_timer_info_t *timer_info);
+
+extern olibc_retval_t
+olibc_timer_uninit(olibc_timer_hdl timer_hdl);
 
 #endif

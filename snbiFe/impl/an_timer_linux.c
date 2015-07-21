@@ -62,7 +62,16 @@ an_log_type_e an_get_log_timer_type(an_timer_e timer_type)
 boolean 
 an_handle_linux_timer_events (olibc_timer_event_hdl timer_event)
 {
-    printf("\n (%s)",__FUNCTION__);
+    olibc_timer_hdl timer_hdl = NULL;
+    olibc_retval_t retval;
+
+    retval = olibc_timer_event_get_hdl(timer_event, &timer_hdl);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
+    an_process_timer_events(timer_hdl);
     return TRUE;
 }
 
@@ -71,61 +80,53 @@ void an_timer_services_init (void)
 }
 
 void
-an_timer_init (an_timer *timer_hdl_ptr, an_timer_e timer_type,
+an_timer_init (an_timer *timer_hdl, an_timer_e timer_type,
                void *context, boolean interrupt)
 {
     olibc_retval_t retval;
     olibc_timer_info_t timer_info;
 
     memset(&timer_info, 0, sizeof(olibc_timer_info_t));
+
     timer_info.flags |= OLIBC_PERSIST_TIMER;
     timer_info.timer_cbk = an_handle_linux_timer_events;
     timer_info.context = context;
     timer_info.pthread_hdl = an_pthread_hdl;
+    timer_info.type = timer_type;
 
-    retval = olibc_timer_create(timer_hdl_ptr, &timer_info);
+    retval = olibc_timer_init(timer_hdl, &timer_info);
 }
 
 void
-an_timer_uninit (an_timer *timer_hdl_ptr) 
+an_timer_uninit (an_timer *timer_hdl) 
 {
     olibc_retval_t retval;
-    retval = olibc_timer_destroy(timer_hdl_ptr);
+    retval = olibc_timer_uninit(timer_hdl);
 }
 
 /**
   * delay in milli seconds.
   */
 void
-an_timer_start (an_timer *timer_hdl_ptr, uint32_t delay)
+an_timer_start (an_timer *timer_hdl, uint32_t delay)
 {
-    olibc_timer_hdl timer_hdl;
     olibc_retval_t retval;
-
-    timer_hdl = *timer_hdl_ptr;
     retval = olibc_timer_start(timer_hdl, delay);
 }
 
 void
-an_timer_stop (an_timer *timer_hdl_ptr) 
+an_timer_stop (an_timer *timer_hdl) 
 { 
-    olibc_timer_hdl timer_hdl;
     olibc_retval_t retval;
-
-    timer_hdl = *timer_hdl_ptr;
-
     retval = olibc_timer_stop(timer_hdl);
 }
 
 
 uint32_t
-an_mgd_timer_type (an_mgd_timer *timer_hdl_ptr)
+an_mgd_timer_type (an_mgd_timer *timer_hdl)
 {
     uint32_t type = 0;
     olibc_retval_t retval;
-    olibc_timer_hdl timer_hdl;
-
-    timer_hdl = *timer_hdl_ptr;
 
     retval = olibc_timer_get_type(timer_hdl, &type);
     if (retval != OLIBC_RETVAL_SUCCESS) {
@@ -135,24 +136,19 @@ an_mgd_timer_type (an_mgd_timer *timer_hdl_ptr)
 }
 
 void
-an_timer_reset (an_timer *timer_hdl_ptr, uint32_t delay)
+an_timer_reset (an_timer *timer_hdl, uint32_t delay)
 {
     olibc_retval_t retval;
-    olibc_timer_hdl timer_hdl;
-
-    timer_hdl = *timer_hdl_ptr;
     retval = olibc_timer_reset(timer_hdl);
     return;
 }
 
 void *
-an_mgd_timer_context (an_mgd_timer *timer_hdl_ptr)
+an_mgd_timer_context (an_mgd_timer *timer_hdl)
 {
     void *context;
     olibc_retval_t retval;
-    olibc_timer_hdl timer_hdl;
 
-    timer_hdl = *timer_hdl_ptr;
     retval = olibc_timer_get_context(timer_hdl, &context);
     if (retval != OLIBC_RETVAL_SUCCESS) {
         return NULL;
@@ -168,13 +164,11 @@ an_timer_get_timer_type_str (an_timer_e timer_type)
 
 /* Edit the below 3 funcs */
 boolean
-an_timer_is_running (an_timer *timer_hdl_ptr)
+an_timer_is_running (an_timer *timer_hdl)
 {
     olibc_retval_t retval;
     boolean is_running = FALSE;
-    olibc_timer_hdl timer_hdl;
 
-    timer_hdl = *timer_hdl_ptr;
     retval = olibc_timer_is_running(timer_hdl, &is_running);
 
     if (retval != OLIBC_RETVAL_SUCCESS) {
@@ -184,13 +178,10 @@ an_timer_is_running (an_timer *timer_hdl_ptr)
 }
 
 boolean
-an_timer_is_expired (an_timer *timer_hdl_ptr)
+an_timer_is_expired (an_timer *timer_hdl)
 {
     olibc_retval_t retval;
-    olibc_timer_hdl timer_hdl;
     boolean is_expired = FALSE;
-
-    timer_hdl = *timer_hdl_ptr;
 
     retval = olibc_timer_is_expired(timer_hdl, &is_expired);
     if (retval != OLIBC_RETVAL_SUCCESS) {
