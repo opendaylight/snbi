@@ -79,12 +79,11 @@ public class SnbiNode {
     // timer.
     private SnbiNode (SnbiPkt pkt, SnbiRegistrar registrar) {
         lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
-        String udi = pkt.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_UDI.getValue(),
-                SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue());
+        String udi = pkt.getUDITLV();
+       
         log.debug("[node: "+udi+"] New node created");
         this.udi = udi;
-        this.peerIfName = pkt.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_IF_NAME.getValue(),
-                SnbiTLVSubtypeIfName.SNBI_TLV_STYPE_IF_NAME.getValue());
+        this.peerIfName = pkt.getStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_IF_NAME.getValue());
         this.registrar = registrar;
         this.peerIfLLAddress = pkt.getIPV6LLTLV();
         this.msgInstance = SnbiMessagingInfra.getInstance();
@@ -164,14 +163,13 @@ public class SnbiNode {
                 SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY,
                 SnbiMsgType.SNBI_MSG_ND_HELLO);
 
-        pkt.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_UDI.getValue(),
-                SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue(),
+        pkt.setStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_UDI.getValue(),
                 registrar.getNodeself().getUDI());
 
         pkt.setIPV6LLTLV(intf);
         pkt.setIfNameTLV(intf);
         pkt.setEgressInterface(intf);
-        pkt.setDstIP(InetAddress.getByName("FF02::1"));
+        pkt.setDstIP(InetAddress.getByName("FF02::150"));
 
         msgInstance.packetSend(pkt);
     }

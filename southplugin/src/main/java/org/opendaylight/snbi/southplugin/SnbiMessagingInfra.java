@@ -24,7 +24,7 @@ public class SnbiMessagingInfra {
     // The TTL for the multicast message.
     private static final byte mcastTTL = 1;
     // The source and destination port for SNBI.
-    private final Integer snbiPortNumber = 8888;
+    private final Integer snbiPortNumber = 4936;
     // Max UDP payload
     private final int MAX_UDP_PAYLOAD = 65535;
     // The multicast socket created during first time instantiation.
