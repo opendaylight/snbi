@@ -80,8 +80,8 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 void 
-an_sd_cfg_global_commands (boolean set) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+an_sd_cfg_global_commands (boolean set) 
+{
     return;
 }
 

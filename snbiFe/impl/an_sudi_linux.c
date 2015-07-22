@@ -57,26 +57,9 @@ an_udi_get_from_platform (an_udi_t *udi)
             return (FALSE);
     }
 
-//    uuid_generate(an_uuid);
     an_strncpy_s(udi->data, AN_UDI_MAX_LEN, "PID:LINUX SN:1", AN_UDI_MAX_LEN);
-    udi->len = strlen(udi->data);
-
-    printf ("\n UDI     ");
-/*
-    for (i=0;i<sizeof (an_uuid); i++) {
-        printf ("%x",an_uuid[i]);
-        cli_print (cli,"%x",an_uuid[i]);
-    }
-    printf("\n");
-    for (i=0;i<sizeof (udi->data); i++) {
-        printf ("%x",udi->data[i]);
-        cli_print (cli,"%x",udi->data[i]);
-    }
-*/
-
-
+    udi->len = strlen(udi->data); 
     return TRUE;
-
 }
 
 /* UDI is valid if it passes the below rules:
@@ -133,8 +116,7 @@ an_sudi_check (void)
         an_event_sudi_available();
         check_count = 0;
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n%sWhile waiting for sUDI, "
-                "if UDI is available using it", an_nd_event);
+                "\n%sSUDI is available using it", an_nd_event);
     } else {   
         time_interval = check_count * AN_TIMER_SUDI_CHECK_INTERVAL;
         if (time_interval > AN_TIMER_MAX_SUDI_CHECK_INTERVAL) {
@@ -144,13 +126,14 @@ an_sudi_check (void)
             /* While waiting for sUDI, use UDI */
         if (udi_available) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                         "\n%sWhile waiting for sUDI, "
-                         "if UDI is available using it", an_nd_event);
+                         "\n%sWhile waiting for SUDI, "
+                         "UDI is already available using it", an_nd_event);
 
         } else if (an_udi_get_from_platform(&udi)) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                         "\n%sWhile waiting for sUDI, "
-                         "if UDI is available using it", an_nd_event);
+                         "\n%sWhile waiting for SUDI, "
+                         "UDI (%s) is available using it",an_nd_event, 
+                         udi->data);
             an_set_udi(udi);
             an_event_udi_available();
             udi_available = TRUE;
