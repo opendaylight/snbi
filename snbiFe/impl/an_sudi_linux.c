@@ -123,6 +123,9 @@ an_sudi_check (void)
             time_interval = AN_TIMER_MAX_SUDI_CHECK_INTERVAL;
         }
         an_timer_start(&an_sudi_check_timer, time_interval);
+		if (!an_is_global_cfg_autonomic_enabled()) {
+		     return;
+		}
             /* While waiting for sUDI, use UDI */
         if (udi_available) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
@@ -133,7 +136,7 @@ an_sudi_check (void)
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                          "\n%sWhile waiting for SUDI, "
                          "UDI (%s) is available using it",an_nd_event, 
-                         udi->data);
+                         udi.data);
             an_set_udi(udi);
             an_event_udi_available();
             udi_available = TRUE;
