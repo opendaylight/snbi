@@ -50,7 +50,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 void
-an_aaa_set_new_model (boolean flag) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+an_aaa_set_new_model (boolean flag) 
+{
     return;
 }

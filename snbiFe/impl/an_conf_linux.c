@@ -3,6 +3,7 @@
 #include <olibc_msg_q.h>
 #include <an_proc_linux.h>
 #include <an_event_mgr_db.h>
+#include "an_if_linux.h"
 
 extern olibc_pthread_hdl an_pthread_hdl;
 olibc_msg_q_hdl an_conf_q_hdl = NULL;
@@ -66,6 +67,7 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
         case AN_AUTONOMIC_START:
             an_event_db_init();
             an_autonomic_enable();
+            an_if_enable_nd_on_all_intfs();
             break;
 
         case AN_AUTONOMIC_STOP:

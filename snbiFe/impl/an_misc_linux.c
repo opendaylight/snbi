@@ -116,7 +116,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 an_thread_check_and_suspend (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
@@ -145,9 +144,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 boolean 
-an_is_active_rp (void) {
-printf("\n%s", __FUNCTION__,__LINE__);
-    return FALSE;
+an_is_active_rp (void) 
+{
+    return TRUE;
 }
 
 void 
@@ -163,8 +162,8 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 void 
-an_parser_init (void) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+an_parser_init (void) 
+{
     return;
 }
 

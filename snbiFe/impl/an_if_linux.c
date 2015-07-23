@@ -15,6 +15,7 @@
 #include <an_l2_linux.h>
 #include <an_if_mgr.h>
 #include <an_mem.h>
+#include <an_nd.h>
 
 #define AN_LOOP_VIS_BW 8000000
 extern an_avl_tree  an_if_info_tree;
@@ -40,12 +41,8 @@ an_if_node_compare_cbk (void *data1, void *data2)
     return OLIBC_LIST_CBK_RET_CONTINUE;
 }
 
-inline const uint8_t * an_if_get_short_name (an_if_t ifhndl)
-{
-    return (an_if_get_name(ifhndl));
-}
-
-inline const uint8_t * an_if_get_name (an_if_t ifhndl)
+static an_if_linux_info_t*
+an_if_linux_get_info (an_if_t ifhndl)
 {
     olibc_retval_t retval;
     an_if_linux_info_t *an_linux_if_info = NULL, an_compare_if_info;
@@ -60,22 +57,33 @@ inline const uint8_t * an_if_get_name (an_if_t ifhndl)
     if (retval != OLIBC_RETVAL_SUCCESS || !an_linux_if_info) {
         return NULL;
     }
+
+    return (an_linux_if_info);
+}
+inline const uint8_t * an_if_get_short_name (an_if_t ifhndl)
+{
+    return (an_if_get_name(ifhndl));
+}
+
+inline const uint8_t * an_if_get_name (an_if_t ifhndl)
+{
+    an_if_linux_info_t *an_linux_if_info = NULL;
+
+    an_linux_if_info = an_if_linux_get_info(ifhndl);
+
+    if (!an_linux_if_info) {
+        return NULL;
+    }
     return (an_linux_if_info->if_name);
 }
 
 inline boolean an_if_is_up (an_if_t ifhndl)
 {
-    olibc_retval_t retval;
-    an_if_linux_info_t *an_linux_if_info = NULL, an_compare_if_info;
+    an_if_linux_info_t *an_linux_if_info = NULL;
 
-    memset(&an_compare_if_info, 0, sizeof(an_if_linux_info_t));
+    an_linux_if_info = an_if_linux_get_info(ifhndl);
 
-    an_compare_if_info.if_index = ifhndl;
-
-    retval = olibc_list_lookup_node(an_if_list_hdl, &an_compare_if_info,
-                                    an_if_node_compare_cbk, (void **)&an_linux_if_info);
-
-    if (retval != OLIBC_RETVAL_SUCCESS || !an_linux_if_info) {
+    if (!an_linux_if_info) {
         return FALSE;
     }
     return (an_linux_if_info->if_state == IF_UP);
@@ -117,20 +125,48 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean
 an_if_is_loopback (an_if_t ifhndl)
 {   
-    olibc_retval_t retval;
-    an_if_linux_info_t *an_linux_if_info = NULL, an_compare_if_info;
+    an_if_linux_info_t *an_linux_if_info = NULL;
 
-    memset(&an_compare_if_info, 0, sizeof(an_if_linux_info_t));
+    an_linux_if_info = an_if_linux_get_info(ifhndl);
 
-    an_compare_if_info.if_index = ifhndl;
-
-    retval = olibc_list_lookup_node(an_if_list_hdl, &an_compare_if_info,
-                                    an_if_node_compare_cbk, (void **)&an_linux_if_info);
-
-    if (retval != OLIBC_RETVAL_SUCCESS || !an_linux_if_info) {
+    if (!an_linux_if_info) {
         return FALSE;
     }
     return (an_linux_if_info->is_loopback);
+}
+
+void
+an_if_enable_nd_on_intf (an_if_linux_info_t *if_linux_info)
+{
+    if (!if_linux_info) {
+        return;
+    }
+    if (if_linux_info->hw_type != OLIBC_HW_IF_TYPE_ETHERNET) {
+        return;
+    }
+
+    an_nd_set_preference(if_linux_info->if_index, AN_ND_CLIENT_CLI,
+            AN_ND_CFG_ENABLED);
+    an_nd_startorstop(if_linux_info->if_index);
+}
+
+void
+an_if_enable_nd_on_all_intfs (void)
+{
+    olibc_retval_t retval;
+    an_if_linux_info_t *if_linux_info = NULL;
+    olibc_list_iterator_hdl if_list_iter = NULL;
+
+    retval = olibc_list_iterator_create(an_if_list_hdl, &if_list_iter);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return;
+    }
+    while (olibc_list_iterator_get_next(if_list_iter, 
+                                        (void **)&if_linux_info) ==
+            OLIBC_RETVAL_SUCCESS) {
+        an_if_enable_nd_on_intf(if_linux_info);
+    }
+    return;
 }
 
 void
@@ -145,7 +181,7 @@ an_if_walk (an_if_walk_func func, void *data)
         return;
     }
     while (olibc_list_iterator_get_next(if_list_iter, 
-                                        (void *)&if_linux_info) ==
+                                        (void **)&if_linux_info) ==
             OLIBC_RETVAL_SUCCESS) {
         func(if_linux_info->if_index, data);
     }
@@ -155,8 +191,14 @@ an_if_walk (an_if_walk_func func, void *data)
 boolean
 an_if_is_ethernet (an_if_t ifhndl)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return (FALSE);
+    an_if_linux_info_t *an_linux_if_info = NULL;
+
+    an_linux_if_info = an_if_linux_get_info(ifhndl);
+
+    if (!an_linux_if_info) {
+        return FALSE;
+    }
+    return (an_linux_if_info->hw_type == OLIBC_HW_IF_TYPE_ETHERNET);
 }
 
 boolean
@@ -298,6 +340,7 @@ an_if_services_init (void)
             if_linux_info->if_state = if_info.if_state;
             if_linux_info->is_loopback = if_info.is_loopback;
             if_linux_info->is_loopback = if_info.is_loopback;
+            if_linux_info->hw_type = if_info.hw_type;
             memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
             if_linux_info->hw_addr_len = if_info.hw_addr_len;
 

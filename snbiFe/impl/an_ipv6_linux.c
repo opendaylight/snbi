@@ -30,7 +30,6 @@ extern int an_sock_fd;
 
 inline boolean an_ipv6_enable_on_interface (an_if_t ifhndl)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
@@ -82,17 +81,15 @@ inline an_v6addr_t an_ipv6_get_ll (an_if_t ifhndl)
         freeifaddrs(ifaddr); 
         return (AN_V6ADDR_ZERO);
     }
-    if_indextoname (ifhndl, if_name); 
+    if_indextoname(ifhndl, if_name); 
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
         if (ifa->ifa_addr->sa_family != AF_INET6) continue;
         if (strncmp(ifa->ifa_name, if_name, IFNAMSIZ)) continue;
         struct sockaddr_in6 *current_addr = (struct sockaddr_in6 *) ifa->ifa_addr;
-     //   if (IN6_IS_ADDR_LINKLOCAL(current_addr)) { 
         if (!IN6_IS_ADDR_LINKLOCAL(&(current_addr->sin6_addr))) continue;            
             memcpy(&ip, current_addr, sizeof(ip)); 
             freeifaddrs(ifaddr);
             return (ip.sin6_addr); 
-       // }
     }
     freeifaddrs(ifaddr);
     return (AN_V6ADDR_ZERO);
@@ -100,7 +97,8 @@ inline an_v6addr_t an_ipv6_get_ll (an_if_t ifhndl)
 
 inline boolean an_ipv6_join_mld_group (an_if_t ifhndl, an_v6addr_t *group_addr)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
+        "\n%s Failed to add the interface to join the multicast group");
     return (TRUE);
 }
 

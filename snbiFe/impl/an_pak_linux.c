@@ -199,8 +199,15 @@ an_linux_sock_create (void)
 
 inline uint8_t* an_pak_get_network_hdr (an_pak_t *pak) 
 {   
+    olibc_retval_t retval;
+    uint8_t *data_buff = NULL;
+    uint32_t data_len = 0;
+
     if (pak) {
-        printf("\nTodo get network hdr");
+        retval = olibc_pak_get_data_buffer(pak, &data_buff, &data_len);
+        if (retval == OLIBC_RETVAL_SUCCESS) {
+            return data_buff;
+        }
     }
     return NULL;
 }
@@ -299,7 +306,7 @@ an_plat_pak_alloc (uint16_t paklen, an_if_t ifhndl, uint16_t len)
     memset(&pak_info, 0, sizeof(olibc_pak_hdl));
 
     pak_info.addr_family = AF_INET6;
-    pak_info.max_pak_length = paklen;
+    pak_info.pak_length = paklen;
     retval = olibc_pak_create(&pak_hdl, &pak_info);
     if (retval != OLIBC_RETVAL_SUCCESS) {
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 

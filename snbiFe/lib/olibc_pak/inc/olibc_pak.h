@@ -8,7 +8,7 @@ typedef struct olibc_pak_t_* olibc_pak_hdl;
 
 typedef struct olibc_pak_info_t_ {
     uint32_t addr_family;
-    uint32_t max_pak_length;
+    uint32_t pak_length;
 } olibc_pak_info_t;
 
 olibc_retval_t
