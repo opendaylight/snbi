@@ -7,6 +7,10 @@
 #define OLIBC_MAX_IF_NAME_LEN 30
 #define OLIBC_MAX_IF_HW_ADDR_LEN 6 // 48 bits of MAC address.
 
+typedef enum olibc_hw_if_type_e_ {
+    OLIBC_HW_IF_TYPE_ETHERNET = 1,
+} olibc_hw_if_type_e;
+
 typedef struct olibc_if_iterator_t_ *olibc_if_iterator_hdl;
 typedef struct olibc_if_event_t_ *olibc_if_event_hdl;
 

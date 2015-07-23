@@ -47,11 +47,12 @@ olibc_pak_create (olibc_pak_hdl *pak_hdl, olibc_pak_info_t *pak_info)
         pak->max_pak_length = OLIBC_MAX_PAK_BUF_SIZE;
     }
 
-    if (pak->max_pak_length < pak_info->max_pak_length) {
+    if (pak->max_pak_length < pak_info->pak_length) {
         olibc_list_insert_node(pak_list_hdl, NULL, pak_hdl);
         return OLIBC_RETVAL_FAILED;
     }
 
+    pak->data_length = pak_info->pak_length;
     pak->addr_family = pak_info->addr_family;
     *pak_hdl = pak;
     return OLIBC_RETVAL_SUCCESS;
@@ -310,7 +311,7 @@ olibc_retval_t
 olibc_pak_get_data_buffer (olibc_pak_hdl pak_hdl, 
                            uint8_t **data_buff, uint32_t *data_len)
 {
-    if (!pak_hdl || !(pak_hdl->data_set_flags & OLIBC_PAK_INITED)) {
+    if (!pak_hdl) {
         olibc_log_error("\nInvalid input");
         return OLIBC_RETVAL_INVALID_INPUT;
     }

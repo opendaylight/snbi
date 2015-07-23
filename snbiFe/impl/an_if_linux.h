@@ -22,6 +22,7 @@ typedef struct an_if_linux_info_t_ {
     boolean is_loopback;
     uint8_t hw_addr[AN_IF_HW_ADDR_LEN];
     uint32_t hw_addr_len;
+    uint32_t hw_type;
 } an_if_linux_info_t;
 
 typedef struct linux_dot1q_qinq_vlan_id_t_ {
@@ -29,4 +30,6 @@ typedef struct linux_dot1q_qinq_vlan_id_t_ {
     ushort inner_vlanid;
 } linux_dot1q_qinq_vlan_id_t;
 boolean an_if_is_acp_interface(an_if_t an_ifhndl);
+
+extern void an_if_enable_nd_on_all_intfs(void);
 #endif

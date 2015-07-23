@@ -52,6 +52,8 @@ an_attach_to_environment (void)
     an_linux_sock_create();
     /* Infra enable for AN */
     an_if_services_init();
+    /* Add the interfaces to AN db */
+    an_if_init();
     return;
 }
 
