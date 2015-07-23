@@ -2,4 +2,5 @@
 host=git.opendaylight.org
 port=29418
 project=snbi.git
+defaultbranch=master
 
