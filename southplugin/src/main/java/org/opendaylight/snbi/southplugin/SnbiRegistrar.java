@@ -204,7 +204,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
 
     }
 
-    private void setNodeDeviceID(SnbiNode node) {
+    private void setNodeDeviceID (SnbiNode node) {
         node.setDeviceID(nodeRegistrarID+"-"+nodeMemberID.toString());
         nodeMemberID++;
     }

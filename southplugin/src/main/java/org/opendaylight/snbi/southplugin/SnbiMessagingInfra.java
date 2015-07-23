@@ -24,7 +24,7 @@ public class SnbiMessagingInfra {
     // The TTL for the multicast message.
     private static final byte mcastTTL = 1;
     // The source and destination port for SNBI.
-    private final Integer snbiPortNumber = 8888;
+    private final Integer snbiPortNumber = 4936;
     // Max UDP payload
     private final int MAX_UDP_PAYLOAD = 65535;
     // The multicast socket created during first time instantiation.
@@ -242,6 +242,7 @@ public class SnbiMessagingInfra {
     
     private String getProtocolDebugMsg(SnbiPkt pkt) {
         StringBuilder sb = new StringBuilder();
+        sb.append("TLV Info - ");
         switch (pkt.getmsgType()) {
             case SNBI_MSG_BS_INVITE:
                 sb.append("Domain ID:"+pkt.getDomainIDTLV()+" Device ID:"+pkt.getDeviceIDTLV()+"");
@@ -257,6 +258,9 @@ public class SnbiMessagingInfra {
             case SNBI_MSG_ND_BYE:
                 break;
             case SNBI_MSG_ND_HELLO:
+            	sb.append("Device UDI:"+pkt.getUDITLV()+" IF Name:"+pkt.getIfNameTLV());
+            	sb.append("\n\t\t\t\t Device ID:"+pkt.getDeviceIDTLV()+" Domain Name:"+pkt.getDomainIDTLV());
+            	sb.append("\n\t\t\t\t Device IP:"+pkt.gettDeviceIPv6TLV());
                 break;
             case SNBI_MSG_NI_CERT_REQ:
                 break;

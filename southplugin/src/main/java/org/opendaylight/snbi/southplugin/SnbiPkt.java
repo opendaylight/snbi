@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.slf4j.Logger;
@@ -40,8 +41,12 @@ public class SnbiPkt {
     private SnbiMsgType msgType;
     // 16 bit msg length.
     private Integer msgLength;
+    // 16 bits msg number.
+    private Integer msgNumber;
+    // 16 bits reserver bits.
+    private Integer reserved_2;
     // TLV hash list.
-    private Map<Short, LinkedList<TLV>> TLVHashList = null;
+    private Map<Integer, TLV> TLVHashList = null;
     // src IP address
     private InetAddress srcIP;
     // Dst IP address
@@ -50,9 +55,10 @@ public class SnbiPkt {
     /*
      * Header length is a combination of the following. protocol version (4bits)
      * + reserved bits (4bits) + protocol type (8bits) + flags (8bits) +
-     * hoplimit (8bits) + message type (16bits) + msglength (16bits).
+     * hoplimit (8bits) + message type (16bits) + msglength (16bits) + msgNumber (16bits) + 
+     * reserved_2 (16bits)
      */
-    private static final byte SNBIHEADERLENGTH = 8;
+    private static final byte SNBIHEADERLENGTH = 12;
     /*
      * The interface on which the packet was received on.
      */
@@ -121,11 +127,13 @@ public class SnbiPkt {
         // flags, 1 byte hoplimit, 2 bytes msgType, 2 byte msglength.
         this.msgLength = 0;
         this.flags = 0;
+        this.msgNumber = 0;
+        this.reserved_2 = 0;
         this.srcIP = null;
         this.dstIP = null;
         this.ingressIntf = null;
         this.egressIntf = null;
-        this.TLVHashList = new HashMap<Short, LinkedList<TLV>>();
+        this.TLVHashList = new HashMap<Integer, TLV>();
     }
 
     /*
@@ -152,6 +160,8 @@ public class SnbiPkt {
         hopLimit = byteval.shortValue();
         msgType = SnbiMsgType.getEnumFromValue((int) msgByteStream.getShort());
         msgLength = (int) msgByteStream.getShort();
+        msgNumber = (int) msgByteStream.getShort();
+        reserved_2 = (int) msgByteStream.getShort();
     }
 
     /*
@@ -159,19 +169,17 @@ public class SnbiPkt {
      */
     private void parseMsgTLVs(ByteBuffer msgByteStream) {
         TLV tlv = null;
-        short tlvType;
-        short tlvStype;
+        int tlvType;
         int length;
         byte[] value = null;
         // For now we assume that we have parsed over the headers. Parse the
         // TLVs now.
         while (msgByteStream.hasRemaining()) {
-            tlvType = msgByteStream.get();
-            tlvStype = msgByteStream.get();
+            tlvType = msgByteStream.getShort();
             length = msgByteStream.getShort() - TLV.SNBITLVHEADERLENGTH;
             value = new byte[length];
             msgByteStream.get(value);
-            tlv = new TLV(tlvType, tlvStype, value, length);
+            tlv = new TLV(tlvType, value, length);
             // Only add the TLV, no need to increment the message length.
             addTLVInternal(tlv);
         }
@@ -283,6 +291,8 @@ public class SnbiPkt {
         msgByteStream.put(hopLimit.byteValue());
         msgByteStream.putShort(msgType.getValue().shortValue());
         msgByteStream.putShort(msgLength.shortValue());
+        msgByteStream.putShort(msgNumber.shortValue());
+        msgByteStream.putShort(reserved_2.shortValue());
     }
 
     private void updateByteStreamWithMsgTLVs(ByteBuffer msgByteStream) {
@@ -290,69 +300,84 @@ public class SnbiPkt {
         if (msgByteStream == null) {
             return;
         }
-        for (Map.Entry<Short, LinkedList<TLV>> TLVlistEntry : TLVHashList
-                .entrySet()) {
-            LinkedList<TLV> TLVlist = TLVlistEntry.getValue();
-            for (TLV tlv : TLVlist) {
-                msgByteStream.put(tlv.getType().byteValue());
-                msgByteStream.put(tlv.getSubType().byteValue());
-                tlvlength = (short) (TLV.SNBITLVHEADERLENGTH + tlv.getLength()
-                        .shortValue());
-                msgByteStream.putShort(tlvlength);
-                msgByteStream.put(tlv.getValue());
-            }
+        for (Entry<Integer, TLV> TLVlistEntry : TLVHashList.entrySet()) {
+        	TLV tlv = TLVlistEntry.getValue();
+        	msgByteStream.putShort(tlv.getType().shortValue());
+        	tlvlength = (short) (TLV.SNBITLVHEADERLENGTH + tlv.getLength()
+        			.shortValue());
+        	msgByteStream.putShort(tlvlength);
+        	msgByteStream.put(tlv.getValue());	
         }
+    }
+    
+    public String getIfNameTLV () {
+    	Short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue()) {        
+    		return (this.getStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_IF_NAME.getValue()));
+    	} else {
+    		log.error("Cannot setIfName for protocol type "+this.protocolType);
+    	}
+    	return null;
     }
 
     // Add the Interface name to the TLV list.
     public void setIfNameTLV (NetworkInterface intf) {
-        this.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_IF_NAME.getValue(), 
-                SnbiTLVSubtypeIfName.SNBI_TLV_STYPE_IF_NAME.getValue(), intf
-                .getName());
+    	Short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue()) {        
+    		this.setStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_IF_NAME.getValue(), intf.getName());
+    	} else {
+    		log.error("Cannot setIfName for protocol type "+this.protocolType);
+    	}
     }
     
-    private void addIPV6addrTLV (short type, InetAddress inetAddress) {
-        this.addTLV(new TLV (type, 
-                             SnbiTLVSubtypeIPaddr.SNBI_TLV_STYPE_IPV6_ADDR.getValue(), 
-                             inetAddress.getAddress(), 
+    private void addIPV6addrTLV (int type, InetAddress inetAddress) {
+        this.addTLV(new TLV (type, inetAddress.getAddress(), 
                              inetAddress.getAddress().length));
     }
 
     // Add the link local address to the TLV list.
     public void setIPV6LLTLV (NetworkInterface intf) {
-        Enumeration<InetAddress> inetAddresses = intf.getInetAddresses();
+    	Short protocolValue = this.protocolType.getValue();
+    	Enumeration<InetAddress> inetAddresses = intf.getInetAddresses();
+    	
         for (InetAddress inetAddress : Collections.list(inetAddresses)) {
             if (inetAddress.isLinkLocalAddress()) {
-                addIPV6addrTLV(SnbiTLVType.SNBI_TLV_TYPE_IF_IPADDR.getValue(),inetAddress);
+            	if (protocolValue == 
+            			SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue()) {
+            		addIPV6addrTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_IF_V6ADDR.getValue(),
+            				inetAddress);
+            	} else if (protocolValue == 
+            			SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+            		addIPV6addrTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_IF_V6ADDR.getValue(),
+            				inetAddress);
+            	} else {
+            		log.error("Cannot set IPV6LLTLV for protocol type "+this.protocolType);
+            	}
+            	return;
             }
         }
-    }
-    
-    private InetAddress getIPV6TLV (short type) {
-        List<TLV> tlvlist = getTLV(type);
-        if (tlvlist == null) {
-            return null;
-        }
-        for (TLV tlv : tlvlist) {
-            if (tlv.getSubType() == SnbiTLVSubtypeIPaddr.SNBI_TLV_STYPE_IPV6_ADDR
-                    .getValue()) {
-                try {
-                    return InetAddress.getByAddress(tlv.getValue());
-                } catch (UnknownHostException e) {
-                    return null;
-                }
-            }
-        }
-        return null;
     }
     
     public InetAddress getIPV6LLTLV () {
-        return getIPV6TLV(SnbiTLVType.SNBI_TLV_TYPE_IF_IPADDR.getValue());
+    	Short protocolValue = this.protocolType.getValue();
+    	int tlvType = 0;
+    	if (protocolValue == 
+    			SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue()) {
+    		tlvType = SnbiNdTlvType.SNBI_ND_TLV_TYPE_IF_V6ADDR.getValue();
+    	} else if (protocolValue == 
+    			SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+    		tlvType = SnbiBsTlvType.SNBI_BS_TLV_TYPE_IF_V6ADDR.getValue();
+    	} else {
+    		log.error("Cannot get IPV6LLTLV for protocol type "+this.protocolType);
+    		return null;
+    	}
+        return getIPTLV(tlvType);
     }
 
     /**
-     * Get the first string value in the TLV list corresponding to a type and
-     * subtype.
+     * Get the first string value in the TLV list corresponding to a type.
      *
      * @param type
      *            - The type of the TLV.
@@ -360,35 +385,46 @@ public class SnbiPkt {
      *            - The subtype of the TLV.
      * @return - The TLV string corresponding to a type and subtype.
      */
-    public String getStringTLV(short type, short stype) {
-        List<TLV> tlvlist = getTLV(type);
-        if (tlvlist == null) {
+    private String getStringTLV(int type) {
+        TLV tlv = getTLV(type);
+        if (tlv == null) {
             return null;
         }
-        for (TLV tlv : tlvlist) {
-            if (tlv.getSubType() == stype) {
-                return new String(tlv.getValue());
-            }
-        }
-        return null;
+        return new String(tlv.getValue());
     }
     
- 
-    
-    public void setStringTLV (short type, short stype, String str) {
-        this.addTLV(new TLV(type, stype, str.getBytes(),str.getBytes().length));
+    private void setStringTLV (int type, String str) {
+        this.addTLV(new TLV(type, str.getBytes(),str.getBytes().length));
     }
     
+
     public String getUDITLV () {
-        return (getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_UDI.getValue(),
-                    SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue()));
-        
+    	short protocolValue = this.protocolType.getValue();
+    	   	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue()) {
+    		return (getStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_UDI.getValue()));
+    	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+    		return (getStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_UDI.getValue()));
+    	} 
+    	log.error("Cannot get UDITLV for protocol type "+this.protocolType);
+    	return null;
     }
     
     public void setUDITLV(String udi) {
-        this.addTLV(new TLV(SnbiTLVType.SNBI_TLV_TYPE_UDI.getValue(),
-                            SnbiTLVSubtypeUDI.SNBI_TLV_STYPE_UDI.getValue(), 
-                            udi.getBytes(), udi.getBytes().length));
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+            this.addTLV(new TLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_UDI.getValue(), 
+                    udi.getBytes(), udi.getBytes().length));
+    	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+            this.addTLV(new TLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_UDI.getValue(), 
+                    udi.getBytes(), udi.getBytes().length));
+    	} else {
+        	log.error("Cannot set UDITLV for protocol type "+this.protocolType);
+    	}
+
     }
 
     /**
@@ -398,118 +434,168 @@ public class SnbiPkt {
      *            - The type of the TLV.
      * @return the TLV list for a particular type.
      */
-    public List<TLV> getTLV(short type) {
+    public TLV getTLV(int type) {
         if (TLVHashList == null) {
             return null;
         }
         return TLVHashList.get(type);
     }
 
-    /**
-     * Get the TLV list for a particular type and subtype.
-     *
-     * @param type
-     *            - the type of the TLV.
-     * @param stype
-     *            - The sub type of the TLV.
-     * @return The TLV list for a particular type and subtype.
-     */
-    public List<TLV> getTLV(short type, short stype) {
-        List<TLV> tlvlist = new LinkedList<TLV>();
-        if (TLVHashList == null) {
-            return null;
-        }
-
-        for (TLV tlv : TLVHashList.get(type)) {
-            if (tlv.getSubType() == stype) {
-                tlvlist.add(tlv);
-            }
-        }
-        return tlvlist;
-    }
-
     private void addTLVInternal(TLV tlv) {
         if (TLVHashList == null) {
-            this.TLVHashList = new HashMap<Short, LinkedList<TLV>>();
+            this.TLVHashList = new HashMap<Integer, TLV>();
         }
-        LinkedList<TLV> tlvTypeList = TLVHashList.get(tlv.getType());
-        if (tlvTypeList == null) {
-            tlvTypeList = new LinkedList<TLV>();
-            TLVHashList.put(tlv.getType(), tlvTypeList);
+        
+        TLVHashList.put(tlv.getType(), tlv);
+    }
+    
+    private InetAddress getIPTLV (int type) {
+    	TLV tlv = getTLV(type);
+    	
+        if (tlv == null) {
+            return null;
+        }       
+        try {
+            return InetAddress.getByAddress(tlv.getValue());
+        } catch (UnknownHostException e) {
+            return null;
         }
-        tlvTypeList.add(tlv);
     }
 
-
     public void setDeviceIDTLV(String deviceID) {
-        this.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_DEVICE_ID.getValue(), 
-                SnbiTLVSubtypeDeviceID.SNBI_TLV_STYPE_DEVICE_ID.getValue(), 
-                deviceID);        
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+    		this.setStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_DEVICE_ID.getValue(),  
+                    deviceID);
+    	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+     		this.setStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_DEVICE_ID.getValue(),  
+                    deviceID);
+    	} else {
+        	log.error("Cannot set DeviceID for protocol type "+this.protocolType);
+    	}
     }
     
     public String getDeviceIDTLV() {
-        return this.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_DEVICE_ID.getValue(), 
-                SnbiTLVSubtypeDeviceID.SNBI_TLV_STYPE_DEVICE_ID.getValue());
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+    		return this.getStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_DEVICE_ID.getValue());
+    	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+    		return this.getStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_DEVICE_ID.getValue());
+    	} else {
+        	log.error("Cannot get DeviceID for protocol type "+this.protocolType);
+    	}
+    	return null;
     }
     
     public String getDomainIDTLV() {
-       return this.getStringTLV(SnbiTLVType.SNBI_TLV_TYPE_DOMAIN_ID.getValue(),
-                SnbiTLVSubtypeDomainID.SNBI_TLV_STYPE_DOMAIN_ID.getValue());
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+    		return this.getStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_DOMAIN_ID.getValue());
+    	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+    		return this.getStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_DOMAIN_ID.getValue());
+    	} else {
+        	log.error("Cannot get DomainID for protocol type "+this.protocolType);
+    	}
+    	return null;
     }
 
     public void setDomainIDTLV(String domainName) {
-        this.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_DOMAIN_ID.getValue(),
-                SnbiTLVSubtypeDomainID.SNBI_TLV_STYPE_DOMAIN_ID.getValue(),
-                domainName);
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+    		this.setStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_DOMAIN_ID.getValue(),domainName);
+    	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+    		this.setStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_DOMAIN_ID.getValue(),domainName);
+    	} else {
+        	log.error("Cannot set UDITLV for protocol type "+this.protocolType);
+    	}
     }
 
     public void setRegistrarIPaddrTLV(InetAddress addr) {
-        addIPV6addrTLV(SnbiTLVType.SNBI_TLV_TYPE_REGISTRAR_IPADDR.getValue(), addr);
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue != 
+    		SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue() ) {
+        	log.error("Cannot add registart IP for protocol type "+this.protocolType);
+    	}
+    	addIPV6addrTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_RA_V6ADDR.getValue(), addr);
     }
     
     public InetAddress getRegistrarIPaddrTLV () {
-        return getIPV6TLV(SnbiTLVType.SNBI_TLV_TYPE_REGISTRAR_IPADDR.getValue());
+    	InetAddress inetaddr;
+    	short protocolValue = this.protocolType.getValue();
+    	int tlvType;
+    	
+    	if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+    		tlvType = SnbiBsTlvType.SNBI_BS_TLV_TYPE_RA_V6ADDR.getValue();
+    		inetaddr = getIPTLV(tlvType);
+    		if (inetaddr == null) {
+    			// if there is no IPV6 address try IPV4.
+    			tlvType = SnbiBsTlvType.SNBI_BS_TLV_TYPE_IF_V4ADDR.getValue();
+    			inetaddr = getIPTLV(tlvType);
+    		}
+    		return inetaddr;
+    	} else {
+        	log.error("Cannot set UDITLV for protocol type "+this.protocolType);
+    	}
+    	return null;
     }
 
-    private void addCertTLV(Short stype, X509Certificate cert) {
+    private void addCertTLV(Integer type, X509Certificate cert) {
         byte[] certDer = null;
         try {
             certDer = cert.getEncoded();
         } catch (CertificateEncodingException e) {
-            log.error("Failed to add DER TLV type "+stype);
+            log.error("Failed to add DER TLV type "+type);
             e.printStackTrace();
         }
-        this.addTLV(new TLV (SnbiTLVType.SNBI_TLV_TYPE_CERTIFICATE.getValue(), 
-                             stype, certDer, certDer.length));
+        this.addTLV(new TLV (type, certDer, certDer.length));
     }
 
-    private X509Certificate getCertTLV (short stype) {
-        List <TLV> tlvlist = getTLV (SnbiTLVType.SNBI_TLV_TYPE_CERTIFICATE.getValue());
-        if (tlvlist == null) {
-            return null;
+    private X509Certificate getCertTLV (int type) {
+        TLV tlv = getTLV (type);
+        if (tlv == null) {
+        	return null;
         }
-        for (TLV tlv : tlvlist) {
-            if (tlv.getSubType() == stype) {
-               try {
-                   ByteArrayInputStream bis = new ByteArrayInputStream(tlv.getValue());
-                   CertificateFactory cf
-                       = CertificateFactory.getInstance("X.509");
-                   return (java.security.cert.X509Certificate)cf.generateCertificate(bis);
-               } catch (CertificateException e) {
-                   log.error("Failed to obtain certificate of type "+stype);
-                   e.printStackTrace();
-               }
-            }
+        try {
+        	ByteArrayInputStream bis = new ByteArrayInputStream(tlv.getValue());
+        	CertificateFactory cf
+        	= CertificateFactory.getInstance("X.509");
+        	return (java.security.cert.X509Certificate)cf.generateCertificate(bis);
+        } catch (CertificateException e) {
+        	log.error("Failed to obtain certificate of type "+type);
+        	e.printStackTrace();
         }
         return null;
     }
     
     public void setCACertTLV(X509Certificate x509Certificate) {
-        addCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_CA_CERT.getValue(), x509Certificate);
+    	short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue != 
+    		SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue() ) {
+        	log.error("Cannot set CA certTLV for protocol type "+this.protocolType);
+        	return;
+    	}
+        addCertTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_CA_CERTIFICATE.getValue(), x509Certificate);
     }
     
     public X509Certificate getCACertTLV () {
-        return getCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_CA_CERT.getValue());
+   	    short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue != 
+    		SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue() ) {
+        	log.error("Cannot get CA certTLV for protocol type "+this.protocolType);
+        	return null;
+    	}
+        return getCertTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_CA_CERTIFICATE.getValue());
     }
 
     /**
@@ -518,64 +604,118 @@ public class SnbiPkt {
      * @param tlv
      *            - The TLV to be added.
      */
-    public void addTLV(TLV tlv) {
+    private void addTLV(TLV tlv) {
         // Update the message length.
         this.msgLength += (TLV.SNBITLVHEADERLENGTH + tlv.getLength());
         addTLVInternal(tlv);
     }
 
     public void setRegistrarCertTLV(X509Certificate cert) {
-        addCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_REGISTERAR_CERT.getValue(), cert);
+   	    short protocolValue = this.protocolType.getValue();
+
+       	if (protocolValue != 
+        	SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+       		log.error("Cannot set registar certTLV for protocol type "+this.protocolType);
+       		return;
+       	}
+        addCertTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_RA_CERTIFICATE.getValue(), cert);
     }
     
     public X509Certificate getDomainCertTLV() {
-        return getCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_DOMAIN_CERT.getValue());
+  	    short protocolValue = this.protocolType.getValue();
+
+       	if (protocolValue != 
+        	SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+       		log.error("Cannot get Domain certTLV for protocol type "+this.protocolType);
+       		return null;
+       	}
+        return getCertTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_DOMAIN_CERTIFICATE.getValue());
     }
 
 
     public void setDomainCertTLV(X509Certificate cert) {
-        addCertTLV(SnbiTLVSubtypeCertificate.SNBI_TLV_STYPE_DOMAIN_CERT.getValue(), cert);
+ 	    short protocolValue = this.protocolType.getValue();
+
+       	if (protocolValue != 
+        	SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+       		log.error("Cannot set Domain certTLV for protocol type "+this.protocolType);
+       		return;
+       	}
+        addCertTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_DOMAIN_CERTIFICATE.getValue(), cert);
     }
     
     public PKCS10CertificationRequest getPKCS10CSRTLV () {
-        List <TLV> tlvlist = getTLV (SnbiTLVType.SNBI_TLV_TYPE_CERT_PKCS10_REQ.getValue());
-        if (tlvlist == null) {
-            return null;
+	    short protocolValue = this.protocolType.getValue();
+
+       	if (protocolValue != 
+        	SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+       		log.error("Cannot get pkc10 req for protocol type "+this.protocolType);
+       		return null;
+       	}
+       	
+        TLV tlv = getTLV (SnbiBsTlvType.SNBI_BS_TLV_TYPE_CERT_REQ.getValue());
+        	
+        try {
+        	PKCS10CertificationRequest pkcs10 = new PKCS10CertificationRequest(tlv.getValue());
+        	return pkcs10;
+        } catch (IOException e) {
+        	log.error("Failed to obtain PKCS10 from packet");
+        	e.printStackTrace();
+        	return null;
         }
-        for (TLV tlv : tlvlist) {
-            if (tlv.getSubType() == SnbiTLVSubtypePKCS10CertReq.SNBI_TLV_STYPE_PKCS10_DER.getValue()) {
-                try {
-                    PKCS10CertificationRequest pkcs10 = new PKCS10CertificationRequest(tlv.getValue());
-                    return pkcs10;
-                } catch (IOException e) {
-                    log.error("Failed to obtain PKCS10 from packet");
-                    e.printStackTrace();
-                    return null;
-                }  
-            }
-        }
-        return null;
     }
 
 
     public void setRegistrarIDTLV(String registrarID) {
-        this.setStringTLV(SnbiTLVType.SNBI_TLV_TYPE_REGISTRAR_ID.getValue(), 
-                SnbiTLVSubtypeRegistrarID.SNBI_TLV_STYPE_REGISTRAR_ID.getValue(), 
+	    short protocolValue = this.protocolType.getValue();
+
+       	if (protocolValue != 
+        	SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+       		log.error("Cannot set registar ID for protocol type "+this.protocolType);
+       		return ;
+       	}
+       	
+        this.setStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_RA_ID.getValue(),
                 registrarID);  
     }
+
+
+	public void setDeviceIPv6TLV(InetAddress nodeAddress) {
+		short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+    		addIPV6addrTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_DEVICE_V6ADDR.getValue(),
+    				nodeAddress);
+    	} else {
+        	log.error("Cannot set UDITLV for protocol type "+this.protocolType);
+    	}
+	}
+
+
+	public InetAddress gettDeviceIPv6TLV() {
+		short protocolValue = this.protocolType.getValue();
+    	
+    	if (protocolValue == 
+    		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
+    		return (getIPTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_DEVICE_V6ADDR.getValue()));    	
+    	} else {
+        	log.error("Cannot set UDITLV for protocol type "+this.protocolType);
+        }		
+    	return null;
+	}
 }
 
 /**
  * SNBI TLV class This is different from the normal type in that it contains a
- * type and a subtype.
+ * type.
  */
 class TLV {
-    private Short type; // 8 bits + 1 byte = 16 bits.
-    private Short subType; // 8 bits + 1 byte = 16 bits.
+    private Integer type; // 16 bits + 2 byte = 32 bits.
     private Integer length; // 16 bits + 2 byte = 32 bits
     private byte[] value;
     /*
-     * TLV header length Type (8 bits) + subtype (8bits) Length (16bits).
+     * TLV header length Type (16 bits) + Length (16bits).
      */
     public static final byte SNBITLVHEADERLENGTH = 4;
 
@@ -583,12 +723,10 @@ class TLV {
      * create TLV with the given type, subtype, value and length.
      *
      * @param type
-     * @param subType
      * @param value
      * @param length
      */
-    public TLV(Short type, Short subType, byte[] value, Integer length) {
-        this.subType = subType;
+    public TLV(Integer type, byte[] value, Integer length) {
         this.type = type;
         this.length = length;
         this.value = value;
@@ -597,17 +735,8 @@ class TLV {
     /**
      * Get the type of the TLV.
      */
-    public Short getType() {
+    public Integer getType() {
         return type;
-    }
-
-    /**
-     * Get the subtype of the TLV.
-     *
-     * @return - The subtype of the TLV.
-     */
-    public Short getSubType() {
-        return subType;
     }
 
     /**
