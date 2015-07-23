@@ -65,7 +65,6 @@ uint8_t an_ipv6_addr_codes[AN_IPV6_MAX_ADDR_CODES];
         {ADDR_IPV6, ADDRLEN_IPV6, AN_V6_LOOPBACK}
 
 uint8_t an_ipv6_addr_codes[AN_IPV6_MAX_ADDR_CODES];
-char addr_str_asked_for[INET6_ADDRSTRLEN+1] = {0};
 
 const an_v4addr_t AN_V4ADDR_ZERO = {0};
 const an_v6addr_t AN_V6ADDR_ZERO = {0};
@@ -190,23 +189,38 @@ inline uint8_t an_addr_get_len (const an_addr_t addr)
 {
     return (addr.length);
 }
+#define AN_MAX_ADDR_BUFFS 4
+char addr_str_buffs[AN_MAX_ADDR_BUFFS][INET6_ADDRSTRLEN];
 
+// Can be used to only print
 inline uint8_t *an_addr_get_string (const an_addr_t *addr)
 {
+    static uint32_t cnt = 0;
+    uint32_t index = cnt % AN_MAX_ADDR_BUFFS;
+    char *addr_str_buff = NULL;
+
     if (!addr) {     
         return (NULL);
     }
+    printf("\n index %d", index);
+
+    addr_str_buff = addr_str_buffs[index];
+    cnt++;
+
+    memset(addr_str_buff, 0, INET6_ADDRSTRLEN);
 
     if (an_addr_is_v4(*addr)) {
-        inet_ntop(AF_INET, &(addr->ip_addr), addr_str_asked_for, INET_ADDRSTRLEN);
-        printf("\n In an_addr_get_string IPV4: %s", addr_str_asked_for); 
-        return (addr_str_asked_for);
+        inet_ntop(AF_INET, &(addr->ip_addr), addr_str_buff, 
+                  INET_ADDRSTRLEN);
+        return (addr_str_buff);
+    } else  if (an_addr_is_v6(*addr)) {
+        inet_ntop(AF_INET6, &(addr->ipv6_addr), addr_str_buff, 
+                INET6_ADDRSTRLEN);
+        return (addr_str_buff);
+    } else {
+        return NULL;
     }
-    if (an_addr_is_v6(*addr)) {
-        inet_ntop(AF_INET6, &(addr->ipv6_addr), addr_str_asked_for, INET6_ADDRSTRLEN);
-        return (addr_str_asked_for);
-    }
-        return (addr_str_asked_for);
+    return (addr_str_buff);
 }
 
 inline int32_t an_addr_struct_comp (const an_addr_t *addr1, const an_addr_t *addr2)

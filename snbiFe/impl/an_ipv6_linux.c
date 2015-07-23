@@ -98,7 +98,8 @@ inline an_v6addr_t an_ipv6_get_ll (an_if_t ifhndl)
 inline boolean an_ipv6_join_mld_group (an_if_t ifhndl, an_v6addr_t *group_addr)
 {
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
-        "\n%s Failed to add the interface to join the multicast group");
+        "\n%sFailed to add the interface to join the multicast group",
+        an_nd_event);
     return (TRUE);
 }
 
