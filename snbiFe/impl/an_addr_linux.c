@@ -202,7 +202,6 @@ inline uint8_t *an_addr_get_string (const an_addr_t *addr)
     if (!addr) {     
         return (NULL);
     }
-    printf("\n index %d", index);
 
     addr_str_buff = addr_str_buffs[index];
     cnt++;

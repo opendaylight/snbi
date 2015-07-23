@@ -156,7 +156,7 @@ olibc_pak_recv (olibc_pak_hdl pak_hdl, int fd, uint32_t offset_bytes)
             struct sockaddr_in6 *s = (struct sockaddr_in6 *)src_sock_addr;
             src_port = ntohs(s->sin6_port);
             inet_ntop(AF_INET6, &s->sin6_addr, addrstr, OLIBC_MAX_ADDR_STR);
-            in_ifindex = ntohl(s->sin6_scope_id);
+            in_ifindex = s->sin6_scope_id;
             pak_hdl->in_ifindex = in_ifindex;
             if (in_ifindex) {
                 pak_hdl->data_set_flags |= OLIBC_IN_IFHNDL_SET;
@@ -173,35 +173,55 @@ olibc_pak_recv (olibc_pak_hdl pak_hdl, int fd, uint32_t offset_bytes)
             rcmsgp->cmsg_type == IP_PKTINFO) {
             struct in_pktinfo *dst_in4_pkt_info = NULL;
             struct sockaddr_in *s = NULL;
+            char addrstr[OLIBC_MAX_ADDR_STR];
+            uint32_t in_ifindex = 0;
+
+            pak_hdl->data_set_flags |= OLIBC_DST_SOCKADDR_SET;
+
             dst_in4_pkt_info = (struct in_pktinfo *)CMSG_DATA(rcmsgp);
             s = (struct sockaddr_in *)&pak_hdl->dst_sock_addr;
+
             memcpy(&s->sin_addr, &dst_in4_pkt_info->ipi_addr,
                    sizeof(struct in_addr));
+
             s->sin_family = AF_INET;
+            inet_ntop(AF_INET, &s->sin_addr, addrstr, OLIBC_MAX_ADDR_STR);
+
             if (dst_in4_pkt_info->ipi_ifindex) {
                 pak_hdl->in_ifindex = dst_in4_pkt_info->ipi_ifindex;
                 pak_hdl->data_set_flags |= OLIBC_IN_IFHNDL_SET;
             }
+            in_ifindex = pak_hdl->in_ifindex;
         }
 
         if (rcmsgp->cmsg_level == IPPROTO_IPV6 && 
             rcmsgp->cmsg_type == IPV6_PKTINFO) {
             struct in6_pktinfo *dst_in6_pkt_info = NULL;
             struct sockaddr_in6 *s = NULL;
+            char addrstr[OLIBC_MAX_ADDR_STR];
+            uint32_t in_ifindex = 0;
+
+            pak_hdl->data_set_flags |= OLIBC_DST_SOCKADDR_SET;
 
             dst_in6_pkt_info = (struct in6_pktinfo *)CMSG_DATA(rcmsgp);
             s = (struct sockaddr_in6 *)&pak_hdl->dst_sock_addr;
             memcpy(&s->sin6_addr, &dst_in6_pkt_info->ipi6_addr,
                    sizeof(struct in_addr));
+
             if ((pak_hdl->data_set_flags & OLIBC_IN_IFHNDL_SET) &&
                 (pak_hdl->in_ifindex != dst_in6_pkt_info->ipi6_ifindex)) {
                 olibc_log_error("\nIN ifIndex mismatch");
             }
+
             if (dst_in6_pkt_info->ipi6_ifindex) {
                 pak_hdl->in_ifindex = dst_in6_pkt_info->ipi6_ifindex;
                 pak_hdl->data_set_flags |= OLIBC_IN_IFHNDL_SET;
             }
             s->sin6_family = AF_INET6;
+            inet_ntop(AF_INET6, &s->sin6_addr, addrstr, OLIBC_MAX_ADDR_STR);
+            in_ifindex = pak_hdl->in_ifindex;
+            olibc_log_debug("\nInIfIndex %d Dst IP address: %s",
+                        in_ifindex, addrstr);
         }
     }
     return OLIBC_RETVAL_SUCCESS;
@@ -381,9 +401,7 @@ olibc_retval_t
 olibc_pak_get_dst_addr (olibc_pak_hdl pak_hdl,
                         struct sockaddr_storage *sock_addr)
 {
-    if (!pak_hdl || 
-        !(pak_hdl->data_set_flags & OLIBC_PAK_INITED) || 
-        !sock_addr) {
+    if (!pak_hdl || !sock_addr) {
         olibc_log_error("\nInvalid input");
         return OLIBC_RETVAL_INVALID_INPUT;
     }
