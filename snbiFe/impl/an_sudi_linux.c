@@ -117,13 +117,13 @@ an_sudi_check (void)
         check_count = 0;
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                 "\n%sSUDI is available using it", an_nd_event);
-    } else {   
+    } else if (!udi_available) {   
         time_interval = check_count * AN_TIMER_SUDI_CHECK_INTERVAL;
         if (time_interval > AN_TIMER_MAX_SUDI_CHECK_INTERVAL) {
             time_interval = AN_TIMER_MAX_SUDI_CHECK_INTERVAL;
         }
-        an_timer_start(&an_sudi_check_timer, time_interval);
 		if (!an_is_global_cfg_autonomic_enabled()) {
+            an_timer_start(&an_sudi_check_timer, time_interval);
 		     return;
 		}
             /* While waiting for sUDI, use UDI */
