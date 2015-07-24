@@ -219,7 +219,6 @@ inline uint16_t
 an_ipv6_calculate_cksum (const an_ipv6_hdr_t *ipv6_hdr, 
                          const void *ulp_hdr, uint8_t ulp)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (0);
 }
 

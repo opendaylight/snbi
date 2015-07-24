@@ -80,7 +80,7 @@ an_pak_init_ipv6_udp_hdr (olibc_pak_hdl pak_hdl)
 
     udp_hdr = data_buff + AN_IPV6_HDR_SIZE;
 
-    if (an_udp_build_header(data_buff, udp_hdr, AN_UDP_PORT, AN_UDP_PORT,
+    if (!an_udp_build_header(data_buff, udp_hdr, AN_UDP_PORT, AN_UDP_PORT,
                 data_length - AN_IPV6_HDR_SIZE - AN_UDP_HDR_SIZE)) {
         DEBUG_AN_LOG(AN_LOG_ND_PACKET, AN_DEBUG_MODERATE, NULL,
                 "\nFailed to init UDP header");
