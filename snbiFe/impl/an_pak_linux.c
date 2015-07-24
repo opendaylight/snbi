@@ -87,8 +87,6 @@ an_pak_init_ipv6_udp_hdr (olibc_pak_hdl pak_hdl)
         return FALSE;
     }
 
-    an_msg_mgr_incoming_message(pak_hdl);
-
     return TRUE;
 }
 
@@ -127,6 +125,8 @@ an_linux_sock_fd_read_cbk (int fd, uint32_t ev_type)
         olibc_pak_destroy(&pak_hdl);
         return FALSE;
     }
+
+    an_msg_mgr_incoming_message(pak_hdl);
 
     return TRUE;
 }
@@ -267,7 +267,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline void an_pak_set_iptable (an_pak_t *pak, an_iptable_t iptable)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
@@ -333,8 +332,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline boolean an_linktype_is_an (uint8_t linktype)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE);
+    return (FALSE);
 }
 
 inline size_t
