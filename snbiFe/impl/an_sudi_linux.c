@@ -35,30 +35,59 @@ boolean udi_available = FALSE;
 #define AN_PID_MAX_LEN     18
 #define AN_SN_MAX_LEN      18
 
-#define AN_PID_PREFIX "PID:"
-#define AN_UDI_INTRA_DELIMITER " "
-#define AN_SN_PREFIX "SN:"
+#define AN_PID_PREFIX "PID"
+#define AN_DEVICE_PREFIX "LINUX"
+#define AN_UDI_INTRA_DELIMITER ":"
+#define AN_SN_PREFIX "SN"
 
-#define AN_PID_PREFIX_LEN 4
-#define AN_SN_PREFIX_LEN 3
-#define AN_UDI_INTRA_DELIMITER_LEN 1
+an_udi_t an_udi_platform_linux;
 
 boolean
 an_udi_get_from_platform (an_udi_t *udi)
 {
+    uint8_t *udi_buf = NULL;
+    uint32_t rand_sn = 0;
 
     udi->data = NULL;
     udi->len = 0;
 
-    udi->len = AN_UDI_MAX_LEN;
-    udi->data = (uint8_t *)an_malloc_guard(udi->len, "AN UDI Platform");
+    if (!an_udi_platform_linux.data) {
+        an_udi_platform_linux.len = AN_UDI_MAX_LEN;
+        an_udi_platform_linux.data = (uint8_t *)an_malloc_guard(AN_UDI_MAX_LEN,                                                           "AN UDI Platform");
+        printf("\nan_udi_platform_linux.data %p", an_udi_platform_linux.data);
+        udi_buf = an_udi_platform_linux.data;
 
-    if (!udi->data) {
-            return (FALSE);
+        memset(udi_buf, 0, AN_UDI_MAX_LEN); 
+
+        sprintf(udi_buf, AN_DEVICE_PREFIX);
+        udi_buf += strlen(udi_buf);
+
+        sprintf(udi_buf, AN_UDI_INTRA_DELIMITER);
+        udi_buf += strlen(udi_buf);
+
+        sprintf(udi_buf, AN_PID_PREFIX);
+        udi_buf += strlen(udi_buf);
+
+        sprintf(udi_buf, AN_UDI_INTRA_DELIMITER);
+        udi_buf += strlen(udi_buf);
+
+        sprintf(udi_buf, AN_SN_PREFIX);
+        udi_buf += strlen(udi_buf);
+
+        sprintf(udi_buf, AN_UDI_INTRA_DELIMITER);
+        udi_buf += strlen(udi_buf);
+
+        rand_sn = rand();
+
+        sprintf(udi_buf, "%d", rand_sn);
+        printf("\n\t\t Random %d / %s",rand_sn, udi_buf);
+        udi_buf += strlen(udi_buf);
+
+        an_udi_platform_linux.len = udi_buf - an_udi_platform_linux.data;
     }
 
-    an_strncpy_s(udi->data, AN_UDI_MAX_LEN, "PID:LINUX SN:1", AN_UDI_MAX_LEN);
-    udi->len = strlen(udi->data); 
+    udi->data = an_udi_platform_linux.data;
+    udi->len = an_udi_platform_linux.len;
     return TRUE;
 }
 

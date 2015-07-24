@@ -204,7 +204,7 @@ olibc_pak_recv (olibc_pak_hdl pak_hdl, int fd, uint32_t offset_bytes)
             dst_in6_pkt_info = (struct in6_pktinfo *)CMSG_DATA(rcmsgp);
             s = (struct sockaddr_in6 *)&pak_hdl->dst_sock_addr;
             memcpy(&s->sin6_addr, &dst_in6_pkt_info->ipi6_addr,
-                   sizeof(struct in_addr));
+                   sizeof(struct in6_addr));
 
             if ((pak_hdl->data_set_flags & OLIBC_IN_IFHNDL_SET) &&
                 (pak_hdl->in_ifindex != dst_in6_pkt_info->ipi6_ifindex)) {
