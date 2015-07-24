@@ -137,8 +137,6 @@ olibc_pak_recv (olibc_pak_hdl pak_hdl, int fd, uint32_t offset_bytes)
 
     data_len += offset_bytes;
 
-    pak_hdl->data_set_flags |= OLIBC_PAK_INITED;
-
     if (sock_addr_len) {
         char addrstr[OLIBC_MAX_ADDR_STR];
         struct sockaddr *src_sock_addr = NULL;
@@ -362,16 +360,29 @@ olibc_pak_set_out_if_index (olibc_pak_hdl pak_hdl,
 }
 
 olibc_retval_t
-olibc_pak_get_in_if_index (olibc_pak_hdl pak_hdl,
-                           uint32_t *if_index)
+olibc_pak_set_in_if_index (olibc_pak_hdl pak_hdl,
+                           uint32_t if_index)
 {
-    if (!pak_hdl || 
-        !(pak_hdl->data_set_flags & OLIBC_PAK_INITED) || 
-        !if_index) {
+    if (!pak_hdl) {
         olibc_log_error("\nInvalid input");
         return OLIBC_RETVAL_INVALID_INPUT;
     }
-    if (!pak_hdl->data_set_flags & OLIBC_IN_IFHNDL_SET) {
+
+    pak_hdl->in_ifindex = if_index;
+    pak_hdl->data_set_flags |= OLIBC_IN_IFHNDL_SET;
+
+    return OLIBC_RETVAL_SUCCESS;
+}
+
+olibc_retval_t
+olibc_pak_get_in_if_index (olibc_pak_hdl pak_hdl,
+                           uint32_t *if_index)
+{
+    if (!pak_hdl || !if_index) {
+        olibc_log_error("\nInvalid input");
+        return OLIBC_RETVAL_INVALID_INPUT;
+    }
+    if (!(pak_hdl->data_set_flags & OLIBC_IN_IFHNDL_SET)) {
         return OLIBC_RETVAL_NO_MATCHING_DATA;
     }
     *if_index =  pak_hdl->in_ifindex;
@@ -380,12 +391,26 @@ olibc_pak_get_in_if_index (olibc_pak_hdl pak_hdl,
 }
 
 olibc_retval_t
+olibc_pak_get_out_if_index (olibc_pak_hdl pak_hdl,
+                           uint32_t *if_index)
+{
+    if (!pak_hdl || !if_index) {
+        olibc_log_error("\nInvalid input");
+        return OLIBC_RETVAL_INVALID_INPUT;
+    }
+    if (!(pak_hdl->data_set_flags & OLIBC_OUT_IFHNDL_SET)) {
+        return OLIBC_RETVAL_NO_MATCHING_DATA;
+    }
+    *if_index =  pak_hdl->out_ifindex;
+
+    return OLIBC_RETVAL_SUCCESS;
+}
+
+olibc_retval_t
 olibc_pak_get_src_addr (olibc_pak_hdl pak_hdl,
                         struct sockaddr_storage *sock_addr)
 {
-    if (!pak_hdl || 
-        !(pak_hdl->data_set_flags & OLIBC_PAK_INITED) || 
-        !sock_addr) {
+    if (!pak_hdl || !sock_addr) {
         olibc_log_error("\nInvalid input");
         return OLIBC_RETVAL_INVALID_INPUT;
     }

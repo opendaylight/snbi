@@ -160,7 +160,7 @@ an_if_info_walker(an_avl_node_t *node, void *data)
     }
     an_if_info = (an_if_info_t *)node;
     printf("\nAVL walking nodes :\n");
-    printf("\n Ifhndl while walk is %lu ", an_if_info->ifhndl); 
+    printf("\n Ifhndl while walk is %u ", an_if_info->ifhndl); 
     printf("\n AN is auton enabled on interface ? ");
     (an_if_info->if_cfg_autonomic_enable > 0) ? printf("YES"):printf("NO");
 

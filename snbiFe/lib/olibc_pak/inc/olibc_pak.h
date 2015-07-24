@@ -33,8 +33,16 @@ olibc_pak_get_in_if_index(olibc_pak_hdl pak_hdl,
                           uint32_t *if_index);
 
 olibc_retval_t
+olibc_pak_get_out_if_index(olibc_pak_hdl pak_hdl,
+                          uint32_t *if_index);
+
+olibc_retval_t
 olibc_pak_set_out_if_index(olibc_pak_hdl pak_hdl,
                            uint32_t if_index);
+
+olibc_retval_t
+olibc_pak_set_in_if_index(olibc_pak_hdl pak_hdl,
+                          uint32_t if_index);
 
 olibc_retval_t
 olibc_pak_get_length(olibc_pak_hdl pak_hdl, uint32_t *data_length);

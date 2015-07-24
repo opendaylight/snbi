@@ -87,8 +87,6 @@ an_pak_init_ipv6_udp_hdr (olibc_pak_hdl pak_hdl)
         return FALSE;
     }
 
-    an_msg_mgr_incoming_message(pak_hdl);
-
     return TRUE;
 }
 
@@ -127,6 +125,8 @@ an_linux_sock_fd_read_cbk (int fd, uint32_t ev_type)
         olibc_pak_destroy(&pak_hdl);
         return FALSE;
     }
+
+    an_msg_mgr_incoming_message(pak_hdl);
 
     return TRUE;
 }
@@ -226,48 +226,71 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline an_if_t an_pak_get_input_if (an_pak_t *pak)
 {
+    an_if_t if_index;
+    olibc_retval_t retval;
+
+    retval = olibc_pak_get_in_if_index(pak, &if_index);
+    if (retval == OLIBC_RETVAL_SUCCESS) {
+        return if_index;
+    }
     return (0);
 }
 
 inline an_if_t an_pak_get_output_if (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    an_if_t if_index;
+    olibc_retval_t retval;
+
+    retval = olibc_pak_get_out_if_index(pak, &if_index);
+    if (retval == OLIBC_RETVAL_SUCCESS) {
+        return if_index;
+    }
     return (0);
 }
 
 inline const uint8_t *an_pak_get_input_if_name (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (0);
+    an_if_t if_index;
+
+    if_index = an_pak_get_input_if(pak);
+
+    if (if_index) {
+        return (an_if_get_name(if_index));
+    }
+    return (NULL);
 }
 
 inline const uint8_t * an_pak_get_output_if_name (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    an_if_t if_index;
+
+    if_index = an_pak_get_output_if(pak);
+
+    if (if_index) {
+        return (an_if_get_name(if_index));
+    }
     return (NULL);
 }
 
 inline an_iptable_t an_pak_get_iptable (an_pak_t *pak)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (0);
 }
 
 inline void an_pak_set_output_if (an_pak_t *pak, an_if_t output_if)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    olibc_pak_set_out_if_index(pak, output_if);
     return;
 }
 
 inline void an_pak_set_input_if (an_pak_t *pak, an_if_t input_if)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    olibc_pak_set_in_if_index(pak, input_if);
     return;
 }
 
 inline void an_pak_set_iptable (an_pak_t *pak, an_iptable_t iptable)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
@@ -333,8 +356,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline boolean an_linktype_is_an (uint8_t linktype)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE);
+    return (FALSE);
 }
 
 inline size_t

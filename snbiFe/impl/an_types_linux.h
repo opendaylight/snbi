@@ -125,7 +125,7 @@ typedef struct addrtype_ {
 } addrtype;
 
 typedef an_pak_linux_t paktype;
-typedef ulong an_if_t;
+typedef uint32_t an_if_t;
 typedef an_pak_linux_t an_pak_t;
 //typedef struct ip6_hdr an_ip6_hdr;
 
