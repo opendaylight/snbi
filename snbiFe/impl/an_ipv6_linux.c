@@ -193,7 +193,7 @@ inline an_v6addr_t an_ipv6_hdr_get_dest (an_ipv6_hdr_t *ipv6_hdr)
 
 inline uint8_t an_ipv6_hdr_get_next (an_ipv6_hdr_t *ipv6_hdr)
 {
-    return 0;
+    return (ipv6_hdr->ip6_nxt);
 }
 
 inline uint8_t an_ipv6_hdr_get_hlim (an_ipv6_hdr_t *ipv6_hdr)
