@@ -54,7 +54,6 @@ an_udi_get_from_platform (an_udi_t *udi)
     if (!an_udi_platform_linux.data) {
         an_udi_platform_linux.len = AN_UDI_MAX_LEN;
         an_udi_platform_linux.data = (uint8_t *)an_malloc_guard(AN_UDI_MAX_LEN,                                                           "AN UDI Platform");
-        printf("\nan_udi_platform_linux.data %p", an_udi_platform_linux.data);
         udi_buf = an_udi_platform_linux.data;
 
         memset(udi_buf, 0, AN_UDI_MAX_LEN); 
@@ -80,7 +79,6 @@ an_udi_get_from_platform (an_udi_t *udi)
         rand_sn = rand();
 
         sprintf(udi_buf, "%d", rand_sn);
-        printf("\n\t\t Random %d / %s",rand_sn, udi_buf);
         udi_buf += strlen(udi_buf);
 
         an_udi_platform_linux.len = udi_buf - an_udi_platform_linux.data;
@@ -182,27 +180,23 @@ an_sudi_check (void)
 boolean
 an_sudi_get_cert (an_cert_t *sudi)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return (0);
+    return (FALSE);
 }
 
 boolean
 an_sudi_get_keypair_label (uint8_t **keypair_label)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE);
+    return (FALSE);
 }
 
 boolean
 an_sudi_get_public_key (an_key_t *key)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE);
+    return (FALSE);
 }
 
 boolean
 an_sudi_get_private_key (an_key_t *key)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE);
+    return (FALSE);
 }

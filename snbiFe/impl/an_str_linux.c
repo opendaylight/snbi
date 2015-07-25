@@ -28,6 +28,10 @@ static uint8_t *buffer_p[10] = {};
 uint8_t*
 an_strTrim (uint8_t *s)
 {
+    if (!s) {
+        return NULL;
+    }
+
     uint8_t *c = s + strlen(s);
     while (*(--c) == ' ' && c >= s)
         *c = '\0';
@@ -38,12 +42,18 @@ an_strTrim (uint8_t *s)
 uint16_t
 an_strlen (uint8_t *s)
 {
+    if (!s) {
+        return 0;
+    }
     return (strnlen(s, AN_STR_MAX_LEN));
 }
 
 uint16_t
 an_strnlen (uint8_t *s, uint16_t n)
 {
+    if (!s) {
+        return 0;
+    }
     return (strnlen(s,n));
 }
 
@@ -70,6 +80,10 @@ an_str_get_temp_buffer (an_buffer_t *buffer)
 {
     static int8_t i = 0;
 
+    if (!buffer) {
+        return FALSE;
+    }
+
     buffer->data = buffer_p[i];
     buffer->len = 0;
 
@@ -80,7 +94,8 @@ an_str_get_temp_buffer (an_buffer_t *buffer)
 }
 
 boolean
-an_str_alloc_and_copy_buffer (an_buffer_t *buffer, uint8_t **data, uint16_t *len, uint8_t *name)
+an_str_alloc_and_copy_buffer (an_buffer_t *buffer, uint8_t **data, 
+                              uint16_t *len, uint8_t *name)
 {
     if (!buffer || !data) {
         return (FALSE);
@@ -102,21 +117,29 @@ an_str_alloc_and_copy_buffer (an_buffer_t *buffer, uint8_t **data, uint16_t *len
 boolean
 an_str_free_buffer (uint8_t *data)
 {
-    if (data) {    
-        an_free_guard(data);
-    }    
+    if (!data) {
+        return FALSE;
+    }
+
+    an_free_guard(data);
     return (TRUE);
 }
 
 int
 an_strcmp (const char *dest, const char *src)
 {
+    if (!dest || !src) {
+        return 0;
+    }
     return (strcmp(dest,src));
 }
 
 char*
 an_strchr (const char *str, int n)
 {
+    if (!str) {
+        return NULL;
+    }
    return (strchr(str, n));
 }
 
@@ -130,24 +153,36 @@ an_strstr (uint8_t *dest, uint16_t dLen, uint8_t *src,
 int
 an_strncmp (const char *cs, const char *ct, size_t n)
 {
+    if (!cs || !ct) {
+        return 0;
+    }
     return (strncmp(cs, ct, n));
 }
 
 char* an_strtok(char *s, const char *ct)
 {
+    if (!s || !ct) {
+        return NULL;
+    }
     return (strtok(s, ct));
 }
 
 an_errno
 an_strncpy_s (char *dest, an_rsize dmax, const char *src, an_rsize slen)
 {
-   strncpy(dest, src, dmax);     
-   return (0);
+    if (!dest || !src) {
+        return 0;
+    } 
+    strncpy(dest, src, dmax);     
+    return (0);
 }
 
 an_errno 
 an_strncpy (char *dest, uint32_t dmax, const char *src)
 {
+    if (!dest || !src) {
+        return 0;
+    }
    strncpy(dest, src, dmax); 
    return EOK;
 }
@@ -159,18 +194,31 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 an_rsize 
-an_strnlen_s(const char *dest, an_rsize dmax) {
+an_strnlen_s(const char *dest, an_rsize dmax) 
+{
+    if (!dest) {
+        return 0;
+    }
     return (strnlen(dest, dmax));
 }
 
 char* 
-an_strstr_ns(const char *searchee, const char *lookfor) {
+an_strstr_ns (const char *searchee, const char *lookfor) 
+{
+    if (!searchee || !lookfor) {
+        return NULL;
+    }
     return (strstr(searchee, lookfor));
 }
 
 an_errno 
-an_strcmp_s(const char *dest, an_rsize dmax, const char *src, int
-        *indicator) {
+an_strcmp_s (const char *dest, an_rsize dmax, 
+             const char *src, int *indicator) 
+{
+    if (!dest || !src) {
+        return EFAIL;
+    }
+
     *indicator = -1;
     if (dest == src) {
         *indicator = 0;
@@ -180,18 +228,30 @@ an_strcmp_s(const char *dest, an_rsize dmax, const char *src, int
     return EOK;
 }
 
-char *an_strtok_r(char *s, const char *delim, char **lasts) {
+char *an_strtok_r (char *s, const char *delim, 
+                  char **lasts) 
+{
+    if (!s || !delim) {
+        return NULL;
+    }
     return (strtok_r(s, delim, lasts));
 }
 
 int
 an_atoi (char *s)
 {
+    if (!s) {
+        return 0;
+    }
     return (atoi(s));
 }
 
 an_errno 
-an_strcpy(uint8_t *dest, an_rsize dmax, uint8_t *src) {
+an_strcpy (uint8_t *dest, an_rsize dmax, uint8_t *src) 
+{
+    if (!dest || !src) {
+        return EFAIL;
+    }
     strncpy(dest, src, dmax);
     return EOK;
 }
@@ -212,13 +272,18 @@ an_itoa_len (uint8_t num)
     return (len);
 }
 
-uint8_t * an_str_strtok(uint8_t *s, const uint8_t *delim) {
+uint8_t * an_str_strtok (uint8_t *s, const uint8_t *delim) 
+{
+    if (!s) {
+        return NULL;
+    }
     return (strtok(s, delim));
 }
 
 boolean
 an_str_convert_mac_addr_hex_to_str (an_mac_addr *mac_addr_str, an_mac_addr
-        *mac_addr_hex, uint8_t length, uint8_t separator)
+                                    *mac_addr_hex, uint8_t length, 
+                                     uint8_t separator)
 {
     return TRUE;
 }
@@ -265,6 +330,7 @@ an_str_get_device_suffix_in_hex (uint8_t *str, uint8_t *hexsuf)
 
     suf_int = atoi(suf_temp);
     quotient = suf_int;
+
     while (quotient!=0) {
         temp = quotient % 16;
 
@@ -274,16 +340,23 @@ an_str_get_device_suffix_in_hex (uint8_t *str, uint8_t *hexsuf)
         } else {
            temp = temp + 55;
         }
-    hexadecimalNumber[i--]= temp;
-    quotient = quotient / 16;
-  }
+        hexadecimalNumber[i--]= temp;
+        quotient = quotient / 16;
+    }
 
-    hexsuf[0] = (an_str_atoh(hexadecimalNumber[0]) << 4) | an_str_atoh(hexadecimalNumber[1]);
-    hexsuf[1] = (an_str_atoh(hexadecimalNumber[2]) << 4) | an_str_atoh(hexadecimalNumber[3]);
+    hexsuf[0] = (an_str_atoh(hexadecimalNumber[0]) << 4) | 
+                 an_str_atoh(hexadecimalNumber[1]);
+    hexsuf[1] = (an_str_atoh(hexadecimalNumber[2]) << 4) | 
+                 an_str_atoh(hexadecimalNumber[3]);
 }
 
 an_errno 
-an_strcpy_s(char *dest, an_rsize dmax, const char *src) {
+an_strcpy_s (char *dest, an_rsize dmax, const char *src) 
+{
+    if (!dest || !src) {
+        return EFAIL;
+    }
+
     strncpy(dest, src, dmax);
     return EOK;
 }
@@ -303,4 +376,3 @@ an_str_atoh (uint8_t c)
     }
     return(-1);
 }
-
