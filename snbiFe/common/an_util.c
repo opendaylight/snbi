@@ -1008,6 +1008,8 @@ an_process_timer_events (an_timer *expired_timer)
     log = an_get_log_timer_type(timer_type);
     DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n%sTimer_Type [%s] Expired", 
                  an_get_log_str(log), an_timer_get_timer_type_str(timer_type)); 
+    printf("\nTimer type [%s] expired",
+            an_timer_get_timer_type_str(timer_type));
 
     switch (timer_type) {
         case AN_TIMER_TYPE_SUDI_CHECK:

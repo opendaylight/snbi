@@ -15,6 +15,7 @@
 #include <an_tunnel.h>
 #include <an_event_mgr.h>
 #include <an_list.h>
+#include <time.h>
 
 
 void
@@ -51,44 +52,59 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 }
 
 an_unix_time_t 
-an_unix_time_get_current_timestamp (void) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return 0;	
+an_unix_time_get_current_timestamp (void) 
+{
+    return time(NULL);	
 }
 
-boolean an_unix_time_is_elapsed(an_unix_time_t timestamp,
-                                an_unix_time_t elapse_interval) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return FALSE;
+boolean an_unix_time_is_elapsed (an_unix_time_t timestamp,
+                                an_unix_time_t elapse_interval) 
+{
+    return (time(NULL) > (timestamp + elapse_interval));
 }
 
 void 
-an_unix_time_get_diff_between_timestamps(an_unix_time_t new_timestamp,
-                                              an_unix_time_t old_timestamp,
-                                              uint8_t *time_diff_str) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+an_unix_time_get_diff_between_timestamps (an_unix_time_t new_timestamp,
+                                          an_unix_time_t old_timestamp,
+                                          uint8_t *time_diff_str) 
+{
+    an_unix_time_t time_diff = 0;
+    time_diff = new_timestamp - old_timestamp;
+
+    ts = localtime(&time_diff);
+    strftime(elapsed_time_str, TIME_DIFF_STR, "%d %H:%M:%S", ts);
+
     return;
 }
 
 void 
-an_unix_time_get_elapsed_time_str(an_unix_time_t timestamp,
-                                       uint8_t *elapsed_time_str) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+an_unix_time_get_elapsed_time_str (an_unix_time_t timestamp,
+                                   uint8_t *elapsed_time_str) 
+{
+    struct tm *ts;
+    an_unix_time_t elapsed_time = 0;
+
+    elapsed_time = an_unix_time_get_current_timestamp() - timestamp;
+
+    ts = localtime(&elapsed_time);
+    strftime(elapsed_time_str, TIME_DIFF_STR, "%B %d %H:%M:%S", ts);
     return;
 }
 
 void 
-an_unix_time_timestamp_conversion(an_unix_time_t timestamp,
-                                       uint8_t *converted_time) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+an_unix_time_timestamp_conversion (an_unix_time_t timestamp,
+                                   uint8_t *converted_time) 
+{
+    struct tm *ts;
+    ts = localtime(&timestamp);
+    strftime(converted_time, TIME_DIFF_STR, "%B %d %H:%M:%S", ts);
     return;
 }
 
 an_unix_time_t 
-an_unix_time_get_elapsed_time(an_unix_time_t timestamp) {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    an_unix_time_t dummy_time={0};
-    return (dummy_time);
+an_unix_time_get_elapsed_time(an_unix_time_t timestamp) 
+{
+    return (an_unix_time_get_current_timestamp() - timestamp);
 }
 
 boolean
@@ -96,4 +112,3 @@ an_ntp_is_system_clock_valid (void)
 {
         return TRUE;
 }
-

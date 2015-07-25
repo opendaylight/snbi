@@ -88,7 +88,7 @@ an_timer_init (an_timer *timer_hdl, an_timer_e timer_type,
 
     memset(&timer_info, 0, sizeof(olibc_timer_info_t));
 
-    timer_info.flags |= OLIBC_PERSIST_TIMER;
+    timer_info.flags |= OLIBC_ONESHOT_TIMER;
     timer_info.timer_cbk = an_handle_linux_timer_events;
     timer_info.context = context;
     timer_info.pthread_hdl = an_pthread_hdl;

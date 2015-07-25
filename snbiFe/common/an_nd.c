@@ -1000,6 +1000,8 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
 	int indicator = 0;
     an_if_info = an_if_info_db_search(local_ifhndl, FALSE);
 
+    printf("\n Incoming ND message");
+
     if (!pak || !message || !local_ifhndl || !an_if_info) {
         an_msg_mgr_free_message_package(message);
         return (FALSE);
@@ -1091,7 +1093,7 @@ an_nd_incoming_hello (an_msg_package *message, an_pak_t *pak,
             if (nbr_link_data == NULL)
             {
                 DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
-                             "\n%sMemory alloc failed for the Nbr link data, "
+                            "\n%sMemory alloc failed for the Nbr link data, "
                              "hence Nbr link [%s] not inserted in the "
                              "Nbr link DB", an_nd_db, 
                              an_if_get_name(local_ifhndl));
@@ -1369,6 +1371,8 @@ an_nbr_link_reset_cleanup_timer (an_list_t *list,
        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
                     "\n%sResetting Timer Type [Nbr Per Link Cleanup] for the "
                     "Nbr Link DB entry %s", an_nd_event, an_if_get_name(ifhndl));
+       printf("\n Restting timer type [Nbr Per Link Cleanup] for the"
+                " Nbr Link DB entry %s", an_if_get_name(ifhndl));
        
     }else {
        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
