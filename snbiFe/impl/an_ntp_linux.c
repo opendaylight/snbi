@@ -68,11 +68,12 @@ an_unix_time_get_diff_between_timestamps (an_unix_time_t new_timestamp,
                                           an_unix_time_t old_timestamp,
                                           uint8_t *time_diff_str) 
 {
+    struct tm *ts;
     an_unix_time_t time_diff = 0;
     time_diff = new_timestamp - old_timestamp;
 
     ts = localtime(&time_diff);
-    strftime(elapsed_time_str, TIME_DIFF_STR, "%d %H:%M:%S", ts);
+    strftime(time_diff_str, TIME_DIFF_STR, "%d %H:%M:%S", ts);
 
     return;
 }
