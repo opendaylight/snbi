@@ -209,7 +209,6 @@ olibc_timer_reset (olibc_timer_hdl timer_hdl)
 
     if (!event_assign(&timer_hdl->evt, timer_hdl->evt_base, -1,
                      event_flags, olibc_timer_cbk, timer_hdl)) {
-        printf("\nTimer delay %d",timer_hdl->delay);
         olibc_timer_start(timer_hdl, timer_hdl->delay);
         return OLIBC_RETVAL_SUCCESS;
     }
