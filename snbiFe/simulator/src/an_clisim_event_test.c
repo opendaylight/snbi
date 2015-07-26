@@ -18,6 +18,7 @@
 #include <cparser_tree.h>
 #include <olibc_msg_q.h>
 #include <event2/event.h>
+#include <time.h>
 
 
 olibc_pthread_hdl test_pthread_hdl = NULL;
@@ -26,7 +27,6 @@ olibc_msg_q_hdl test_msg_q_hdl = NULL;
 
 int  SLEEP_TIME = 60*1;
 
-static 
 void write_to_stdbout_cb (int severity, const char *msg)
 {
    const char *s;
@@ -93,8 +93,18 @@ test_timer_routine_cbk (olibc_timer_event_hdl tmp_event_hdl)
     char *context = NULL;
     olibc_retval_t retval;
     olibc_timer_hdl timer_hdl = NULL;
+    time_t timestamp;
+    struct tm *ts;
+    char timestr[50];
 
-    printf("\nInside test timer routine cbk\n");
+    memset(timestr, 0 , 50);
+
+    timestamp = time(NULL);
+
+    ts = localtime(&timestamp);
+    strftime(timestr, 50, "%B %d %H:%M:%S", ts);
+
+    printf("\nInside test timer routine cbk - %s \n", timestr);
 
     if (!tmp_event_hdl) {
         printf("\nNull event handle");
@@ -168,6 +178,17 @@ cparser_cmd_test_event_timer_start_value (cparser_context_t *context,
     } else {
         printf("Timer start failed\n");
     }
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_cmd_test_event_timer_reset (cparser_context_t *context)
+{
+    olibc_retval_t retval;
+
+    retval = olibc_timer_reset(test_timer_hdl);
+
+    printf("\nTimer reset returned %s", olibc_retval_get_string(retval));
     return CPARSER_OK;
 }
 

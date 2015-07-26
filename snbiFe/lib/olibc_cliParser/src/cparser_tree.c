@@ -452,6 +452,13 @@ cparser_glue_test_event_timer_stop (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_event_timer_reset (cparser_t *parser)
+{
+    cparser_cmd_test_event_timer_reset(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_event_timer_running (cparser_t *parser)
 {
     cparser_cmd_test_event_timer_running(&parser->context);
@@ -982,6 +989,24 @@ cparser_node_t cparser_node_test_root_event_timer_running = {
     &cparser_node_test_root_event_timer_running_eol
 };
 
+cparser_node_t cparser_node_test_root_event_timer_reset_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_event_timer_reset,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_event_timer_reset = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "timer-reset",
+    "Reset the Timer",
+    &cparser_node_test_root_event_timer_running,
+    &cparser_node_test_root_event_timer_reset_eol
+};
+
 cparser_node_t cparser_node_test_root_event_timer_stop_eol = {
     CPARSER_NODE_END,
     0,
@@ -996,7 +1021,7 @@ cparser_node_t cparser_node_test_root_event_timer_stop = {
     0,
     "timer-stop",
     "Stop the Timer",
-    &cparser_node_test_root_event_timer_running,
+    &cparser_node_test_root_event_timer_reset,
     &cparser_node_test_root_event_timer_stop_eol
 };
 
