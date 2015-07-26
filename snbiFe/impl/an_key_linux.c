@@ -74,6 +74,7 @@ an_key_get_public_key (uint8_t *key_label, an_key_t *key)
     ret = (PEM_read_bio_RSAPublicKey(rsa_pub_bio, &rsa_pub, NULL, NULL)!= NULL);
     if (ret == 0) {
         printf("\n Failed to read publickey from file");
+        return FALSE;
     }
     BIO *pub = BIO_new(BIO_s_mem());
     PEM_write_bio_RSAPublicKey(pub, rsa_pub);
@@ -84,7 +85,7 @@ an_key_get_public_key (uint8_t *key_label, an_key_t *key)
     key->data = pub_key;
     key->len = pub_len;
     BIO_free(rsa_pub_bio);
-
+    return TRUE;
 }
 
 //----------------START Get Private key--------------------------

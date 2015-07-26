@@ -12,7 +12,6 @@ void olibc_timer_cbk (int fd, short type, void *args)
     olibc_timer_hdl timer_hdl = NULL;
     olibc_timer_event_func_t event_cbk = NULL;
 
-
     if (!args) {
         return;
     }
@@ -56,19 +55,18 @@ olibc_timer_init (olibc_timer_hdl timer_hdl, olibc_timer_info_t *timer_info)
     timer_hdl->flags = timer_info->flags;
     timer_hdl->context = timer_info->context;
     timer_hdl->event_cbk = timer_info->timer_cbk;
+    timer_hdl->evt_base = evt_base;
 
     if (timer_info->flags & OLIBC_PERSIST_TIMER) {
         event_flags |= EV_PERSIST;
     }
 
-    timer_hdl->event_handle = event_new(evt_base, -1, event_flags,
-                                    olibc_timer_cbk, timer_hdl);
-
-    if (!timer_hdl->event_handle) {
-        return OLIBC_RETVAL_FAILED;
+    if (!event_assign(&timer_hdl->evt, evt_base, -1,
+                 event_flags, olibc_timer_cbk, timer_hdl)) {
+        return OLIBC_RETVAL_SUCCESS;
     }
 
-    return OLIBC_RETVAL_SUCCESS;
+    return OLIBC_RETVAL_FAILED;
 }
 
 
@@ -102,40 +100,26 @@ olibc_timer_create (olibc_timer_hdl *timer_hdl, olibc_timer_info_t *timer_info)
     timer->flags = timer_info->flags;
     timer->context = timer_info->context;
     timer->event_cbk = timer_info->timer_cbk;
+    timer->evt_base = evt_base;
 
     if (timer_info->flags & OLIBC_PERSIST_TIMER) {
         event_flags |= EV_PERSIST;
     }
 
-    timer->event_handle = event_new(evt_base, -1, event_flags,
-                                    olibc_timer_cbk, timer);
-
-    if (!timer->event_handle) {
-        olibc_free((void **)&timer);
-        return OLIBC_RETVAL_FAILED;
+    if (!event_assign(&timer->evt, evt_base, -1, event_flags,
+                    olibc_timer_cbk, timer)) {
+        *timer_hdl = timer;
+        return  (OLIBC_RETVAL_SUCCESS);
     }
 
-    *timer_hdl = timer;
-
-    return OLIBC_RETVAL_SUCCESS;
+    olibc_free((void **)&timer);
+    return OLIBC_RETVAL_FAILED;
 }
 
 olibc_retval_t
 olibc_timer_uninit (olibc_timer_hdl timer_hdl)
 {
-    if (!timer_hdl) {
-        return OLIBC_RETVAL_INVALID_INPUT;
-    }
-
-    if (evtimer_del(timer_hdl->event_handle)) {
-        return OLIBC_RETVAL_FAILED;
-    }
-    
-    event_free(timer_hdl->event_handle);
-
-    timer_hdl->event_handle = NULL;
-
-    return OLIBC_RETVAL_SUCCESS;
+    return olibc_timer_stop(timer_hdl);
 }
 
 olibc_retval_t
@@ -143,19 +127,13 @@ olibc_timer_destroy (olibc_timer_hdl *timer_hdl)
 {
     olibc_timer_hdl timer = NULL;
 
-
     if (!timer_hdl) {
         return OLIBC_RETVAL_INVALID_INPUT;
     }
 
     timer = *timer_hdl;
 
-    if (evtimer_del(timer->event_handle)) {
-        return OLIBC_RETVAL_FAILED;
-    }
-    
-    event_free(timer->event_handle);
-
+    olibc_timer_stop(timer);
     olibc_free((void **)timer_hdl);
     return OLIBC_RETVAL_SUCCESS;
 }
@@ -169,6 +147,10 @@ olibc_timer_start (olibc_timer_hdl timer_hdl, uint32_t delay)
         return OLIBC_RETVAL_INVALID_INPUT;
     }
 
+    if (timer_hdl->running) {
+        return OLIBC_RETVAL_SUCCESS;
+    }
+
     olibc_memset(&timeout, 0, sizeof(struct timeval));
 
     timeout.tv_sec = delay/1000;
@@ -176,8 +158,9 @@ olibc_timer_start (olibc_timer_hdl timer_hdl, uint32_t delay)
 
     timer_hdl->running = TRUE;
     timer_hdl->expired = FALSE;
+    timer_hdl->delay = delay;
 
-    evtimer_add(timer_hdl->event_handle, &timeout);
+    evtimer_add(&timer_hdl->evt, &timeout);
     return OLIBC_RETVAL_SUCCESS;
 }
 
@@ -188,9 +171,13 @@ olibc_timer_stop (olibc_timer_hdl timer_hdl)
         return OLIBC_RETVAL_INVALID_INPUT;
     }
 
+    if (!timer_hdl->running) {
+        return OLIBC_RETVAL_SUCCESS;
+    }
+
     timer_hdl->running = FALSE;
 
-    evtimer_del(timer_hdl->event_handle);
+    evtimer_del(&timer_hdl->evt);
     return OLIBC_RETVAL_SUCCESS;
 }
 
@@ -208,14 +195,26 @@ olibc_timer_get_type (olibc_timer_hdl timer_hdl, uint32_t *type)
 olibc_retval_t
 olibc_timer_reset (olibc_timer_hdl timer_hdl)
 {
+    uint32_t event_flags = 0;
+
     if (!timer_hdl) {
         return OLIBC_RETVAL_SUCCESS;
     }
 
     olibc_timer_stop(timer_hdl);
-    olibc_timer_start(timer_hdl, timer_hdl->delay);
 
-    return OLIBC_RETVAL_SUCCESS;
+    if (timer_hdl->flags & OLIBC_PERSIST_TIMER) {
+        event_flags |= EV_PERSIST;
+    }
+
+    if (!event_assign(&timer_hdl->evt, timer_hdl->evt_base, -1,
+                     event_flags, olibc_timer_cbk, timer_hdl)) {
+        printf("\nTimer delay %d",timer_hdl->delay);
+        olibc_timer_start(timer_hdl, timer_hdl->delay);
+        return OLIBC_RETVAL_SUCCESS;
+    }
+
+    return OLIBC_RETVAL_FAILED;
 }
 
 olibc_retval_t
