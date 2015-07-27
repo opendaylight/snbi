@@ -15,6 +15,7 @@
 #include <an_mem.h>
 #include <an_str.h>
 #include <an_ipv6.h>
+#include <time.h>
 
 
 extern uint8_t sudi_trustpoint[];
@@ -76,8 +77,9 @@ an_udi_get_from_platform (an_udi_t *udi)
         sprintf(udi_buf, AN_UDI_INTRA_DELIMITER);
         udi_buf += strlen(udi_buf);
 
-        rand_sn = rand();
+        srand(time(NULL));
 
+        rand_sn = rand();
         sprintf(udi_buf, "%d", rand_sn);
         udi_buf += strlen(udi_buf);
 
