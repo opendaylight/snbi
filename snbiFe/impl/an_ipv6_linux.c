@@ -225,7 +225,6 @@ an_ipv6_calculate_cksum (const an_ipv6_hdr_t *ipv6_hdr,
 an_addr_t an_ipv6_get_best_source_addr (an_addr_t destination, 
                                         an_iptable_t iptable)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return AN_ADDR_ZERO; 
 }
 

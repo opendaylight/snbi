@@ -105,10 +105,10 @@ an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
     if (!nbr) {
         return (AN_AVL_WALK_FAIL);
     }
-    printf("\n%-23.23s|%-35.35s|%-12.12s",
+    printf("\n%-35.35s|%-20.20s|%-15.15s",
            nbr->udi.data, 
-           nbr->device_id ? nbr->device_id : (uint8_t *)"                 --",
-           nbr->domain_id ? nbr->domain_id : (uint8_t *)"     -- ");
+           nbr->device_id ? nbr->device_id : (uint8_t *)"         --",
+           nbr->domain_id ? nbr->domain_id : (uint8_t *)"       -- ");
 
     an_nbr_link_db_walk(nbr->an_nbr_link_list,
                       an_show_nbr_list_name_cb, NULL);
@@ -119,8 +119,9 @@ cparser_result_t
 cparser_cmd_show_snbi_neighbors (cparser_context_t *context)
 {
     printf("%80s", an_show_header);
-    printf("\n%-23s|%-35s|%-12s|%-7s",
-               "         UDI", "             Device-ID", "   Domain", "  Intf");
+    printf("\n%-35s|%-20s|%-15s|%-7s",
+               "                 UDI", 
+               "      Device-ID", "     Domain", "  Intf");
     printf("\n%80s", an_table_header);
     an_nbr_db_walk(an_show_nbr_command_cb, NULL);
     printf("\n%80s", an_show_trailer);

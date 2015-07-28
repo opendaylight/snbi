@@ -83,7 +83,8 @@ an_udi_get_from_platform (an_udi_t *udi)
         sprintf(udi_buf, "%d", rand_sn);
         udi_buf += strlen(udi_buf);
 
-        an_udi_platform_linux.len = udi_buf - an_udi_platform_linux.data;
+        an_udi_platform_linux.len = 
+            udi_buf - an_udi_platform_linux.data + AN_UDI_STR_TERMINATOR_LEN;
     }
 
     udi->data = an_udi_platform_linux.data;
