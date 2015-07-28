@@ -33,7 +33,7 @@ an_show_nbr_list_name_cb (an_list_t *list,
     if (list && current)    {
         curr_data = (an_nbr_link_spec_t *) current->data;
         if_indextoname(curr_data->local_ifhndl, if_name);
-        printf("|%-.7s", if_name);
+        printf("|%-7.7s", if_name);
         if (next) {
             printf("\n%72s","");
         }
@@ -101,14 +101,14 @@ an_avl_walk_e
 an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
 {
     an_nbr_t *nbr = (an_nbr_t *)node;
-    uint8_t *unknown_str = "-";
 
     if (!nbr) {
         return (AN_AVL_WALK_FAIL);
     }
-    printf("\n%-.23s|%-.35s|%-.12s",
-           nbr->udi.data, nbr->device_id ? nbr->device_id : unknown_str,
-           nbr->domain_id ? nbr->domain_id : unknown_str);
+    printf("\n%-23.23s|%-35.35s|%-12.12s",
+           nbr->udi.data, 
+           nbr->device_id ? nbr->device_id : (uint8_t *)"                 --",
+           nbr->domain_id ? nbr->domain_id : (uint8_t *)"     -- ");
 
     an_nbr_link_db_walk(nbr->an_nbr_link_list,
                       an_show_nbr_list_name_cb, NULL);
