@@ -394,7 +394,13 @@ public class SnbiPkt {
     }
     
     private void setStringTLV (int type, String str) {
-        this.addTLV(new TLV(type, str.getBytes(),str.getBytes().length));
+    	// Stupid FE implementation requires null terminating string as well.
+    	byte nullCh = 0;
+    	int strByteLength = str.getBytes().length;
+    	byte[] tmpStrByteArr = new byte[strByteLength+1];
+        System.arraycopy(str.getBytes(), 0, tmpStrByteArr, 0, strByteLength);  
+        tmpStrByteArr[strByteLength] = nullCh;
+        this.addTLV(new TLV(type, tmpStrByteArr,tmpStrByteArr.length));
     }
     
 
@@ -416,11 +422,10 @@ public class SnbiPkt {
     	
     	if (protocolValue == 
     		SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY.getValue() ) {
-            this.addTLV(new TLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_UDI.getValue(), 
-                    udi.getBytes(), udi.getBytes().length));
+    		setStringTLV(SnbiNdTlvType.SNBI_ND_TLV_TYPE_UDI.getValue(), udi);
     	} else if (protocolValue == SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
-            this.addTLV(new TLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_UDI.getValue(), 
-                    udi.getBytes(), udi.getBytes().length));
+            setStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_UDI.getValue(), 
+                         udi);
     	} else {
         	log.error("Cannot set UDITLV for protocol type "+this.protocolType);
     	}
