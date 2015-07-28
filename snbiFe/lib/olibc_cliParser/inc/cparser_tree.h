@@ -11,32 +11,26 @@ extern "C" {
 extern cparser_node_t cparser_root;
 
 cparser_result_t cparser_cmd_clear_screen(cparser_context_t *context);
-cparser_result_t cparser_cmd_show_autonomic_interface(cparser_context_t *context);
-cparser_result_t cparser_cmd_show_ip_interfaces(cparser_context_t *context);
-cparser_result_t cparser_cmd_show_process(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_device(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_neighbors(cparser_context_t *context);
-cparser_result_t cparser_cmd_show_snbi_intf_db(cparser_context_t *context);
-cparser_result_t cparser_cmd_enable_privileged_mode(cparser_context_t *context);
-cparser_result_t cparser_cmd_disable_privileged_mode(cparser_context_t *context);
 cparser_result_t cparser_cmd_quit(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_quit(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_start(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_stop(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_debug_log_console(cparser_context_t *context);
-cparser_result_t cparser_cmd_snbi_debug_log_file_logfile(cparser_context_t *context,
+cparser_result_t cparser_cmd_configure(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_quit(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_enable(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_disable(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_debug_log_console(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_debug_log_file_logfile(cparser_context_t *context,
     char **logfile_ptr);
-cparser_result_t cparser_cmd_snbi_debug_neighbor_discovery_type_level(cparser_context_t *context,
+cparser_result_t cparser_cmd_configure_debug_neighbor_discovery_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
-cparser_result_t cparser_cmd_snbi_debug_bootstrap_type_level(cparser_context_t *context,
+cparser_result_t cparser_cmd_configure_debug_bootstrap_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
-cparser_result_t cparser_cmd_snbi_no_debug_neighbor_discovery_type_level(cparser_context_t *context,
+cparser_result_t cparser_cmd_configure_no_debug_neighbor_discovery_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
-cparser_result_t cparser_cmd_snbi_no_debug_bootstrap_type_level(cparser_context_t *context,
+cparser_result_t cparser_cmd_configure_no_debug_bootstrap_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
 cparser_result_t cparser_cmd_test(cparser_context_t *context);

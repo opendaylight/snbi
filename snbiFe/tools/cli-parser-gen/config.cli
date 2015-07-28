@@ -1,10 +1,10 @@
-#submode "snbi"
+#submode "configure"
 
-quit("Exit from SNBI mode")
+quit("Exit from SNBI Config mode")
 
-start("Enable SNBI protocol")
+enable("Enable SNBI protocol")
 
-stop("Disable SNBI protocol")
+disable("Disable SNBI protocol")
 
 debug("Debugging functions") log("Modify message logging facilities") console("Enable console logging")
 debug("Debugging functions") log("Modify message logging facilities") file("Enable file logging") <STRING:logfile>("Log file name")

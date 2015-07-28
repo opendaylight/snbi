@@ -1,28 +1,14 @@
 clear("Clear functions") screen("screen")
 
-show("Show running system information") autonomic("Autonomic Networking") interface("Autonomic Interfaces")
-
-show("Show running system information") ip("IP information") interfaces("IP interface status and configuration")
-
-show("Show running system information") process("Active process statistics")
-
 show("Show running system information") snbi("SNBI information") device("Host device")
 
 show("Show running system information") snbi("SNBI information") neighbors("SNBI Neighbors")
 
-show("Show running system information") snbi("SNBI information") intf-db("Interface DB")
-
-// Enable privileged mode
-enable("Enable") privileged-mode("Privilege mode requires a password")
-
-// Disable privileged mode
-+ disable("Disable") privileged-mode("Privilege mode")
-
 quit("Quit the simulator")
 
-snbi("SNBI mode")
+configure("SNBI Configuration mode")
 
-#include "snbi.cli"
+#include "config.cli"
 
 test("Test mode")
 

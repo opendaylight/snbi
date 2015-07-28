@@ -16,14 +16,14 @@
 #include <an_logger_linux.h>
 
 cparser_result_t 
-cparser_cmd_snbi_debug_log_console (cparser_context_t *context)
+cparser_cmd_configure_debug_log_console (cparser_context_t *context)
 {
     an_log_stdout_set();
     return (CPARSER_OK);
 }
 
 cparser_result_t 
-cparser_cmd_snbi_debug_log_file_logfile (cparser_context_t *context,
+cparser_cmd_configure_debug_log_file_logfile (cparser_context_t *context,
                                         char **logfile_ptr)
 {
     an_log_file_set(*logfile_ptr);

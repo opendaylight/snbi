@@ -201,7 +201,7 @@ CC_ALL_SRCS := $(CC_OLIBC_ALL_SRCS) \
 	$(CC_SNBI_COMMON_SRCS) \
 
 
-all: mkdir libolibc an_linux_al an_common snbi_clisim
+all: mkdir libolibc an_linux_al an_common snbi.d
 
 mkdir:
 	echo "Making obj dir"
@@ -229,7 +229,7 @@ an_common: $(CC_SNBI_COMMON_SRCS)
 	$(CC) -c $^ $(CC_SNBI_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)
 
-snbi_clisim: $(CC_SNBI_CLISIM_SRCS) $(CC_ALL_SRCS)
+snbi.d : $(CC_SNBI_CLISIM_SRCS) $(CC_ALL_SRCS)
 	@echo "Building target: $@"
 	$(CC) -c $(CC_SNBI_CLISIM_SRCS) $(CC_SNBI_INCDIRS) $(CFLAGS)
 	mv *.o $(SNBI_OBJ)

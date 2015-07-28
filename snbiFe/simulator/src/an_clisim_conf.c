@@ -27,7 +27,7 @@ cparser_cmd_clear_screen (cparser_context_t *context)
 }
 
 cparser_result_t
-cparser_cmd_snbi_start (cparser_context_t *context)
+cparser_cmd_configure_enable (cparser_context_t *context)
 {
     if (!an_autonomic_start_cmd_handler()) {
         return CPARSER_NOT_OK;
@@ -37,7 +37,7 @@ cparser_cmd_snbi_start (cparser_context_t *context)
 }
 
 cparser_result_t
-cparser_cmd_snbi_stop (cparser_context_t *context)
+cparser_cmd_configure_disable (cparser_context_t *context)
 {
     if (!an_autonomic_stop_cmd_handler()) {
         return CPARSER_NOT_OK;
@@ -46,22 +46,16 @@ cparser_cmd_snbi_stop (cparser_context_t *context)
     return (CPARSER_OK);
 }
 
-cparser_result_t 
-cparser_cmd_snbi_no_discovery (cparser_context_t *context)
-{
-    return (CPARSER_OK);
-}
-
 cparser_result_t
-cparser_cmd_snbi (cparser_context_t *context)
+cparser_cmd_configure (cparser_context_t *context)
 {
     char prompt[CPARSER_MAX_PROMPT];
-    snprintf(prompt, CPARSER_MAX_PROMPT, "clisim (snbi) > ");
+    snprintf(prompt, CPARSER_MAX_PROMPT, "snbi.d (config) > ");
     return (cparser_submode_enter(context->parser, NULL, prompt)); 
 }
 
 cparser_result_t
-cparser_cmd_snbi_quit (cparser_context_t *context)
+cparser_cmd_configure_quit (cparser_context_t *context)
 {
     assert(context && context->parser);
     return cparser_submode_exit(context->parser);
@@ -71,7 +65,7 @@ cparser_result_t
 cparser_cmd_test (cparser_context_t *context)
 {
     char prompt[CPARSER_MAX_PROMPT];
-    snprintf(prompt, CPARSER_MAX_PROMPT, "clisim (test) > ");
+    snprintf(prompt, CPARSER_MAX_PROMPT, "snbi.d (test) > ");
     return (cparser_submode_enter(context->parser, NULL, prompt));
 }
 
@@ -82,66 +76,6 @@ cparser_cmd_test_quit (cparser_context_t *context)
     return cparser_submode_exit(context->parser);
 }
 
-cparser_result_t
-cparser_cmd_snbi_discovery (cparser_context_t *context)
-{
-    int no = 0;
-    an_if_t ifhndl = 0;
-    an_if_info_t *an_if_info = NULL;
-
-// Replace netio0 with av[2] and av[1] resply after taking input from user
-    if (no) {
-       ifhndl = if_nametoindex("netio0");
-    }
-    if (!no) {
-       ifhndl = if_nametoindex("netio0");
-    }
-    if (!ifhndl) {
-        return (CPARSER_NOT_OK);
-    }
-    an_if_info = an_if_info_db_search(ifhndl, TRUE);
-    if (!an_if_info) {
-        return (CPARSER_NOT_OK);
-    }
-    
-    if (!no) {
-        printf("\n [SNBI_printf] Enabling Discovery on Intf...!");
-        an_nd_set_preference(ifhndl, AN_ND_CLIENT_CLI, AN_ND_CFG_ENABLED);
-        an_nd_start_on_interface(ifhndl);
-    } else {
-        printf("\n [SNBI_printf] Disabling Discovery on Interface...!");
-        an_nd_set_preference(ifhndl, AN_ND_CLIENT_CLI, AN_ND_CFG_DISABLED);
-        an_nd_stop_on_interface(ifhndl);
-    }
-    return (CPARSER_OK);
-
-//    return 0;
-}
-
-
-cparser_result_t 
-cparser_cmd_snbi_interface_stop (cparser_context_t *context)
-{
-    an_if_t ifhndl = 0;
-    an_if_info_t *an_if_info = NULL;
-
-// Replace netio0 with av[1] after taking input from user
-    ifhndl = if_nametoindex("netio0");
-    if (!ifhndl) {
-        return (CPARSER_NOT_OK);
-    }
-    an_if_info = an_if_info_db_search(ifhndl, TRUE);
-    if (!an_if_info) {
-        return (CPARSER_NOT_OK);
-    }
-    if (!an_if_is_cfg_autonomic_enabled(an_if_info)) {
-        return (CPARSER_NOT_OK); 
-    }
-printf("\n [SRK_printf] Unsetting interface mode autonomic...!");
-    an_if_set_cfg_autonomic_enable(an_if_info, FALSE);
-    an_if_autonomic_disable(ifhndl);
-    return (CPARSER_OK);
-}
 
 cparser_result_t
 cparser_cmd_quit (cparser_context_t *context)

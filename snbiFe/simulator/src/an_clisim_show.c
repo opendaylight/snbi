@@ -13,13 +13,15 @@
 #include <cparser.h>
 #include <cparser_tree.h>
 #include <unistd.h>
+#include <an.h>
+#include <an_cert.h>
+#include <an_addr.h>
+#include <an_str.h>
 
 
 uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
 uint8_t an_show_header[1] = {'\0'};
 uint8_t an_show_trailer[1] = {'\0'};
-static int link_count = 0;
-extern an_info_t an_info;
 
 static an_cerrno
 an_show_nbr_list_name_cb (an_list_t *list,
@@ -27,16 +29,13 @@ an_show_nbr_list_name_cb (an_list_t *list,
         an_list_element_t *next, void *context)
 {
     an_nbr_link_spec_t *curr_data = NULL;
-    uint8_t local_ifhndl[128] = {0};
+    uint8_t if_name[80] = {0};
     if (list && current)    {
         curr_data = (an_nbr_link_spec_t *) current->data;
-        link_count ++;
-        if_indextoname(curr_data->local_ifhndl, local_ifhndl);
-        if (link_count == 1) {
-                printf("%3s", local_ifhndl);
-               
-        } else {
-                printf("\n%67s %30s","", local_ifhndl);
+        if_indextoname(curr_data->local_ifhndl, if_name);
+        printf("|%-.7s", if_name);
+        if (next) {
+            printf("\n%72s","");
         }
         return (AN_CERR_SUCCESS);
     }
@@ -46,76 +45,55 @@ an_show_nbr_list_name_cb (an_list_t *list,
 cparser_result_t 
 cparser_cmd_show_snbi_device (cparser_context_t *context)
 {
-    printf("\n%80s", an_show_header);
-    printf ("\n UDI    %s ", an_info.udi.data);
+    char udi_str[80];
+    an_addr_t device_ip = an_get_device_ip();
+    an_cert_t domain_cert;
+    uint8_t *device_id = NULL, *domain_id = NULL;
+    an_udi_t udi;
+
+    memset(udi_str, 0 , 80);
+    memset(&domain_cert, 0 , sizeof(an_cert_t));
+    memset(&udi, 0, sizeof(an_udi_t));
+
+    if (!an_get_udi(&udi)) {
+        return CPARSER_OK;
+    }
+    strncpy(udi_str, udi.data, udi.len > 80 ? 80 :udi.len);
+
+    an_get_domain_cert(&domain_cert);
+    device_id = an_get_device_id();
+    domain_id = an_get_domain_id();
+
+    printf("%80s", an_show_header);
+    printf ("\n\t\t%-25s - %s ", "Device UDI",udi_str);
+    if (device_id && an_strlen(device_id)) {
+        printf("\n\t\t%-25s - %s", "Device ID", device_id);
+    }
+
+    if (domain_id && an_strlen(domain_id)) {
+        printf("\n\t\t%-25s - %s", "Domain ID", domain_id);
+    }
+    if (domain_cert.data && domain_cert.len) {
+        printf("\n\t\t%-25s - ", "Domain Certificate");
+            an_cert_short_print(domain_cert);
+    }
+    if (domain_cert.data && domain_cert.len) {
+        printf("\n\t\t%-25s - ", "Certificate Serial Number");
+            an_cert_serial_num_print(domain_cert);
+    }
+    if (!an_addr_is_zero(device_ip)) {
+        printf("\n\t\t%-25s -%s", "Device Address",
+               an_addr_get_string(&device_ip));
+    }
+    if (domain_cert.valid) {
+        printf("\n\t\t%-25s ", "Domain Cert is Valid");
+    } else {
+        printf("\n\t\t%-25s ", "Domain Cert is Not Valid");
+    }
+
     printf("\n%80s", an_show_trailer); 
-    return (CPARSER_OK);
-}
+    printf("\n");
 
-cparser_result_t 
-cparser_cmd_show_autonomic_interface(cparser_context_t *context)
-{
-    return (CPARSER_OK);
-}
-
-cparser_result_t
-cparser_cmd_show_ip_interfaces (cparser_context_t *context)
-{
-    char buf[1024];
-    struct ifconf ifc;
-    struct ifreq *ifr;
-    int sck;
-    int nInterfaces;
-    int i;
-
-/* Get a socket handle. */
-    sck = socket(AF_INET, SOCK_DGRAM, 0);
-    if(sck < 0)
-    {
-        perror("socket");
-        return (CPARSER_NOT_OK);
-    }
-
-/* Query available interfaces. */
-    ifc.ifc_len = sizeof(buf);
-    ifc.ifc_buf = buf;
-    if(ioctl(sck, SIOCGIFCONF, &ifc) < 0)
-    {
-        perror("ioctl(SIOCGIFCONF)");
-        return (CPARSER_NOT_OK);
-    }
-/* Iterate through the list of interfaces. */
-    ifr         = ifc.ifc_req;
-    nInterfaces = ifc.ifc_len / sizeof(struct ifreq);
-    for(i = 0; i < nInterfaces; i++)
-    {
-        struct ifreq *item = &ifr[i];
-
-    /* Show the device name and IP address */
-        printf("\n");
-        printf("%s: IP %s",
-               item->ifr_name,
-               inet_ntoa(((struct sockaddr_in *)&item->ifr_addr)->sin_addr));
-
-    /* Get the MAC address */
-        if(ioctl(sck, SIOCGIFHWADDR, item) < 0)
-        {
-            perror("ioctl(SIOCGIFHWADDR)");
-            return (CPARSER_NOT_OK);
-        }
-
-    /* Get the broadcast address */
-        if(ioctl(sck, SIOCGIFBRDADDR, item) >= 0)
-            printf(", BROADCAST %s", inet_ntoa(((struct sockaddr_in *)&item->ifr_broadaddr)->sin_addr));
-        printf("\n");
-    }
-    close(sck); 
-    return (CPARSER_OK);
-}
-
-cparser_result_t 
-cparser_cmd_show_process (cparser_context_t *context)
-{
     return (CPARSER_OK);
 }
 
@@ -128,7 +106,7 @@ an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
     if (!nbr) {
         return (AN_AVL_WALK_FAIL);
     }
-    printf("\n%s %32s %21s ",
+    printf("\n%-.23s|%-.35s|%-.12s",
            nbr->udi.data, nbr->device_id ? nbr->device_id : unknown_str,
            nbr->domain_id ? nbr->domain_id : unknown_str);
 
@@ -140,36 +118,13 @@ an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
 cparser_result_t 
 cparser_cmd_show_snbi_neighbors (cparser_context_t *context)
 {
-    printf("\n%80s", an_show_header);
-    printf("\n%s %45s %21s %10s",
-               "UDI", "Device-ID", "Domain", "Interface");
+    printf("%80s", an_show_header);
+    printf("\n%-23s|%-35s|%-12s|%-7s",
+               "         UDI", "             Device-ID", "   Domain", "  Intf");
     printf("\n%80s", an_table_header);
     an_nbr_db_walk(an_show_nbr_command_cb, NULL);
     printf("\n%80s", an_show_trailer);
+    printf("\n");
     return (CPARSER_OK);
 }
 
-an_walk_e
-an_if_info_walker(an_avl_node_t *node, void *data) 
-{
-
-    an_if_info_t *an_if_info = NULL;
-
-    if (!node) {
-        return (AN_WALK_FAIL);
-    }
-    an_if_info = (an_if_info_t *)node;
-    printf("\nAVL walking nodes :\n");
-    printf("\n Ifhndl while walk is %u ", an_if_info->ifhndl); 
-    printf("\n AN is auton enabled on interface ? ");
-    (an_if_info->if_cfg_autonomic_enable > 0) ? printf("YES"):printf("NO");
-
-    return (AN_WALK_SUCCESS);
-}
-
-cparser_result_t 
-cparser_cmd_show_snbi_intf_db (cparser_context_t *context)
-{
-    an_if_info_db_walk(an_if_info_walker, NULL);
-    return (CPARSER_OK);
-}

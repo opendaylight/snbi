@@ -21,6 +21,11 @@
 //void an_cert_display(const an_cert_t cert);
 //void an_cert_short_print(const an_cert_t cert);
 
+void
+an_cert_serial_num_print (const an_cert_t cert)
+{
+}
+
 void 
 an_openssl_init (void) 
 {

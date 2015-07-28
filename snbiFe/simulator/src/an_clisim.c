@@ -65,7 +65,7 @@ main (int argc, char *argv[])
     parser.cfg.ch_del = 127;
     parser.cfg.ch_help = '?';
     parser.cfg.flags = (debug ? CPARSER_FLAGS_DEBUG : 0);
-    strcpy(parser.cfg.prompt, "clisim > ");
+    strcpy(parser.cfg.prompt, "snbi.d > ");
     parser.cfg.fd = STDOUT_FILENO;
     cparser_io_config(&parser);
 

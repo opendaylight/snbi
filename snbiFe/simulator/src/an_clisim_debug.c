@@ -58,7 +58,7 @@ an_debug_level_e an_clisim_get_debug_level (char *level_str)
 }
 
 cparser_result_t
-cparser_cmd_snbi_debug_neighbor_discovery_type_level 
+cparser_cmd_configure_debug_neighbor_discovery_type_level 
                                           (cparser_context_t *context,
                                            char **type_ptr,
                                            char **level_ptr)
@@ -74,7 +74,7 @@ cparser_cmd_snbi_debug_neighbor_discovery_type_level
 }
 
 cparser_result_t
-cparser_cmd_snbi_no_debug_neighbor_discovery_type_level
+cparser_cmd_configure_no_debug_neighbor_discovery_type_level
                                           (cparser_context_t *context,
                                            char **type_ptr,
                                            char **level_ptr)
@@ -90,7 +90,7 @@ cparser_cmd_snbi_no_debug_neighbor_discovery_type_level
 }
 
 cparser_result_t
-cparser_cmd_snbi_debug_bootstrap_type_level
+cparser_cmd_configure_debug_bootstrap_type_level
                                           (cparser_context_t *context,
                                            char **type_ptr,
                                            char **level_ptr)
@@ -106,7 +106,7 @@ cparser_cmd_snbi_debug_bootstrap_type_level
 }
 
 cparser_result_t
-cparser_cmd_snbi_no_debug_bootstrap_type_level
+cparser_cmd_configure_no_debug_bootstrap_type_level
                                           (cparser_context_t *context,
                                            char **type_ptr,
                                            char **level_ptr)
