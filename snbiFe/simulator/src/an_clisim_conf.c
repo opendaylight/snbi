@@ -29,7 +29,7 @@ cparser_cmd_clear_screen (cparser_context_t *context)
 cparser_result_t
 cparser_cmd_configure_enable (cparser_context_t *context)
 {
-    if (!an_autonomic_start_cmd_handler()) {
+    if (!an_enable_cmd_handler()) {
         return CPARSER_NOT_OK;
     }
 
@@ -39,7 +39,7 @@ cparser_cmd_configure_enable (cparser_context_t *context)
 cparser_result_t
 cparser_cmd_configure_disable (cparser_context_t *context)
 {
-    if (!an_autonomic_stop_cmd_handler()) {
+    if (!an_disable_cmd_handler()) {
         return CPARSER_NOT_OK;
     }
 

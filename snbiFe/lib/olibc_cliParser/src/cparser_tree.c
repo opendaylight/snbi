@@ -572,6 +572,21 @@ cparser_glue_test_if_ip_address (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_device_udi_udi (cparser_t *parser)
+{
+    char *udi_val;
+    char **udi_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_string(&parser->tokens[1], &udi_val);
+    assert(CPARSER_OK == rc);
+    udi_ptr = &udi_val;
+    cparser_cmd_test_device_udi_udi(&parser->context,
+        udi_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_quit (cparser_t *parser)
 {
     cparser_cmd_test_quit(&parser->context);
@@ -594,6 +609,33 @@ cparser_node_t cparser_node_test_root_quit = {
     "Exit test submode",
     NULL,
     &cparser_node_test_root_quit_eol
+};
+
+cparser_node_t cparser_node_test_root_device_udi_udi_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_device_udi_udi,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_device_udi_udi = {
+    CPARSER_NODE_STRING,
+    0,
+    "<STRING:udi>",
+    "UDI of the device",
+    NULL,
+    &cparser_node_test_root_device_udi_udi_eol
+};
+
+cparser_node_t cparser_node_test_root_device_udi = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "device-udi",
+    "Configure UDI of the device",
+    &cparser_node_test_root_quit,
+    &cparser_node_test_root_device_udi_udi
 };
 
 cparser_node_t cparser_node_test_root_if_ip_address_eol = {
@@ -673,7 +715,7 @@ cparser_node_t cparser_node_test_root_if = {
     0,
     "if",
     "Interface",
-    &cparser_node_test_root_quit,
+    &cparser_node_test_root_device_udi,
     &cparser_node_test_root_if_list
 };
 

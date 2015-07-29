@@ -7,9 +7,12 @@ extern boolean
 an_system_init_linux(void);
 
 extern boolean
-an_autonomic_start_cmd_handler(void);
+an_enable_cmd_handler(void);
 
 extern boolean
-an_autonomic_stop_cmd_handler(void);
+an_disable_cmd_handler(void);
+
+extern boolean
+an_config_udi_cmd_handler(char *udi);
 
 #endif
