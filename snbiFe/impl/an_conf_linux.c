@@ -78,6 +78,7 @@ an_conf_set_udi (olibc_msg_q_event_hdl q_event_hdl)
 {
     olibc_retval_t retval;
     void *udi;
+    an_udi_t udi_str;
 
     retval = olibc_msg_q_event_get_args(q_event_hdl, NULL, &udi);
 
@@ -85,10 +86,17 @@ an_conf_set_udi (olibc_msg_q_event_hdl q_event_hdl)
         printf("\nFailed to set UDI");
         return;
     }
+
+    memset(&udi_str, 0, sizeof(an_udi_t));
     
     an_udi_platform_linux.data = udi;
     an_udi_platform_linux.len = strlen(udi)+1;
-    an_set_udi(an_udi_platform_linux);
+
+    udi_str.data = an_malloc(strlen(udi) + 1, "Temp UDI string");
+    memset(udi_str.data, 0, strlen(udi) + 1);
+    udi_str.len = an_udi_platform_linux.len;
+
+    an_set_udi(udi_str);
     return;
 }
 
