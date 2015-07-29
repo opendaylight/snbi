@@ -1,0 +1,1 @@
+device-udi("Configure UDI of the device") <STRING:udi>("UDI of the device")

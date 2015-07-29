@@ -53,7 +53,6 @@ an_udi_get_from_platform (an_udi_t *udi)
     udi->len = 0;
 
     if (!an_udi_platform_linux.data) {
-        an_udi_platform_linux.len = AN_UDI_MAX_LEN;
         an_udi_platform_linux.data = (uint8_t *)an_malloc_guard(AN_UDI_MAX_LEN,                                                           "AN UDI Platform");
         udi_buf = an_udi_platform_linux.data;
 

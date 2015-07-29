@@ -153,6 +153,7 @@ CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_debug.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_logg.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_net_test.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_snbi_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim.c
 
 CC_OLIBC_CLI_SRCS :=\
