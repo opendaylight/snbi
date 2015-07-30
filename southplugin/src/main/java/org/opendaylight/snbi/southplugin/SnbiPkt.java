@@ -387,10 +387,16 @@ public class SnbiPkt {
      */
     private String getStringTLV(int type) {
         TLV tlv = getTLV(type);
+        
         if (tlv == null) {
             return null;
         }
-        return new String(tlv.getValue());
+        
+        int strByteLength = tlv.getLength() - 1; // Ignore the null character.
+        byte[] tmpStrByteArr = new byte[strByteLength];
+        System.arraycopy(tlv.getValue(), 0, tmpStrByteArr, 0, strByteLength);
+        
+        return new String(tmpStrByteArr);
     }
     
     private void setStringTLV (int type, String str) {

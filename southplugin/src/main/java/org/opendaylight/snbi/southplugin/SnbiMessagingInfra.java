@@ -260,7 +260,7 @@ public class SnbiMessagingInfra {
             case SNBI_MSG_ND_HELLO:
             	sb.append("Device UDI:"+pkt.getUDITLV()+" IF Name:"+pkt.getIfNameTLV());
             	sb.append("\n\t\t\t\t Device ID:"+pkt.getDeviceIDTLV()+" Domain Name:"+pkt.getDomainIDTLV());
-            	sb.append("\n\t\t\t\t   Device IP:"+pkt.gettDeviceIPv6TLV()+" IF IP: "+pkt.getIPV6LLTLV());
+            	sb.append("\n\t\t\t\t Device IP:"+pkt.gettDeviceIPv6TLV()+" IF IP: "+pkt.getIPV6LLTLV());
             	break;
             case SNBI_MSG_NI_CERT_REQ:
                 break;

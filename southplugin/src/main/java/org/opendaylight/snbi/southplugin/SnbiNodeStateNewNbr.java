@@ -16,7 +16,7 @@ public class SnbiNodeStateNewNbr extends SnbiNodeStateCommonEventHandlers implem
     }
     
     public SnbiNodeState nodeStateSetEvent (eventContext evt) {
-        log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
+        log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
         node.startNewExpiryTimer();
        return (SnbiNodeState.SNBI_NODE_STATE_NI_CERT_REQUEST);
     }

@@ -21,7 +21,7 @@ public class SnbiNodeStateBootStrapIgnore extends SnbiNodeStateCommonEventHandle
 	}
 	@Override
 	public SnbiNodeState handleBSReqPktEvent (SnbiPkt pkt) {
-        log.debug("[node: "+node.getUDI()+"] Handle BSReq Pkt Event Ignored: "+pkt.getUDITLV());
+        log.debug("[node:"+node.getUDI()+"] Handle BSReq Pkt Event Ignored: "+pkt.getUDITLV());
         return node.getCurrState();
 	}
 }

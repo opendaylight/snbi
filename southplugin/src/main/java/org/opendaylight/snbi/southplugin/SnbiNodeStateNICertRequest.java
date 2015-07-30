@@ -28,7 +28,7 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
 
     @Override
     public SnbiNodeState nodeStateSetEvent(eventContext evt) {
-        log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
+        log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
         startPeriodicNICertRequest(evt.getPkt().getSrcIP(), evt.getPkt().getIngressInterface());
         return node.getCurrState();
     }
