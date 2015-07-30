@@ -141,7 +141,8 @@ an_addr_ntov6 (uint8_t *buffer)
 {
     an_v6addr_t nw_order_v6addr = AN_V6ADDR_ZERO;
 
-    an_ntoh_16_bytes((uint32_t *)nw_order_v6addr.s6_addr32, buffer);
+    memcpy(&nw_order_v6addr, buffer, sizeof(an_v6addr_t));
+
     return (nw_order_v6addr);
 }
 
@@ -167,8 +168,8 @@ an_addr_v6ton (const an_addr_t addr)
     if (!an_addr_is_v6(addr)) {
         return (AN_V6ADDR_ZERO);
     }
-    an_hton_16_bytes((uint8_t *)&nw_order_v6addr,
-                            (uint32_t *)addr.ipv6_addr.s6_addr32);
+
+    nw_order_v6addr = addr.ipv6_addr;
     return (nw_order_v6addr);
 }
 
