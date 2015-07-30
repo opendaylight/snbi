@@ -139,25 +139,25 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         SnbiNode node = null;
         if (nbrNodesList.containsKey(pkt.getUDITLV())) {
             node = nbrNodesList.get(pkt.getUDITLV());
-            log.debug("[node: "+node.getUDI()+"] Recived ND pkts: "+pkt.getUDITLV());
+            log.debug("[node:"+node.getUDI()+"] Recived ND pkts: "+pkt.getUDITLV());
             node.handleNDRefreshPktEvent(pkt);
         } else {
             node = SnbiNode.createNeighborNode(pkt, this);
             nbrNodesList.put(node.getUDI(), node);
-            log.debug("[node: "+node.getUDI()+"] Recived ND pkts: "+pkt.getUDITLV());
+            log.debug("[node:"+node.getUDI()+"] Recived ND pkts: "+pkt.getUDITLV());
         }
     }
 
     @Override
     public void neighborNodeLostEventListener(SnbiNode node) {
-        log.debug("[node: "+node.getUDI()+"] Neighbor node lost: "+node.getUDI());
+        log.debug("[node:"+node.getUDI()+"] Neighbor node lost: "+node.getUDI());
         nbrNodesList.remove(node.getUDI());
     }
 
     @Override
     public void incomingNICertReqPktsListener(SnbiPkt pkt) {
         SnbiNode node = myNode;
-        log.debug("[node: "+node.getUDI()+"] NI Cert Req Pkt: "+pkt.getUDITLV());
+        log.debug("[node:"+node.getUDI()+"] NI Cert Req Pkt: "+pkt.getUDITLV());
         if (node.getUDI().equals(pkt.getUDITLV())) {
             node.handleNICertReqPktEvent(pkt);
             return;
@@ -172,7 +172,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         if (nbrNodesList.containsKey(pkt.getUDITLV())) {
             node = nbrNodesList.get(pkt.getUDITLV());
             node.handleNICertRespPktEvent(pkt);
-            log.debug("[node: "+node.getUDI()+"] NI Cert Resp Pkt: "+pkt.getUDITLV());
+            log.debug("[node:"+node.getUDI()+"] NI Cert Resp Pkt: "+pkt.getUDITLV());
 
         } else {
             node = SnbiNode.createNeighborNode(pkt, this);
@@ -183,7 +183,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
     @Override
     public void incomingNbrConnectPktsListener(SnbiPkt pkt) {
         SnbiNode node = myNode;
-        log.debug("[node: "+node.getUDI()+"] NBR Connect Pkt: "+pkt.getUDITLV());
+        log.debug("[node:"+node.getUDI()+"] NBR Connect Pkt: "+pkt.getUDITLV());
 
         if (node.getUDI() != pkt.getUDITLV()) {
             return;
@@ -196,11 +196,11 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         SnbiNode node = null;
         if (acceptedNodesList.containsKey(pkt.getUDITLV())) {
             node = acceptedNodesList.get(pkt.getUDITLV());
-            log.debug("[node: "+node.getUDI()+"] BS Req: Pkt UDI: "+pkt.getUDITLV());
+            log.debug("[node:"+node.getUDI()+"] BS Req: Pkt UDI: "+pkt.getUDITLV());
             node.handleBSReqPktEvent(pkt);
             return;
         }
-        log.debug("[node: null] BS Req no such accepted node: Pkt UDI: "+pkt.getUDITLV());
+        log.debug("[node:null] BS Req no such accepted Pkt UDI: "+pkt.getUDITLV());
 
     }
 

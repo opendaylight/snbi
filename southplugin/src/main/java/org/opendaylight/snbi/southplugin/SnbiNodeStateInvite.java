@@ -20,7 +20,7 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
 
     @Override
     public SnbiNodeState nodeStateSetEvent(eventContext evnt) {
-        log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
+        log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
         sendNodeInviteMsg(evnt.getPkt().getSrcIP(), evnt.getPkt().getIngressInterface());        
         return node.getCurrState();
     }
@@ -33,19 +33,19 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
         
         if (node.getRegistrar() == null || node.getRegistrar().getNodeself() == null ||
                 node.getRegistrar().getNodeself().getNodeAddress() == null) {
-            log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null registrar address");
+            log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null registrar address");
             return false;
         }        
         if (node.getDeviceID() == null) {
-            log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null device ID");
+            log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null device ID");
             return false;
         }
         if (node.getRegistrar().getDomainName() == null) {
-            log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null domain Name");
+            log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null domain Name");
             return false;
         }
         if (CertManager.getInstance().getRootCACertificate() == null) {
-            log.error("[node: "+node.getUDI()+"] Validate Node for Invite failed with Null CA certificate");
+            log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null CA certificate");
             return false;
         }   
         return true;

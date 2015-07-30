@@ -81,7 +81,7 @@ public class SnbiNode {
         lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
         String udi = pkt.getUDITLV();
        
-        log.debug("[node: "+udi+"] New node created");
+        log.debug("[node:"+udi+"] New node created");
         this.udi = udi;
         this.peerIfName = pkt.getIfNameTLV();
         this.registrar = registrar;
@@ -192,7 +192,7 @@ public class SnbiNode {
             nodeExpiryTimer.purge();
         }
 
-        log.debug("[node: "+udi+"]Starting new timer for udi ");
+        log.debug("[node:"+udi+"]Starting new timer for udi ");
         lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
         nodeExpiryTimer = new Timer("Neighbor Node Expiry Timer "
                 + this.udi, true);

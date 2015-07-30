@@ -20,7 +20,7 @@ public class SnbiNodeStateBootStrapReject extends SnbiNodeStateCommonEventHandle
 
     @Override
     public SnbiNodeState nodeStateSetEvent(eventContext evnt) {
-        log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
+        log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
         sendNodeRejectMsg(evnt.getPkt().getSrcIP(), evnt.getPkt().getIngressInterface());
         return node.getCurrState();
     }

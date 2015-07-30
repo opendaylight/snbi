@@ -18,7 +18,7 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
     
     @Override
     public SnbiNodeState nodeStateSetEvent(eventContext evt) {
-        log.debug("[node: "+node.getUDI()+"] Set state : "+this.getState());
+        log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
         node.getRegistrar().validateNode(node);
         bootStrapSelf();
         node.ndStart();
@@ -48,7 +48,7 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
      
     @Override    
     public SnbiNodeState handleNodeExpiredEvent () {
-        log.debug("[node: "+node.getUDI()+"] Handle Node Expired Event");
+        log.debug("[node:"+node.getUDI()+"] Handle Node Expired Event");
         return node.getCurrState();
     }
 }
