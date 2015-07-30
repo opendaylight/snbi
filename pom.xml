@@ -10,14 +10,14 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
-    <version>1.0.4-Helium-SR4</version>
+    <version>1.0.5-SNAPSHOT</version>
     <packaging>pom</packaging>
     <prerequisites>
         <maven>3.0.4</maven>
     </prerequisites>
 
     <properties>
-         <sal-binding-api.version>1.1.4-Helium-SR4</sal-binding-api.version>
+         <sal-binding-api.version>1.1.5-SNAPSHOT</sal-binding-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <nexusproxy>http://nexus.opendaylight.org/content</nexusproxy>
 
@@ -46,13 +46,13 @@
         <osgi.core.version>5.0.0</osgi.core.version>
         <jmxGeneratorPath>src/main/yang-gen-config</jmxGeneratorPath>
     	<salGeneratorPath>src/main/yang-gen-sal</salGeneratorPath>
-	<config.version>0.2.9-Helium-SR4</config.version>
-        <yang-ext.version>2013.09.07.4.4-Helium-SR4</yang-ext.version>
-	<yang-jmx-generator.version>1.0.4-Helium-SR4</yang-jmx-generator.version>
-        <yangtools.version>0.6.6-Helium-SR4</yangtools.version>
-        <ietf-inet-types.version>2010.09.24.4.4-Helium-SR4</ietf-inet-types.version>
-        <mdsal.version>1.1.4-Helium-SR4</mdsal.version>
-        <snbi.shell.version>1.0.4-Helium-SR4</snbi.shell.version>
+	<config.version>0.2.10-SNAPSHOT</config.version>
+        <yang-ext.version>2013.09.07.4.5-SNAPSHOT</yang-ext.version>
+	<yang-jmx-generator.version>1.0.5-SNAPSHOT</yang-jmx-generator.version>
+        <yangtools.version>0.6.7-SNAPSHOT</yangtools.version>
+        <ietf-inet-types.version>2010.09.24.4.5-SNAPSHOT</ietf-inet-types.version>
+        <mdsal.version>1.1.5-SNAPSHOT</mdsal.version>
+        <snbi.shell.version>1.0.5-SNAPSHOT</snbi.shell.version>
         <karaf.shell.version>3.0.0</karaf.shell.version>
     </properties>
 
@@ -231,7 +231,7 @@
       <dependency>
         <groupId>org.opendaylight.controller.thirdparty</groupId>
         <artifactId>ganymed</artifactId>
-        <version>1.1.4-Helium-SR4</version>
+        <version>1.1.5-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>org.opendaylight.controller.model</groupId>
