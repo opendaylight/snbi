@@ -544,30 +544,60 @@ cparser_glue_test_hash_walk (cparser_t *parser)
 }
 
 cparser_result_t
-cparser_glue_test_if_list (cparser_t *parser)
+cparser_glue_test_interface_list (cparser_t *parser)
 {
-    cparser_cmd_test_if_list(&parser->context);
+    cparser_cmd_test_interface_list(&parser->context);
     return CPARSER_OK;
 }
 
 cparser_result_t
-cparser_glue_test_if_ipv4_address (cparser_t *parser)
+cparser_glue_test_interface_ipv4_address (cparser_t *parser)
 {
-    cparser_cmd_test_if_ipv4_address(&parser->context);
+    cparser_cmd_test_interface_ipv4_address(&parser->context);
     return CPARSER_OK;
 }
 
 cparser_result_t
-cparser_glue_test_if_ipv6_address (cparser_t *parser)
+cparser_glue_test_interface_ipv6_address (cparser_t *parser)
 {
-    cparser_cmd_test_if_ipv6_address(&parser->context);
+    cparser_cmd_test_interface_ipv6_address(&parser->context);
     return CPARSER_OK;
 }
 
 cparser_result_t
-cparser_glue_test_if_ip_address (cparser_t *parser)
+cparser_glue_test_interface_ip_address (cparser_t *parser)
 {
-    cparser_cmd_test_if_ip_address(&parser->context);
+    cparser_cmd_test_interface_ip_address(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_interface_intfname_enable (cparser_t *parser)
+{
+    char *intfname_val;
+    char **intfname_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_string(&parser->tokens[1], &intfname_val);
+    assert(CPARSER_OK == rc);
+    intfname_ptr = &intfname_val;
+    cparser_cmd_test_interface_intfname_enable(&parser->context,
+        intfname_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_interface_intfname_disable (cparser_t *parser)
+{
+    char *intfname_val;
+    char **intfname_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_string(&parser->tokens[1], &intfname_val);
+    assert(CPARSER_OK == rc);
+    intfname_ptr = &intfname_val;
+    cparser_cmd_test_interface_intfname_disable(&parser->context,
+        intfname_ptr);
     return CPARSER_OK;
 }
 
@@ -578,7 +608,7 @@ cparser_glue_test_device_udi_udi (cparser_t *parser)
     char **udi_ptr = NULL;
     cparser_result_t rc;
 
-    rc = cparser_get_string(&parser->tokens[1], &udi_val);
+    rc = cparser_get_string(&parser->tokens[2], &udi_val);
     assert(CPARSER_OK == rc);
     udi_ptr = &udi_val;
     cparser_cmd_test_device_udi_udi(&parser->context,
@@ -632,91 +662,145 @@ cparser_node_t cparser_node_test_root_device_udi_udi = {
 cparser_node_t cparser_node_test_root_device_udi = {
     CPARSER_NODE_KEYWORD,
     0,
-    "device-udi",
+    "udi",
     "Configure UDI of the device",
-    &cparser_node_test_root_quit,
+    NULL,
     &cparser_node_test_root_device_udi_udi
 };
 
-cparser_node_t cparser_node_test_root_if_ip_address_eol = {
+cparser_node_t cparser_node_test_root_device = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "device",
+    "Device level test commands",
+    &cparser_node_test_root_quit,
+    &cparser_node_test_root_device_udi
+};
+
+cparser_node_t cparser_node_test_root_interface_intfname_disable_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_test_if_ip_address,
+    cparser_glue_test_interface_intfname_disable,
     NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_test_root_if_ip_address = {
+cparser_node_t cparser_node_test_root_interface_intfname_disable = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "disable",
+    "Disable protocol on the interface",
+    NULL,
+    &cparser_node_test_root_interface_intfname_disable_eol
+};
+
+cparser_node_t cparser_node_test_root_interface_intfname_enable_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_interface_intfname_enable,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_interface_intfname_enable = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "enable",
+    "Enable protocol on the interface",
+    &cparser_node_test_root_interface_intfname_disable,
+    &cparser_node_test_root_interface_intfname_enable_eol
+};
+
+cparser_node_t cparser_node_test_root_interface_intfname = {
+    CPARSER_NODE_STRING,
+    0,
+    "<STRING:intfname>",
+    NULL,
+    NULL,
+    &cparser_node_test_root_interface_intfname_enable
+};
+
+cparser_node_t cparser_node_test_root_interface_ip_address_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_interface_ip_address,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_interface_ip_address = {
     CPARSER_NODE_KEYWORD,
     0,
     "ip-address",
     "get the IP addresses of the interfaces",
-    NULL,
-    &cparser_node_test_root_if_ip_address_eol
+    &cparser_node_test_root_interface_intfname,
+    &cparser_node_test_root_interface_ip_address_eol
 };
 
-cparser_node_t cparser_node_test_root_if_ipv6_address_eol = {
+cparser_node_t cparser_node_test_root_interface_ipv6_address_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_test_if_ipv6_address,
+    cparser_glue_test_interface_ipv6_address,
     NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_test_root_if_ipv6_address = {
+cparser_node_t cparser_node_test_root_interface_ipv6_address = {
     CPARSER_NODE_KEYWORD,
     0,
     "ipv6-address",
     "get the IPV6 addresses of the interfaces",
-    &cparser_node_test_root_if_ip_address,
-    &cparser_node_test_root_if_ipv6_address_eol
+    &cparser_node_test_root_interface_ip_address,
+    &cparser_node_test_root_interface_ipv6_address_eol
 };
 
-cparser_node_t cparser_node_test_root_if_ipv4_address_eol = {
+cparser_node_t cparser_node_test_root_interface_ipv4_address_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_test_if_ipv4_address,
+    cparser_glue_test_interface_ipv4_address,
     NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_test_root_if_ipv4_address = {
+cparser_node_t cparser_node_test_root_interface_ipv4_address = {
     CPARSER_NODE_KEYWORD,
     0,
     "ipv4-address",
     "get the IPV4 addresses of the interfaces",
-    &cparser_node_test_root_if_ipv6_address,
-    &cparser_node_test_root_if_ipv4_address_eol
+    &cparser_node_test_root_interface_ipv6_address,
+    &cparser_node_test_root_interface_ipv4_address_eol
 };
 
-cparser_node_t cparser_node_test_root_if_list_eol = {
+cparser_node_t cparser_node_test_root_interface_list_eol = {
     CPARSER_NODE_END,
     0,
-    cparser_glue_test_if_list,
+    cparser_glue_test_interface_list,
     NULL,
     NULL,
     NULL
 };
 
-cparser_node_t cparser_node_test_root_if_list = {
+cparser_node_t cparser_node_test_root_interface_list = {
     CPARSER_NODE_KEYWORD,
     0,
     "list",
     "list the interface information",
-    &cparser_node_test_root_if_ipv4_address,
-    &cparser_node_test_root_if_list_eol
+    &cparser_node_test_root_interface_ipv4_address,
+    &cparser_node_test_root_interface_list_eol
 };
 
-cparser_node_t cparser_node_test_root_if = {
+cparser_node_t cparser_node_test_root_interface = {
     CPARSER_NODE_KEYWORD,
     0,
-    "if",
-    "Interface",
-    &cparser_node_test_root_device_udi,
-    &cparser_node_test_root_if_list
+    "interface",
+    "Interface level test commands",
+    &cparser_node_test_root_device,
+    &cparser_node_test_root_interface_list
 };
 
 cparser_node_t cparser_node_test_root_hash_walk_eol = {
@@ -868,7 +952,7 @@ cparser_node_t cparser_node_test_root_hash = {
     0,
     "hash",
     "Hash Test Command",
-    &cparser_node_test_root_if,
+    &cparser_node_test_root_interface,
     &cparser_node_test_root_hash_create
 };
 

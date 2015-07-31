@@ -85,10 +85,14 @@ cparser_result_t cparser_cmd_test_hash_lookup_key(cparser_context_t *context,
 cparser_result_t cparser_cmd_test_hash_remove_key(cparser_context_t *context,
     char **key_ptr);
 cparser_result_t cparser_cmd_test_hash_walk(cparser_context_t *context);
-cparser_result_t cparser_cmd_test_if_list(cparser_context_t *context);
-cparser_result_t cparser_cmd_test_if_ipv4_address(cparser_context_t *context);
-cparser_result_t cparser_cmd_test_if_ipv6_address(cparser_context_t *context);
-cparser_result_t cparser_cmd_test_if_ip_address(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_interface_list(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_interface_ipv4_address(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_interface_ipv6_address(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_interface_ip_address(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_interface_intfname_enable(cparser_context_t *context,
+    char **intfname_ptr);
+cparser_result_t cparser_cmd_test_interface_intfname_disable(cparser_context_t *context,
+    char **intfname_ptr);
 cparser_result_t cparser_cmd_test_device_udi_udi(cparser_context_t *context,
     char **udi_ptr);
 cparser_result_t cparser_cmd_test_quit(cparser_context_t *context);

@@ -1,10 +1,11 @@
 #include <an.h>
 #include <string.h>
+#include <an_mem.h>
+#include <an_if_mgr.h>
+#include "an_if_linux.h"
 #include <olibc_msg_q.h>
 #include <an_proc_linux.h>
 #include <an_event_mgr_db.h>
-#include "an_if_linux.h"
-#include <an_mem.h>
 
 extern olibc_pthread_hdl an_pthread_hdl;
 extern an_udi_t an_udi_platform_linux;
@@ -12,9 +13,11 @@ extern an_udi_t an_udi_platform_linux;
 olibc_msg_q_hdl an_conf_q_hdl = NULL;
 
 typedef enum an_conf_e_ {
-    AN_AUTONOMIC_START,
-    AN_AUTONOMIC_STOP,
-    AN_CONFIG_UDI
+    AN_CONFIG_AUTONOMIC_START,
+    AN_CONFIG_AUTONOMIC_STOP,
+    AN_CONFIG_UDI,
+    AN_CONFIG_INTF_ENABLE,
+    AN_CONFIG_INTF_DISABLE
 } an_conf_e;
 
 boolean
@@ -25,7 +28,7 @@ an_enable_cmd_handler (void)
     if (!an_conf_q_hdl) {
         return FALSE;
     }
-    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_AUTONOMIC_START, 
+    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_CONFIG_AUTONOMIC_START, 
                                  0, NULL);
 
     if (retval != OLIBC_RETVAL_SUCCESS) {
@@ -42,7 +45,7 @@ an_disable_cmd_handler (void)
     if (!an_conf_q_hdl) {
         return FALSE;
     }
-    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_AUTONOMIC_STOP,
+    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_CONFIG_AUTONOMIC_STOP,
                                 0, NULL);
     if (retval != OLIBC_RETVAL_SUCCESS) {
         return FALSE;
@@ -73,7 +76,42 @@ an_config_udi_cmd_handler (char *udi_str)
     return TRUE;
 }
 
-void
+boolean
+an_config_intf_enable_cmd_handler (uint32_t if_index)
+{
+    olibc_retval_t retval;
+
+    if (!an_conf_q_hdl) {
+        return FALSE;
+    }
+    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_CONFIG_INTF_ENABLE,
+                                 if_index, NULL);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+boolean
+an_config_intf_disable_cmd_handler (uint32_t if_index)
+{
+    olibc_retval_t retval;
+
+    if (!an_conf_q_hdl) {
+        return FALSE;
+    }
+    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_CONFIG_INTF_DISABLE,
+                                 if_index, NULL);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+static void
 an_conf_set_udi (olibc_msg_q_event_hdl q_event_hdl)
 {
     olibc_retval_t retval;
@@ -103,6 +141,68 @@ an_conf_set_udi (olibc_msg_q_event_hdl q_event_hdl)
     an_set_udi(udi_str);
 }
 
+static void
+an_conf_if_autonomic_enable (olibc_msg_q_event_hdl q_event_hdl)
+{
+    uint64_t if_index;
+    uint32_t if_hndl;
+    olibc_retval_t retval;
+    an_if_info_t *an_if_info = NULL;
+
+    retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to enable interface");
+        return;
+    }
+
+    if_hndl = (uint32_t) if_index;
+
+    an_if_info = an_if_info_db_search(if_hndl, TRUE);
+
+    if (!an_if_info) {
+        printf("\nFailed to get ifinfo to enable interface");
+        return;
+    } 
+    
+    if (an_if_is_cfg_autonomic_enabled(an_if_info)) { 
+        return; 
+    }
+    an_if_set_cfg_autonomic_enable(an_if_info, TRUE); 
+    an_if_autonomic_enable(if_hndl);
+}
+
+static void
+an_conf_if_autonomic_disable (olibc_msg_q_event_hdl q_event_hdl)
+{
+    uint64_t if_index;
+    uint32_t if_hndl;
+    olibc_retval_t retval;
+    an_if_info_t *an_if_info = NULL;
+
+    retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to enable interface");
+        return;
+    }
+
+    if_hndl = (uint32_t) if_index;
+
+    an_if_info = an_if_info_db_search(if_hndl, TRUE);
+
+    if (!an_if_info) {
+        printf("\nFailed to get ifinfo to enable interface");
+        return;
+    } 
+    
+    if (!an_if_is_cfg_autonomic_enabled(an_if_info)) { 
+        return; 
+    }
+    an_if_set_cfg_autonomic_enable(an_if_info, FALSE); 
+    an_if_autonomic_disable(if_hndl);
+}
+
 static boolean 
 an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
 {
@@ -122,18 +222,25 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
     }
 
     switch (msg_type) {
-        case AN_AUTONOMIC_START:
+        case AN_CONFIG_AUTONOMIC_START:
             an_event_db_init();
             an_autonomic_enable();
             an_if_enable_nd_on_all_intfs();
             break;
 
-        case AN_AUTONOMIC_STOP:
+        case AN_CONFIG_AUTONOMIC_STOP:
             an_autonomic_disable();
             break;
+
         case AN_CONFIG_UDI:
             an_conf_set_udi(q_event_hdl);
             break;
+
+        case AN_CONFIG_INTF_ENABLE:
+            an_conf_if_autonomic_enable(q_event_hdl);
+            break;
+        case AN_CONFIG_INTF_DISABLE:
+           break;
         default:
             printf("\nUnknown type command received");
             return FALSE;

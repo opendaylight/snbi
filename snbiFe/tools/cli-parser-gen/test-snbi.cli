@@ -1,1 +1,3 @@
-device-udi("Configure UDI of the device") <STRING:udi>("UDI of the device")
+device("Device level test commands") udi("Configure UDI of the device") <STRING:udi>("UDI of the device")
+interface("Interface level test commands") <STRING:intfname> enable("Enable protocol on the interface")
+interface("Interface level test commands") <STRING:intfname> disable("Disable protocol on the interface")

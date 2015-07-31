@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 
 cparser_result_t 
-cparser_cmd_test_if_list (cparser_context_t *context)
+cparser_cmd_test_interface_list (cparser_context_t *context)
 {
     olibc_if_info_t if_info;
     olibc_if_iterator_filter_t filter;
@@ -47,7 +47,7 @@ cparser_cmd_test_if_list (cparser_context_t *context)
 }
 
 cparser_result_t 
-cparser_cmd_test_if_ip_address (cparser_context_t *context)
+cparser_cmd_test_interface_ip_address (cparser_context_t *context)
 { 
     uint32_t if_index;
     olibc_retval_t retval;
@@ -86,7 +86,7 @@ cparser_cmd_test_if_ip_address (cparser_context_t *context)
 }
 
 cparser_result_t
-cparser_cmd_test_if_ipv6_address (cparser_context_t *context)
+cparser_cmd_test_interface_ipv6_address (cparser_context_t *context)
 {
     uint32_t if_index;
     olibc_retval_t retval;
@@ -125,7 +125,7 @@ cparser_cmd_test_if_ipv6_address (cparser_context_t *context)
 }
 
 cparser_result_t 
-cparser_cmd_test_if_ipv4_address(cparser_context_t *context)
+cparser_cmd_test_interface_ipv4_address (cparser_context_t *context)
 {
     uint32_t if_index;
     olibc_retval_t retval;

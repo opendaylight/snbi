@@ -68,7 +68,7 @@ an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
      * ---------------------------------------------------------- */
     if (BIO_read_filename(stackbio, ca_filestr) <= 0) {
         BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        exit(-1);
+        return AN_CERT_INPUT_PARAM_INVALID;
     }
 
     certstack = PEM_X509_INFO_read_bio(stackbio, NULL, NULL, NULL);
@@ -123,12 +123,12 @@ an_cert_display (const an_cert_t cert)
      * ---------------------------------------------------------- */
     if (BIO_read_filename(certbio, cert_filestr) <= 0) {
         BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        exit(-1);
+        return;
     }
 
     if (! (x509_cert = PEM_read_bio_X509(certbio, NULL, 0, NULL))) {
       BIO_printf(outbio, "Error loading cert into memory\n");
-      exit(-1);
+      return;
     }
     /* ---------------------------------------------------------- *
      * Print the certificate                                      *
@@ -507,7 +507,7 @@ an_cert_get_subject_ou (an_cert_t cert, uint8_t **subject_ou, uint16_t *len)
     * ---------------------------------------------------------- */
     if (BIO_read_filename(stackbio, ca_filestr) <= 0) {
         BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        exit(-1);
+        return AN_CERT_INPUT_PARAM_INVALID;
     }
 
     certstack = PEM_X509_INFO_read_bio(stackbio, NULL, NULL, NULL);
@@ -562,7 +562,7 @@ an_cert_get_subject_sn (an_cert_t cert, uint8_t **serialnum, uint16_t *len)
     * ---------------------------------------------------------- */
     if (BIO_read_filename(stackbio, ca_filestr) <= 0) {
         BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        exit(-1);
+        return AN_CERT_INPUT_PARAM_INVALID;
     }
 
     certstack = PEM_X509_INFO_read_bio(stackbio, NULL, NULL, NULL);

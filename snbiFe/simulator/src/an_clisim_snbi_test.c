@@ -27,3 +27,32 @@ cparser_cmd_test_device_udi_udi (cparser_context_t *context,
 
     return (CPARSER_OK);
 }
+
+cparser_result_t 
+cparser_cmd_test_interface_intfname_enable (cparser_context_t *context, 
+                                            char **intfname_ptr)
+{
+    uint32_t if_index = 0;
+
+    if_index = if_nametoindex(*intfname_ptr);
+
+    if (!an_config_intf_enable_cmd_handler(if_index)) {
+        return CPARSER_NOT_OK;
+    }
+    return (CPARSER_OK);
+}
+
+cparser_result_t 
+cparser_cmd_test_interface_intfname_disable (cparser_context_t *context,
+                                             char **intfname_ptr)
+{
+    uint32_t if_index = 0;
+
+    if_index = if_nametoindex(*intfname_ptr);
+
+    if (!an_config_intf_disable_cmd_handler(if_index)) {
+        return CPARSER_NOT_OK;
+    }
+    return (CPARSER_OK);
+}
+

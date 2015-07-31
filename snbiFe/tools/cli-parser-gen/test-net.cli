@@ -1,5 +1,5 @@
-if("Interface") list("list the interface information")
-if("Interface") ipv4-address("get the IPV4 addresses of the interfaces")
-if("Interface") ipv6-address("get the IPV6 addresses of the interfaces")
-if("Interface") ip-address("get the IP addresses of the interfaces")
+interface("Interface level test commands") list("list the interface information")
+interface("Interface level test commands") ipv4-address("get the IPV4 addresses of the interfaces")
+interface("Interface level test commands") ipv6-address("get the IPV6 addresses of the interfaces")
+interface("Interface level test commands") ip-address("get the IP addresses of the interfaces")
 
