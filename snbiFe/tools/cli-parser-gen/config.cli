@@ -11,8 +11,12 @@ debug("Debugging functions") log("Modify message logging facilities") file("Enab
 
 debug("Debugging functions") neighbor-discovery("Neighbor discovery debug information") <LIST:all,database,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
 no("Negate a command") debug("Debugging functions") neighbor-discovery("Neighbor discovery debug information") <LIST:all,database,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
+no("Negate a command") debug("Debugging functions") neighbor-discovery("Neighbor discovery debug information")
 
 debug("Debugging functions") bootstrap("Bootstrap debug information") <LIST:all,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
 no("Negate a command") debug("Debugging functions") bootstrap("Bootstrap debug information") <LIST:all,events,packets:type>("Type of debugging") <LIST:info,moderate,sev:level>("Debugging level")
+no("Negate a command") debug("Debugging functions") bootstrap("Bootstrap debug information")
+
+no("Negate a command") debug("Debugging functions") all("Disable all debugs")
 
 #endsubmode

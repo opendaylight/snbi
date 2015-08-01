@@ -31,6 +31,13 @@ cparser_glue_show_snbi_neighbors (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_show_snbi_debugs (cparser_t *parser)
+{
+    cparser_cmd_show_snbi_debugs(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_quit (cparser_t *parser)
 {
     cparser_cmd_quit(&parser->context);
@@ -151,6 +158,13 @@ cparser_glue_configure_no_debug_neighbor_discovery_type_level (cparser_t *parser
 }
 
 cparser_result_t
+cparser_glue_configure_no_debug_neighbor_discovery (cparser_t *parser)
+{
+    cparser_cmd_configure_no_debug_neighbor_discovery(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_configure_no_debug_bootstrap_type_level (cparser_t *parser)
 {
     char *type_val;
@@ -168,6 +182,20 @@ cparser_glue_configure_no_debug_bootstrap_type_level (cparser_t *parser)
     cparser_cmd_configure_no_debug_bootstrap_type_level(&parser->context,
         type_ptr,
         level_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_configure_no_debug_bootstrap (cparser_t *parser)
+{
+    cparser_cmd_configure_no_debug_bootstrap(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_configure_no_debug_all (cparser_t *parser)
+{
+    cparser_cmd_configure_no_debug_all(&parser->context);
     return CPARSER_OK;
 }
 
@@ -1658,6 +1686,33 @@ cparser_node_t cparser_node_test = {
     &cparser_node_test_eol
 };
 
+cparser_node_t cparser_node_configure_root_no_debug_all_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_configure_no_debug_all,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_configure_root_no_debug_all = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "all",
+    "Disable all debugs",
+    NULL,
+    &cparser_node_configure_root_no_debug_all_eol
+};
+
+cparser_node_t cparser_node_configure_root_no_debug_bootstrap_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_configure_no_debug_bootstrap,
+    NULL,
+    NULL,
+    NULL
+};
+
 cparser_node_t cparser_node_configure_root_no_debug_bootstrap_type_level_eol = {
     CPARSER_NODE_END,
     0,
@@ -1711,7 +1766,7 @@ cparser_node_t cparser_node_configure_root_no_debug_bootstrap_type = {
     0,
     &cparser_list_node_configure_root_no_debug_bootstrap_type_all,
     "Type of debugging",
-    NULL,
+    &cparser_node_configure_root_no_debug_bootstrap_eol,
     &cparser_node_configure_root_no_debug_bootstrap_type_level
 };
 
@@ -1720,8 +1775,17 @@ cparser_node_t cparser_node_configure_root_no_debug_bootstrap = {
     0,
     "bootstrap",
     "Bootstrap debug information",
-    NULL,
+    &cparser_node_configure_root_no_debug_all,
     &cparser_node_configure_root_no_debug_bootstrap_type
+};
+
+cparser_node_t cparser_node_configure_root_no_debug_neighbor_discovery_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_configure_no_debug_neighbor_discovery,
+    NULL,
+    NULL,
+    NULL
 };
 
 cparser_node_t cparser_node_configure_root_no_debug_neighbor_discovery_type_level_eol = {
@@ -1782,7 +1846,7 @@ cparser_node_t cparser_node_configure_root_no_debug_neighbor_discovery_type = {
     0,
     &cparser_list_node_configure_root_no_debug_neighbor_discovery_type_all,
     "Type of debugging",
-    NULL,
+    &cparser_node_configure_root_no_debug_neighbor_discovery_eol,
     &cparser_node_configure_root_no_debug_neighbor_discovery_type_level
 };
 
@@ -2112,6 +2176,24 @@ cparser_node_t cparser_node_quit = {
     &cparser_node_quit_eol
 };
 
+cparser_node_t cparser_node_show_snbi_debugs_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_show_snbi_debugs,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_show_snbi_debugs = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "debugs",
+    "Debugs enabled",
+    NULL,
+    &cparser_node_show_snbi_debugs_eol
+};
+
 cparser_node_t cparser_node_show_snbi_neighbors_eol = {
     CPARSER_NODE_END,
     0,
@@ -2126,7 +2208,7 @@ cparser_node_t cparser_node_show_snbi_neighbors = {
     0,
     "neighbors",
     "SNBI Neighbors",
-    NULL,
+    &cparser_node_show_snbi_debugs,
     &cparser_node_show_snbi_neighbors_eol
 };
 

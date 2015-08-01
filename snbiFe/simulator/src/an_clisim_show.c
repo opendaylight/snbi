@@ -17,6 +17,7 @@
 #include <an_cert.h>
 #include <an_addr.h>
 #include <an_str.h>
+#include <an_logger_linux.h>
 
 
 uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
@@ -125,6 +126,14 @@ cparser_cmd_show_snbi_neighbors (cparser_context_t *context)
     printf("\n%80s", an_table_header);
     an_nbr_db_walk(an_show_nbr_command_cb, NULL);
     printf("\n%80s", an_show_trailer);
+    printf("\n");
+    return (CPARSER_OK);
+}
+
+cparser_result_t 
+cparser_cmd_show_snbi_debugs (cparser_context_t *context)
+{
+    an_debug_log_show();
     printf("\n");
     return (CPARSER_OK);
 }

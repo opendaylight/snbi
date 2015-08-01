@@ -13,6 +13,7 @@ extern cparser_node_t cparser_root;
 cparser_result_t cparser_cmd_clear_screen(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_device(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_neighbors(cparser_context_t *context);
+cparser_result_t cparser_cmd_show_snbi_debugs(cparser_context_t *context);
 cparser_result_t cparser_cmd_quit(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure_quit(cparser_context_t *context);
@@ -30,9 +31,12 @@ cparser_result_t cparser_cmd_configure_debug_bootstrap_type_level(cparser_contex
 cparser_result_t cparser_cmd_configure_no_debug_neighbor_discovery_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
+cparser_result_t cparser_cmd_configure_no_debug_neighbor_discovery(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure_no_debug_bootstrap_type_level(cparser_context_t *context,
     char **type_ptr,
     char **level_ptr);
+cparser_result_t cparser_cmd_configure_no_debug_bootstrap(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_no_debug_all(cparser_context_t *context);
 cparser_result_t cparser_cmd_test(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_get_firstnode(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_init(cparser_context_t *context);

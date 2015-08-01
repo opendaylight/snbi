@@ -89,6 +89,31 @@ cparser_cmd_configure_no_debug_neighbor_discovery_type_level
     return (CPARSER_OK);
 }
 
+cparser_result_t 
+cparser_cmd_configure_no_debug_neighbor_discovery (cparser_context_t *context)
+{
+    an_config_debug_log(AN_LOG_ND_ALL, AN_DEBUG_INFO, FALSE);
+    printf("\n");
+    return (CPARSER_OK);
+}
+
+cparser_result_t 
+cparser_cmd_configure_no_debug_bootstrap (cparser_context_t *context)
+{
+    an_config_debug_log(AN_LOG_BS_ALL, AN_DEBUG_INFO, FALSE);
+    printf("\n");
+    return (CPARSER_OK);
+}
+
+cparser_result_t 
+cparser_cmd_configure_no_debug_all (cparser_context_t *context)
+{
+    an_config_debug_log(AN_LOG_ND_ALL, AN_DEBUG_INFO, FALSE);
+    an_config_debug_log(AN_LOG_BS_ALL, AN_DEBUG_INFO, FALSE);
+    printf("\n");
+    return (CPARSER_OK);
+}
+
 cparser_result_t
 cparser_cmd_configure_debug_bootstrap_type_level
                                           (cparser_context_t *context,

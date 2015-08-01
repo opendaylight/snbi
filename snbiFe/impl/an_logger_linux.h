@@ -17,5 +17,7 @@ boolean an_log_stdout_set(void);
 boolean an_log_file_set(uint8_t *file_name);
 
 extern void vbuginf(const char *, va_list args);
+extern void an_debug_log_show(void);
+extern void an_debug_log_all(boolean sense);
 
 #endif

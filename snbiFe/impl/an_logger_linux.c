@@ -20,12 +20,13 @@
 
 #define AN_LOG_FLAG_FROM_LOG_CFG(cfg) (an_pow(2, cfg - 1))
 int an_debug_map[AN_LOG_ALL_ALL] = {
-        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
-        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
-        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
-        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
-        AN_DEBUG_MAX, AN_DEBUG_MAX
-        };
+                        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+                        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+                        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+                        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+                        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX,
+                        AN_DEBUG_MAX, AN_DEBUG_MAX, AN_DEBUG_MAX
+                       };
 
 extern an_file_api_ret_enum 
 an_file_write_fs(an_file_descr_t fd, const char *fmt, va_list args);
@@ -110,23 +111,34 @@ const uint8_t *an_log_lev_str [] = {
 
 const uint8_t *an_log_cfg_string [] = {
     "None",
-    "AN ND Events",
-    "AN ND Packets",
-    "AN ND DB",
-    "AN ND All",
-    "AN BS Events",
-    "AN BS Packets",
-    "AN BS All",
-    "AN RA Events",
-    "AN RA DB",
-    "AN RA All",
-    "AN Srvc Events",
-    "AN Srvc Packets",
-    "AN Srvc AAA",
-    "AN Srvc NTP",
-    "AN Srvc SYSLOG",
-    "AN Srvc IDP",
-    "AN Srvc All",
+    "AN Nbr Discovery Events",
+    "AN Nbr Discovery Packets",
+    "AN Nbr Discovery DB",
+    "AN Nbr Discovery All",
+
+    "AN Bootstrap Events",
+    "AN Bootstrap Packets",
+    "AN Bootstrap All",
+
+    "AN Registrar Events",
+    "AN Registrar DB",
+    "AN Registrar All",
+
+    "AN Services Events",
+    "AN Services Packets",
+    "AN Services AAA",
+    "AN Services NTP",
+    "AN Services SYSLOG",
+    "AN Services IDP",
+    "AN Services Topology",
+    "AN Services CONFIG",
+    "AN Services All",
+
+    "AN Intent Events",
+    "AN Intent Packets",
+    "AN Intent All",
+
+    "AN INfra Events",
 };
 
 static const uint8_t *an_log_string [] = {
@@ -256,25 +268,18 @@ void an_set_log_lev (an_log_type_e log_type, an_debug_level_e lev, boolean flag)
     if (flag) {
         if (lev <= an_debug_map[log_type]) {
             an_debug_map[log_type] = lev;
-            printf("\n\tDebugging is Enabled for  %s %s",
+            printf("\n\tDebugging Enabled for  %s %s",
                    an_log_cfg_string[log_type],
                    an_log_lev_str[an_debug_map[log_type]]);
-        } else {
-            printf("\n\tWarning!!!!Debugging is already enabled for  %s %s",
-                   an_log_cfg_string[log_type], an_log_lev_str[lev]);
         }
     } else {
         if ((lev <= an_debug_map[log_type]) && 
              (an_debug_map[log_type] != AN_DEBUG_MAX)) {
-            printf("\n\tDebugging is Disabled for  %s %s",
+            printf("\n\tDebugging Disabled for  %s %s",
                     an_log_cfg_string[log_type],
                     an_log_lev_str[an_debug_map[log_type]]);
             an_debug_map[log_type] = AN_DEBUG_MAX;
-        } else {
-            printf("\n\tError!!!!Disabling the debugs [%s %s] that are not"
-                   " enabled", an_log_cfg_string[log_type],
-                   an_log_lev_str[lev]);
-        }
+        } 
     }
 }
 
@@ -288,6 +293,10 @@ void an_config_debug_log (an_log_type_e type, an_debug_level_e lev, boolean flag
             break;
         case AN_LOG_BS_ALL:
             an_set_log_lev(AN_LOG_BS_EVENT, lev, flag);
+            an_set_log_lev(AN_LOG_BS_PACKET, lev, flag);
+            break;
+
+        case AN_LOG_SRVC_ALL:
             an_set_log_lev(AN_LOG_SRVC_EVENT, lev, flag);
             an_set_log_lev(AN_LOG_SRVC_PACKET, lev, flag);
             an_set_log_lev(AN_LOG_SRVC_AAA, lev, flag);
@@ -306,6 +315,31 @@ void an_config_debug_log (an_log_type_e type, an_debug_level_e lev, boolean flag
     }
 }
 
+void an_debug_log_show (void)
+{
+    an_log_type_e log_type;
+    bool printHeader = TRUE;
+
+    for (log_type = AN_LOG_ND_EVENT; log_type < AN_LOG_ALL_ALL; log_type++) {
+         if ((log_type == AN_LOG_ND_ALL) ||
+             (log_type == AN_LOG_BS_ALL) ||
+             (log_type == AN_LOG_SRVC_ALL) ||
+             (log_type == AN_LOG_RA_ALL) ||
+             (log_type == AN_LOG_INTENT_ALL) ||
+             (an_debug_map[log_type] == AN_DEBUG_MAX)) {
+             continue;
+         } else {
+            if (an_debug_map[log_type] != AN_DEBUG_MAX) {
+                if (printHeader) {
+                    printHeader = FALSE;
+                    printf("\nDebugging is enabled for ");
+                }
+                printf("\n \t %s %s",an_log_cfg_string[log_type],
+                       an_log_lev_str[an_debug_map[log_type]]);
+            }
+        }
+    }
+}
 
 
 void an_log_start (an_log_cfg_e cfg)
@@ -395,7 +429,7 @@ void an_debug_log_start (boolean flag)
     }
 }
 
-static void an_debug_log_all (boolean sense)
+void an_debug_log_all (boolean sense)
 {
     if (sense) {
         an_debug_log_start(TRUE);
