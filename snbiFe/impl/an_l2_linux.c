@@ -32,7 +32,7 @@
 
 #define AN_MAX_VLAN       4090
 #define AN_MIN_VLAN        300
-#define AN_VLAN_START     2000
+#define AN_VLAN_START     4000
 
 uint8 an_multicast[] =  {0x01, 0x00, 0x0C, 0xCD, 0xCD, 0xDC};
 

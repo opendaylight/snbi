@@ -12,7 +12,7 @@
 
 #include <an_if_mgr.h>
 
-#define AN_VLAN_START     2000
+#define AN_VLAN_START     4000
 #define AN_NO_INNER_VLAN_TAG 0
 #define AN_TEMP_INNER_TAG 4094
 #define AN_MAX_WAIT_COUNT_BEFORE_SETUP_ABORT 10

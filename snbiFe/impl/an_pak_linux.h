@@ -14,11 +14,12 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
-
 #include <olibc_pak.h>
 
 typedef struct olibc_pak_t_ an_pak_linux_t;
 
-boolean an_linux_sock_create(void);
+extern boolean 
+an_pak_init_ipv6_udp_hdr(olibc_pak_hdl pak_hdl);
+
 
 #endif

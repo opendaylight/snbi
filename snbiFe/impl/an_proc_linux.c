@@ -10,7 +10,7 @@
 #include <an_types_linux.h>
 #include <olibc_pthread.h>
 #include <olibc_msg_q.h>
-#include "an_linux_sock.h"
+#include "an_sock_linux.h"
 
 #define AN_GROUP "FF02::150"
 
@@ -49,7 +49,7 @@ void
 an_attach_to_environment (void) 
 {
     /* Create AN socket */
-    an_linux_sock_create();
+    an_linux_sock_init();
     /* Infra enable for AN */
     an_if_services_init();
     /* Add the interfaces to AN db */

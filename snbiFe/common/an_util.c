@@ -31,6 +31,7 @@
 #include <an_event_mgr.h>
 #include <an_mem_guard.h>
 #include <an_config_download.h>
+#include <an_ntp.h>
 
 static boolean an_addr_generator_initialized = FALSE;
 an_avl_tree an_mem_elem_tree;

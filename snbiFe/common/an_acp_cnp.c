@@ -7,6 +7,9 @@
  */
 
 #include "an_acp_cnp.h"
+#include "an_acp.h"
+#include "an_ntp.h"
+
 an_acp_cap_set_t an_acp_capability_set;
 boolean an_set_secure_channel_cli = FALSE;
 

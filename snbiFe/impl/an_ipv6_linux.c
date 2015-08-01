@@ -21,6 +21,7 @@
 #include <netinet/ip6.h>
 #include <sys/types.h>
 #include <ifaddrs.h>
+#include "an_sock_linux.h"
 
 #define IPV6_FLOWLABEL_MASK     htonl(0x000FFFFF)
 #define IPV6_FLOWINFO_MASK      htonl(0x0FFFFFFF)
@@ -97,16 +98,12 @@ inline an_v6addr_t an_ipv6_get_ll (an_if_t ifhndl)
 
 inline boolean an_ipv6_join_mld_group (an_if_t ifhndl, an_v6addr_t *group_addr)
 {
-    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
-        "\n%sFailed to add the interface to join the multicast group",
-        an_nd_event);
-    return (TRUE);
+    return (an_linux_sock_join_mld_group(ifhndl, group_addr));
 }
 
 inline boolean an_ipv6_leave_mld_group (an_if_t ifhndl, an_v6addr_t *group_addr)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (TRUE);
+    return (an_linux_sock_leave_mld_group(ifhndl, group_addr));
 }
 
 boolean an_ipv6_preroute_pak (an_pak_t *pak, an_if_t ifhndl, an_addr_t nhop)

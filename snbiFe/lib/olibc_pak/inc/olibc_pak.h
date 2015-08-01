@@ -3,6 +3,7 @@
 
 #include <olibc_common.h>
 #include <olibc_net.h>
+#include <netinet/in.h>
 
 typedef struct olibc_pak_t_* olibc_pak_hdl;
 
