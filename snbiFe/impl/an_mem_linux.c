@@ -143,9 +143,17 @@ an_free_guard (void *buffer)
 }
 
 void
-an_memcpy_guard_s(void *target, uint32_t dest_len, void *source, uint32_t
-        src_len) {
-    memcpy(target, source, dest_len);
+an_memcpy_guard_s (void *target, uint32_t dest_len, 
+                   void *source, uint32_t src_len) 
+{
+    int len;
+
+    len = dest_len;
+    if (dest_len != src_len) {
+        printf("\nan_memcpy_guard_s src len and dest len are not the same");
+        len = dest_len > src_len ? src_len:dest_len;
+    }
+    memcpy(target, source, len);
 }
 
 an_errno 
@@ -156,7 +164,8 @@ an_memcpy_s(void *dest, an_rsize dmax, const void *src, an_rsize smax)
 }
 
 an_errno 
-an_memset_s(void *dest, uint8_t value, an_rsize len) {
+an_memset_s(void *dest, uint8_t value, an_rsize len) 
+{
 
     memset(dest, value, len);
     return EOK;
@@ -166,12 +175,20 @@ an_errno
 an_memcmp_s(const void *dest, an_rsize dmax, const void *src,
                 an_rsize smax, int *diff)
 {
+    int len;
+
     *diff = -1;
     if (dest == src) {
         *diff = 0;
         return EOK;
     }
-    *diff = memcmp(dest, src, dmax);
+
+    len = dmax;
+    if (dmax != smax) {
+        len = dmax > smax ? smax : dmax;
+    }
+
+    *diff = memcmp(dest, src, len);
     return EOK;
 }
 
