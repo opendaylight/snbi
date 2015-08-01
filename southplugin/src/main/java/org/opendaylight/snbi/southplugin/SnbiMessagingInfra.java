@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -137,6 +139,25 @@ public class SnbiMessagingInfra {
         }
     }
     
+    private void mcastJoinAllInterfaces() {
+    	SocketAddress mcastJoinSock =new InetSocketAddress(SnbiUtils.getIPv6MutlicastAddress(), snbiPortNumber);
+            Enumeration<NetworkInterface> intflist;
+			try {
+				intflist = NetworkInterface.getNetworkInterfaces();
+				while (intflist.hasMoreElements()) {
+					NetworkInterface intf = intflist.nextElement();
+					if (intf.isUp() && !intf.isLoopback()) {
+						socket.joinGroup(mcastJoinSock, intf);
+					}
+				}
+			} catch (SocketException e) {
+				log.error("Failed to join mcast group on all interface "+e);
+				e.printStackTrace();
+			} catch (IOException e) {
+				log.error("Failed to join mcast group on all interface "+e);
+				e.printStackTrace();
+			}
+    }
     
     /**
      * Setup a multicast socket, bind it to a port and join the multicast group.
@@ -147,11 +168,12 @@ public class SnbiMessagingInfra {
         log.debug("Initing SnbiMulticastSocket");
         socket = new MulticastSocket(snbiPortNumber);
         socket.setReuseAddress(true);
-        socket.joinGroup(SnbiUtils.getIPv6MutlicastAddress());
         // Nonintutive, set to TRUE not to loopback.
         socket.setLoopbackMode(true);
         // The number of hops the packets can propagate.
         socket.setTimeToLive(mcastTTL);
+        
+        mcastJoinAllInterfaces();
 
         // Creating an anonymous thread.
         pktRcvrThread = new Thread("Pkt Listener Thread") {
