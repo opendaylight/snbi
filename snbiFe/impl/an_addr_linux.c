@@ -67,7 +67,7 @@ uint8_t an_ipv6_addr_codes[AN_IPV6_MAX_ADDR_CODES];
 uint8_t an_ipv6_addr_codes[AN_IPV6_MAX_ADDR_CODES];
 
 const an_v4addr_t AN_V4ADDR_ZERO = {0};
-const an_v6addr_t AN_V6ADDR_ZERO = {0};
+const an_v6addr_t AN_V6ADDR_ZERO = {{{0}}};
 const an_addr_t AN_ADDR_ZERO = {0};
 
 const an_addr_t an_addr_loopback = {.type = ADDR_IPV6,

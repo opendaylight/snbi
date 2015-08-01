@@ -821,7 +821,7 @@ an_mem_show_cb (an_avl_node_t *node, void *args)
         return (AN_AVL_WALK_FAIL);
     }
 
-    printf("\n%50s %10u %10d", elem->name, elem->buffer, elem->buffer_size);
+    printf("\n%50s %10p %10d", elem->name, elem->buffer, elem->buffer_size);
 
     return (AN_AVL_WALK_SUCCESS);
 }

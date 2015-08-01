@@ -24,6 +24,9 @@
 
 an_timer an_generictimer = {0};
 
+uint8_t* an_anra_get_ca_type_name(void);
+
+
 static const uint8_t *an_srvc_type_s[] = {
     "AAA Service",
     "None",

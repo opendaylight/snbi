@@ -10,6 +10,7 @@
 #include "../al/an_addr.h"
 #include "../al/an_logger.h"
 #include "an_srvc_db.h"
+#include <an_str.h>
 
 uint8_t *an_anr_service_name;
 an_timer an_anra_bs_thyself_retry_timer = {0};
