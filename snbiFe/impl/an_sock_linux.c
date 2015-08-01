@@ -140,6 +140,13 @@ an_linux_sock_init (void)
         return FALSE;
     }
 
+    enable = FALSE;
+    if (setsockopt(an_sock_fd, IPPROTO_IPV6,
+                   IPV6_MULTICAST_LOOP, &enable, sizeof(enable)) < 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+        "\nFailed to disable loopback sock ptions");
+        return FALSE;
+    }
     memset(&fd_event_info, 0, sizeof(olibc_fd_event_info_t));
 
     fd_event_info.fd = an_sock_fd;

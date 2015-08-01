@@ -240,6 +240,7 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
             an_conf_if_autonomic_enable(q_event_hdl);
             break;
         case AN_CONFIG_INTF_DISABLE:
+            an_conf_if_autonomic_disable(q_event_hdl);
            break;
         default:
             printf("\nUnknown type command received");
