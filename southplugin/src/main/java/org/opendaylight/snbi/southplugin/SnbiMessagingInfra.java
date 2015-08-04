@@ -267,7 +267,9 @@ public class SnbiMessagingInfra {
         sb.append("TLV Info - ");
         switch (pkt.getmsgType()) {
             case SNBI_MSG_BS_INVITE:
-                sb.append("Domain ID:"+pkt.getDomainIDTLV()+" Device ID:"+pkt.getDeviceIDTLV()+"");
+                sb.append("Device UDI:" +pkt.getUDITLV()+" Domain ID:"+pkt.getDomainIDTLV());
+                sb.append("\n\t\t\t\tRegistrar ID:"+pkt.getRegistrarIDTLV()+" Device ID:"+pkt.getDeviceIDTLV());
+                sb.append("\n\t\t\t\tRegistarIPaddr:"+pkt.getRegistrarIPaddrTLV());
                 break;
             case SNBI_MSG_BS_REJECT:
                 break;
