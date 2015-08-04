@@ -689,6 +689,18 @@ public class SnbiPkt {
         this.setStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_RA_ID.getValue(),
                 registrarID);  
     }
+    
+    public String getRegistrarIDTLV () {
+	    short protocolValue = this.protocolType.getValue();
+
+    	if (protocolValue != SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP.getValue()) {
+       		log.error("Cannot get registar ID for protocol type "+this.protocolType);
+       		return null;
+       	}
+    	
+    	return this.getStringTLV(SnbiBsTlvType.SNBI_BS_TLV_TYPE_RA_ID.getValue());
+
+    }
 
 
 	public void setDeviceIPv6TLV(InetAddress nodeAddress) {
