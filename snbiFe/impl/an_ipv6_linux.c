@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include "an_sock_linux.h"
+#include "an_if_linux.h"
 
 #define IPV6_FLOWLABEL_MASK     htonl(0x000FFFFF)
 #define IPV6_FLOWINFO_MASK      htonl(0x0FFFFFFF)
@@ -73,27 +74,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline an_v6addr_t an_ipv6_get_ll (an_if_t ifhndl)
 {
-    struct ifaddrs *ifaddr, *ifa;
-    struct sockaddr_in6 ip;
-    char if_name[IFNAMSIZ];
-
-    if (getifaddrs(&ifaddr) == -1) {
-        perror("getifaddrs");
-        freeifaddrs(ifaddr); 
-        return (AN_V6ADDR_ZERO);
-    }
-    if_indextoname(ifhndl, if_name); 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr->sa_family != AF_INET6) continue;
-        if (strncmp(ifa->ifa_name, if_name, IFNAMSIZ)) continue;
-        struct sockaddr_in6 *current_addr = (struct sockaddr_in6 *) ifa->ifa_addr;
-        if (!IN6_IS_ADDR_LINKLOCAL(&(current_addr->sin6_addr))) continue;            
-            memcpy(&ip, current_addr, sizeof(ip)); 
-            freeifaddrs(ifaddr);
-            return (ip.sin6_addr); 
-    }
-    freeifaddrs(ifaddr);
-    return (AN_V6ADDR_ZERO);
+    return (an_if_linux_get_ipv6_ll(ifhndl));
 }
 
 inline boolean an_ipv6_join_mld_group (an_if_t ifhndl, an_v6addr_t *group_addr)

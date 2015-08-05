@@ -106,7 +106,6 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
                     for (int i = 0; i < mac.length; i++) {
                         sb.append(String.format("%02x%s", mac[i], (((i+1) % 2 == 0) && (i < (mac.length - 1) ) ) ? "." : ""));
                     }
-                    sb.append(String.format("%c", '\0'));
                     return sb.toString();
                 }
             }
