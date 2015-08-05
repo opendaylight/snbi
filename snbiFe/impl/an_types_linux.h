@@ -120,8 +120,10 @@ typedef uint32_t an_v4addr_t;
 typedef struct addrtype_ {
     char type;
     char length;
-    an_v4addr_t ip_addr;
-    an_v6addr_t ipv6_addr;
+    union {
+        an_v4addr_t ip_addr;
+        an_v6addr_t ipv6_addr;
+    };
 } addrtype;
 
 typedef an_pak_linux_t paktype;

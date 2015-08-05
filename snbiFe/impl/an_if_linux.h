@@ -23,13 +23,15 @@ typedef struct an_if_linux_info_t_ {
     uint8_t hw_addr[AN_IF_HW_ADDR_LEN];
     uint32_t hw_addr_len;
     uint32_t hw_type;
+    olibc_list_hdl if_addr_list_hdl;
 } an_if_linux_info_t;
 
 typedef struct linux_dot1q_qinq_vlan_id_t_ {
     ushort vlanid; /* This is the Outer/only VLAN Id */
     ushort inner_vlanid;
 } linux_dot1q_qinq_vlan_id_t;
-boolean an_if_is_acp_interface(an_if_t an_ifhndl);
 
+boolean an_if_is_acp_interface(an_if_t an_ifhndl);
 extern void an_if_enable_nd_on_all_intfs(void);
+extern an_v6addr_t an_if_linux_get_ipv6_ll(an_if_t an_ifhndl);
 #endif
