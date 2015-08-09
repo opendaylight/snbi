@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.apache.karaf.snbi.shell.plugin;
 
 import org.apache.felix.gogo.commands.Command;
@@ -11,7 +19,7 @@ public class SnbiShell extends OsgiCommandSupport {
     @SuppressWarnings("deprecation")
     @Argument(index = 0, name = "DomainName", description = "Name of the domain", required = true, multiValued = false)
     String domainName = null;
-    
+
     @Override
     protected Object doExecute() throws Exception {
         System.out.println("Starting SNBI for domain:"+domainName);
