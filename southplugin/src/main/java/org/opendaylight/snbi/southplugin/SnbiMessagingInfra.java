@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.opendaylight.snbi.southplugin;
 
 import java.io.IOException;
@@ -32,11 +40,11 @@ public class SnbiMessagingInfra {
     // The multicast socket created during first time instantiation.
     private MulticastSocket socket = null;
     // Multicast Thread
-    private Thread pktRcvrThread = null; 
+    private Thread pktRcvrThread = null;
     // Multicast Thread Terminate
     private boolean pktRcvrThreadrun = true;
-    
-    
+
+
     private Thread pktRcvdNotifyThread = null;
     private boolean pktTcvdNotifyThreadrun = true;
     BlockingQueue<SnbiPkt> pktRcvdNotifyQueue = null;
@@ -47,13 +55,13 @@ public class SnbiMessagingInfra {
 
     // The singleton instance.
     private static SnbiMessagingInfra snbiMsgInfraInstance = null;
- 
+
     // The logger object.
     private static final Logger log = LoggerFactory
             .getLogger(SnbiMessagingInfra.class);
     // List of pkt listeners.
     private ConcurrentHashMap<Integer,ISnbiMsgInfraPktsListener> rcvPktListenerList = null;
-    
+
 
     /**
      * Get the Singleton instance of the messaging infrastructure.
@@ -94,11 +102,11 @@ public class SnbiMessagingInfra {
         }
         log.debug("SnbiMessagingInfra Sucess");
     }
-    
+
     private void pktRcvListenerInit () {
         rcvPktListenerList = new ConcurrentHashMap<Integer,ISnbiMsgInfraPktsListener> ();
     }
-    
+
     private void pktNotifyThreadinit () {
         pktRcvdNotifyQueue = new LinkedBlockingQueue<SnbiPkt>();
 
@@ -107,10 +115,10 @@ public class SnbiMessagingInfra {
                 pktNotifyListenerThread();
             }
         };
-        
+
         pktRcvdNotifyThread.start();
     }
-    
+
     private void pktNotifyListenerThread () {
         SnbiPkt pkt;
         while (pktTcvdNotifyThreadrun) {
@@ -122,7 +130,7 @@ public class SnbiMessagingInfra {
             }
         }
     }
-    
+
     private void pktSender () {
         SnbiPkt pkt = null;
         while (pktSenderThreadrun) {
@@ -138,7 +146,7 @@ public class SnbiMessagingInfra {
             }
         }
     }
-    
+
     private void mcastJoinAllInterfaces() {
     	SocketAddress mcastJoinSock =new InetSocketAddress(SnbiUtils.getIPv6MutlicastAddress(), snbiPortNumber);
             Enumeration<NetworkInterface> intflist;
@@ -158,7 +166,7 @@ public class SnbiMessagingInfra {
 				e.printStackTrace();
 			}
     }
-    
+
     /**
      * Setup a multicast socket, bind it to a port and join the multicast group.
      * @throws IOException
@@ -172,7 +180,7 @@ public class SnbiMessagingInfra {
         socket.setLoopbackMode(true);
         // The number of hops the packets can propagate.
         socket.setTimeToLive(mcastTTL);
-        
+
         mcastJoinAllInterfaces();
 
         // Creating an anonymous thread.
@@ -182,11 +190,11 @@ public class SnbiMessagingInfra {
                 packetReceiver();
             }
         };
-        
+
         log.debug("Mcast listener thread started");
         this.pktRcvrThreadrun = true;
         pktRcvrThread.start();
-        
+
         pktSendQueue = new LinkedBlockingQueue<SnbiPkt>();
         pktSenderThread = new Thread ("Pkt sender thread") {
             public void run () {
@@ -250,7 +258,7 @@ public class SnbiMessagingInfra {
         if (rcvPktListenerList == null) {
             return;
         }
-        
+
         log.debug("IN packet: Length:"+pkt.getMsgLength()+" UDI:"+pkt.getUDITLV()+"\n\t\t\tProtocol ID:"+pkt.getProtocolType()+
                 " Msg ID:"+pkt.getmsgType()+"\n\t\t\tSRC IP:"+pkt.getSrcIP()+" DST IP:"
                 +pkt.getDstIP()+"\n\t\t\tIngressIntf:"+pkt.getEgressInterface()+"\n\t\t\t"+getProtocolDebugMsg(pkt));
@@ -258,10 +266,10 @@ public class SnbiMessagingInfra {
                 .entrySet()) {
             rcvpktlistener = entry.getValue();
             matchAndNotify(rcvpktlistener, pkt);
- 
-        }          
+
+        }
     }
-    
+
     private String getProtocolDebugMsg(SnbiPkt pkt) {
         StringBuilder sb = new StringBuilder();
         sb.append("TLV Info - ");
@@ -292,8 +300,8 @@ public class SnbiMessagingInfra {
                 break;
             default:
                 break;
-        
-        
+
+
         }
         return sb.toString();
     }
@@ -346,14 +354,14 @@ public class SnbiMessagingInfra {
             log.debug("OUT packet: Length:"+pkt.getMsgLength()+" UDI: "+pkt.getUDITLV()+"\n\t\t\tProtocol ID:"+pkt.getProtocolType()+
                     " Msg ID:"+pkt.getmsgType()+"\n\t\t\tSRC IP:"+pkt.getSrcIP()+" DST IP:"
                     +pkt.getDstIP()+"\n\t\t\tEgressIntf:"+pkt.getEgressInterface()+"\n\t\t\t"+getProtocolDebugMsg(pkt));
-            
+
             dgramPkt = new DatagramPacket(pkt.getMsg(), pkt.getMsgLength(),
                     pkt.getDstIP(), snbiPortNumber);
-            
+
             socket.send(dgramPkt);
         } catch (Exception excpt) {
             log.error("Failed to send packet "+excpt + " Interface "+((intf == null) ? "null":intf.getDisplayName()));
-           
+
             excpt.printStackTrace();
             throw excpt;
         }
@@ -367,9 +375,9 @@ public class SnbiMessagingInfra {
      *         ignore the new registration.
      */
     public int registerRcvPktListener(ISnbiMsgInfraPktsListener rcvPktListener) {
-        
+
         rcvPktListenerList.put(rcvPktListener.hashCode(), rcvPktListener);
-        
+
         log.debug("Listener registration success");
         return rcvPktListener.hashCode();
     }
@@ -395,7 +403,7 @@ public class SnbiMessagingInfra {
             socket.close();
             socket = null;
         }
-    
+
         if (pktRcvrThread != null) {
             this.pktRcvrThreadrun = false;
             try {
@@ -415,7 +423,7 @@ public class SnbiMessagingInfra {
             throw  new NullPointerException("Destination IP is null");
         }
         try {
-            if (pkt.getDstIP().equals(SnbiUtils.getIPv6LoopbackAddress()) || 
+            if (pkt.getDstIP().equals(SnbiUtils.getIPv6LoopbackAddress()) ||
                 pkt.getDstIP().equals(pkt.getSrcIP())){
                 pktRcvdNotifyQueue.put(pkt);
             } else {

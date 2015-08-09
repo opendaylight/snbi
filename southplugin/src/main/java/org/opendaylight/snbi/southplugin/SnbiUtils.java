@@ -1,5 +1,12 @@
-package org.opendaylight.snbi.southplugin;
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
 
+package org.opendaylight.snbi.southplugin;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -11,12 +18,12 @@ public class SnbiUtils {
     // Logger.
     private static final Logger log = LoggerFactory
             .getLogger(SnbiUtils.class);
-    
+
     // The multicast group that SNBI messages are sent.
     private final static String mcastIPString = "FF02::150";
     // The multicast InetAddress for the mcast IP string.
     private final static String loopbackIPv6String = "::1";
-        
+
     public static InetAddress getIPv6MutlicastAddress () {
         try {
             InetAddress addr = InetAddress.getByName(mcastIPString);
@@ -26,7 +33,7 @@ public class SnbiUtils {
             return null;
         }
     }
-    
+
     public static InetAddress getIPv6LoopbackAddress () {
         try {
             InetAddress addr = InetAddress.getByName(loopbackIPv6String);
@@ -35,7 +42,7 @@ public class SnbiUtils {
             log.error("Failed to get IPv6 Loopback address "+excpt);
             return null;
         }
-    }   
+    }
 }
 
 
@@ -43,9 +50,9 @@ public class SnbiUtils {
  * The Message types supported.
  */
 enum SnbiMsgType {
-    SNBI_MSG_ND_HELLO(1), 
+    SNBI_MSG_ND_HELLO(1),
     SNBI_MSG_ND_BYE(2),
-    SNBI_MSG_NI_CERT_REQ(3), 
+    SNBI_MSG_NI_CERT_REQ(3),
     SNBI_MSG_NI_CERT_RESP(4),
     SNBI_MSG_BS_INVITE(5),
     SNBI_MSG_BS_REJECT(6),
@@ -92,7 +99,7 @@ enum SnbiNdTlvType {
 	SNBI_ND_TLV_TYPE_IF_NAME(8),
 	SNBI_ND_TLV_TYPE_IF_TYPE(9),
 	SNBI_ND_TLV_TYPE_MAX(11);
-	
+
 
     private Integer value;
 
@@ -120,11 +127,11 @@ enum SnbiNdTlvType {
         }
         return null;
     }
-} 
+}
 
 enum SnbiBsTlvType {
      SNBI_BS_TLV_TYPE_INVALID(0),
-     SNBI_BS_TLV_TYPE_UDI(1), 
+     SNBI_BS_TLV_TYPE_UDI(1),
      SNBI_BS_TLV_TYPE_DEVICE_ID(2),
      SNBI_BS_TLV_TYPE_DOMAIN_ID(3),
      SNBI_BS_TLV_TYPE_IF_V4ADDR(4),

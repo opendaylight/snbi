@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.opendaylight.snbi.southplugin;
 
 import java.security.InvalidParameterException;
@@ -23,10 +31,10 @@ public class Snbi {
             throw new InvalidParameterException(domainName
                     + " is not a valid domain name");
         }
-        
+
         if (registrarList == null) {
             registrarList = new ConcurrentHashMap <String, SnbiRegistrar>();
-            
+
         }
         log.debug("Creating registrar");
         log.debug("Validating domain name ");
@@ -41,7 +49,7 @@ public class Snbi {
 
     public List<SnbiNode> getNeighbors(String domainName) {
         SnbiRegistrar registrar = null;
-        
+
         if (registrarList.containsKey(domainName)) {
             registrar = registrarList.get(domainName);
             return registrar.getNeighborNodes();
