@@ -16,16 +16,33 @@
 #include "an_proc_linux.h"
 
 int an_sock_fd = 0;
-olibc_fd_event_hdl an_sock_fd_event_hdl = NULL;
+olibc_fd_event_listener_hdl an_sock_fd_event_listener_hdl = NULL;
 
 
 boolean
-an_linux_sock_fd_read_cbk (int fd, uint32_t ev_type)
+an_linux_sock_fd_read_cbk (olibc_fd_event_hdl fd_event_hdl)
 {
+    int fd;
     olibc_retval_t retval;
     olibc_pak_info_t pak_info;
     olibc_pak_hdl pak_hdl = NULL;
     uint32_t ipv6_udp_offset = 0;
+    uint32_t ev_type = 0;
+
+    if (!fd_event_hdl) {
+        return FALSE;
+    }
+
+    retval = olibc_fd_event_get_fd(fd_event_hdl, &fd);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
+    retval = olibc_fd_event_get_type(fd_event_hdl, &ev_type);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
 
     if (!(ev_type & OLIBC_FD_READ)) {
         return FALSE;
@@ -56,7 +73,6 @@ an_linux_sock_fd_read_cbk (int fd, uint32_t ev_type)
     }
 
     an_msg_mgr_incoming_message(pak_hdl);
-
     return TRUE;
 }
 
@@ -111,7 +127,7 @@ an_linux_sock_init (void)
 {
     olibc_retval_t retval;
     struct sockaddr_in6 serv_addr;
-    olibc_fd_event_info_t fd_event_info;
+    olibc_fd_event_listener_info_t fd_event_listener_info;
     int enable;
 
     an_sock_fd = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -147,14 +163,16 @@ an_linux_sock_init (void)
         "\nFailed to disable loopback sock ptions");
         return FALSE;
     }
-    memset(&fd_event_info, 0, sizeof(olibc_fd_event_info_t));
+    memset(&fd_event_listener_info, 0, sizeof(olibc_fd_event_listener_info_t));
 
-    fd_event_info.fd = an_sock_fd;
-    fd_event_info.fd_event_filter |= OLIBC_FD_READ;
-    fd_event_info.pthread_hdl = an_pthread_hdl;
-    fd_event_info.fd_event_cbk = an_linux_sock_fd_read_cbk;
+    fd_event_listener_info.args = NULL;
+    fd_event_listener_info.fd = an_sock_fd;
+    fd_event_listener_info.pthread_hdl = an_pthread_hdl;
+    fd_event_listener_info.fd_event_filter |= OLIBC_FD_READ;
+    fd_event_listener_info.fd_listener_cbk = an_linux_sock_fd_read_cbk;
 
-    retval = olibc_fd_event_create(&an_sock_fd_event_hdl, &fd_event_info);
+    retval = olibc_fd_event_listener_create(&an_sock_fd_event_listener_hdl, 
+                                            &fd_event_listener_info);
 
     return TRUE;
 }
