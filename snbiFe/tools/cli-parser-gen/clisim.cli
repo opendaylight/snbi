@@ -1,10 +1,7 @@
 clear("Clear functions") screen("screen")
 
-show("Show running system information") snbi("SNBI information") device("Host device")
+#include "show.cli"
 
-show("Show running system information") snbi("SNBI information") neighbors("SNBI Neighbors")
-
-show("Show running system information") snbi("SNBI information") debugs("Debugs enabled")
 quit("Quit the simulator")
 
 configure("SNBI Configuration mode")

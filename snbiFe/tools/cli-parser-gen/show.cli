@@ -1,0 +1,6 @@
+show("Show running system information") snbi("SNBI information") device("Host deevice") 
+show("Show running system information") snbi("SNBI information") neighbors("SNBI Neighbors")
+show("Show running system information") snbi("SNBI information") debugs("Debugs enabled")
+show("Show running system information") snbi("SNBI information") certificate("Certificate information") ca("Certificate Authority certificate")
+show("Show running system information") snbi("SNBI information") certificate("Certificate information") device("Device Domain Certificate")
+show("Show running system information") snbi("SNBI information") certificate("Certificate information") all("All store certificates")

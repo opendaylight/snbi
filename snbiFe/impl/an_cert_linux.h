@@ -14,4 +14,5 @@
 
 EVP_PKEY* an_key_get_private_key_from_keypair (uint8_t *key_label);
 void an_openssl_init(void);
+void an_cert_save(uint8_t *filename, an_cert_t cert);
 #endif

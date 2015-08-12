@@ -309,23 +309,35 @@ an_itoa (uint8_t num, uint8_t *str)
 }
 
 void
+an_str_convert_mac_addr_str_to_hex (const an_mac_addr *macstr, an_mac_addr *buf)
+{
+    buf[0] = (an_str_atoh(macstr[0]) << 4) | an_str_atoh(macstr[1]);
+    buf[1] = (an_str_atoh(macstr[2]) << 4) | an_str_atoh(macstr[3]);
+    buf[2] = (an_str_atoh(macstr[5]) << 4) | an_str_atoh(macstr[6]);
+    buf[3] = (an_str_atoh(macstr[7]) << 4) | an_str_atoh(macstr[8]);
+    buf[4] = (an_str_atoh(macstr[10]) << 4) | an_str_atoh(macstr[11]);
+    buf[5] = (an_str_atoh(macstr[12]) << 4) | an_str_atoh(macstr[13]);
+}
+
+
+void
 an_str_get_device_suffix_in_hex (uint8_t *str, uint8_t *hexsuf)
 {
     uint8_t str_temp[strlen(str)+1];
-    uint8_t *token, *suf_temp = NULL;
+    uint8_t *token = NULL, *suf_temp = NULL;
     uint16_t temp,quotient;
     uint16_t suf_int, i=3;
     uint8_t hexadecimalNumber[4];
-    uint8_t delimiter[1] = {(uint8_t)AN_HOSTNAME_SUFFIX_DELIMITER};
 
     an_memset(hexadecimalNumber, '0', 4);
     an_strncpy_s(str_temp,strlen(str)+1, str, strlen(str));
 
    /* get the device suffix */
-    token = an_str_strtok(str_temp, delimiter);
-    while (token != NULL) {
-         suf_temp = token;
-         token = an_str_strtok(NULL, delimiter);
+    token = an_strchr(str_temp, AN_HOSTNAME_SUFFIX_DELIMITER);
+    if(token != NULL) {
+         suf_temp = token + 1;
+    } else {
+        return;
     }
 
     suf_int = atoi(suf_temp);
