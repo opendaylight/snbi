@@ -83,7 +83,7 @@ cparser_cmd_show_snbi_device (cparser_context_t *context)
             an_cert_serial_num_print(domain_cert);
     }
     if (!an_addr_is_zero(device_ip)) {
-        printf("\n\t\t%-25s -%s", "Device Address",
+        printf("\n\t\t%-25s - %s", "Device Address",
                an_addr_get_string(&device_ip));
     }
     if (domain_cert.valid) {
@@ -136,5 +136,34 @@ cparser_cmd_show_snbi_debugs (cparser_context_t *context)
     an_debug_log_show();
     printf("\n");
     return (CPARSER_OK);
+}
+
+cparser_result_t 
+cparser_cmd_show_snbi_certificate_ca (cparser_context_t *context) 
+{
+    an_cert_t ca_cert;
+
+    ca_cert = an_get_ca_cert();
+    an_cert_display (ca_cert);
+    return CPARSER_OK;
+}
+cparser_result_t 
+cparser_cmd_show_snbi_certificate_device (cparser_context_t *context)
+{
+    an_cert_t device_cert;
+
+    if(!an_get_domain_cert(&device_cert)) {
+        return CPARSER_OK;
+    }
+    an_cert_display (device_cert);
+    return CPARSER_OK;
+}
+
+cparser_result_t 
+cparser_cmd_show_snbi_certificate_all(cparser_context_t *context)
+{
+    cparser_cmd_show_snbi_certificate_ca(context);
+    cparser_cmd_show_snbi_certificate_device(context);
+    return CPARSER_OK;
 }
 
