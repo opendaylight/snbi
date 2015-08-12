@@ -189,7 +189,7 @@ an_memcmp_s(const void *dest, an_rsize dmax, const void *src,
     }
 
     *diff = memcmp(dest, src, len);
-    return EOK;
+    return 0;
 }
 
 

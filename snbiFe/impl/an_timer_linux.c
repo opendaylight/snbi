@@ -193,5 +193,5 @@ an_timer_is_expired (an_timer *timer_hdl)
 void
 an_timer_start64 (an_timer *timer, int64_t delay)
 {
-    printf("\n %s not defined",__FUNCTION__);
+//    printf("\n %s not defined",__FUNCTION__);
 }

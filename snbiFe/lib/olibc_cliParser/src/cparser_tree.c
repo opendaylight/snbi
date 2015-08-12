@@ -38,6 +38,27 @@ cparser_glue_show_snbi_debugs (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_show_snbi_certificate_ca (cparser_t *parser)
+{
+    cparser_cmd_show_snbi_certificate_ca(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_show_snbi_certificate_device (cparser_t *parser)
+{
+    cparser_cmd_show_snbi_certificate_device(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_show_snbi_certificate_all (cparser_t *parser)
+{
+    cparser_cmd_show_snbi_certificate_all(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_quit (cparser_t *parser)
 {
     cparser_cmd_quit(&parser->context);
@@ -2176,6 +2197,69 @@ cparser_node_t cparser_node_quit = {
     &cparser_node_quit_eol
 };
 
+cparser_node_t cparser_node_show_snbi_certificate_all_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_show_snbi_certificate_all,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_show_snbi_certificate_all = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "all",
+    "All store certificates",
+    NULL,
+    &cparser_node_show_snbi_certificate_all_eol
+};
+
+cparser_node_t cparser_node_show_snbi_certificate_device_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_show_snbi_certificate_device,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_show_snbi_certificate_device = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "device",
+    "Device Domain Certificate",
+    &cparser_node_show_snbi_certificate_all,
+    &cparser_node_show_snbi_certificate_device_eol
+};
+
+cparser_node_t cparser_node_show_snbi_certificate_ca_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_show_snbi_certificate_ca,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_show_snbi_certificate_ca = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "ca",
+    "Certificate Authority certificate",
+    &cparser_node_show_snbi_certificate_device,
+    &cparser_node_show_snbi_certificate_ca_eol
+};
+
+cparser_node_t cparser_node_show_snbi_certificate = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "certificate",
+    "Certificate information",
+    NULL,
+    &cparser_node_show_snbi_certificate_ca
+};
+
 cparser_node_t cparser_node_show_snbi_debugs_eol = {
     CPARSER_NODE_END,
     0,
@@ -2190,7 +2274,7 @@ cparser_node_t cparser_node_show_snbi_debugs = {
     0,
     "debugs",
     "Debugs enabled",
-    NULL,
+    &cparser_node_show_snbi_certificate,
     &cparser_node_show_snbi_debugs_eol
 };
 
@@ -2225,7 +2309,7 @@ cparser_node_t cparser_node_show_snbi_device = {
     CPARSER_NODE_KEYWORD,
     0,
     "device",
-    "Host device",
+    "Host deevice",
     &cparser_node_show_snbi_neighbors,
     &cparser_node_show_snbi_device_eol
 };
