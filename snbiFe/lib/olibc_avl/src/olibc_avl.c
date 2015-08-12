@@ -270,15 +270,16 @@ int do_walk (olibc_avl *node, olibc_avl_walk_cb_f walk_cb, void *args)
         }
     }
 
-    if (!walk_cb(node, args)) {
-        return 0;
-    }
-
     if (node->left) {
         if (!do_walk(node->left, walk_cb, args)) {
             return 0;
         }
     }
+
+    if (!walk_cb(node, args)) {
+        return 0;
+    }
+
     return 1;
 }
 
