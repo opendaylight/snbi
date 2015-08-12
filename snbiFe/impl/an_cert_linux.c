@@ -17,9 +17,9 @@
 #include <an_cert.h>
 #include <an_sudi.h>
 #include <an_cert_linux.h>
-
-//void an_cert_display(const an_cert_t cert);
-//void an_cert_short_print(const an_cert_t cert);
+#include <sys/stat.h>
+#include "../al/an_str.h"
+#include <unistd.h>
 
 void
 an_cert_serial_num_print (const an_cert_t cert)
@@ -37,68 +37,49 @@ an_openssl_init (void)
      ERR_load_crypto_strings();
 }
 
-an_cert_api_ret_enum 
-an_cert_get_subject_cn (an_cert_t cert, uint8_t **subject, uint16_t *len)
+void
+an_cert_save (uint8_t *filename, an_cert_t cert)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return (AN_CERT_INPUT_PARAM_INVALID);
+    X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
+                                cert.len);
+    BIO *out = NULL;  
+
+    if (!x509_cert) {
+        return;
+    }
+    out = BIO_new_file(filename, "w+");
+    PEM_write_bio_X509(out, x509_cert);
+    BIO_free_all(out);
 }
 
 an_cert_api_ret_enum
 an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
 {
-    STACK_OF(X509_INFO) *certstack;
-    const char   ca_filestr[] = DEVICE_CERT_LOCATION;
-    X509_INFO *stack_item     = NULL;
     X509_NAME *certsubject = NULL;
-    BIO *stackbio = NULL;
-    BIO *outbio = NULL;
-    X509 *x509_cert = NULL;
-    int i;
     an_cert_api_ret_enum retval = AN_CERT_API_SUCCESS;
-
-    /* ---------------------------------------------------------- *
-     * Create the Input/Output BIO's.                             *
-     * ---------------------------------------------------------- */
-    stackbio = BIO_new(BIO_s_file());
-    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-    /* ---------------------------------------------------------- *
-     * Load the file with the list of certificates in PEM format  *
-     * ---------------------------------------------------------- */
-    if (BIO_read_filename(stackbio, ca_filestr) <= 0) {
-        BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        return AN_CERT_INPUT_PARAM_INVALID;
+    X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
+                                cert.len);
+    
+    if (!x509_cert) {
+        return AN_CERT_UNKNOWN_FAILURE;
     }
 
-    certstack = PEM_X509_INFO_read_bio(stackbio, NULL, NULL, NULL);
-
-    /* ---------------------------------------------------------- *
-     * Cycle through the stack to display various cert data       *
-     * ---------------------------------------------------------- */
-    for (i = 0; i < sk_X509_INFO_num(certstack); i++) {
-        stack_item = sk_X509_INFO_value(certstack, i);
-        certsubject = X509_get_subject_name(stack_item->x509);
-        char *subj = X509_NAME_oneline(certsubject, NULL, 0);
-        //BIO_printf(outbio, "subject = %s\n", subj);
-        if (subj) {
-           *len = strlen(subj);
-           *name = (uint8_t *)malloc((*len)+1);
-           if (!*name) {
-              return (AN_CERT_MEM_ALLOC_FAIL);
-           }
-           memcpy(*name, subj, *len);
-        } else {
-          retval = AN_CERT_UNKNOWN_FAILURE;
+    certsubject = X509_get_subject_name(x509_cert);
+    char *subj = X509_NAME_oneline(certsubject, NULL, 0);
+    if (subj) {
+        *len = strlen(subj);
+        *name = (uint8_t *)malloc((*len));
+        if (!*name) {
+            return (AN_CERT_MEM_ALLOC_FAIL);
         }
+        memcpy(*name, subj, *len);
+    } else {
+        retval = AN_CERT_UNKNOWN_FAILURE;
     }
     /* ---------------------------------------------------------- *
      * Free up the resources                                      *
      * ---------------------------------------------------------- */
-    sk_X509_INFO_pop_free(certstack, X509_INFO_free);
     X509_free(x509_cert);
-    BIO_free_all(stackbio);
-    BIO_free_all(outbio);
 
     return (retval);
 }
@@ -106,30 +87,18 @@ an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
 void 
 an_cert_display (const an_cert_t cert)
 {
-    const char cert_filestr[] = DEVICE_CERT_LOCATION;
-    BIO *certbio = NULL;
     BIO *outbio = NULL;
-    X509 *x509_cert = NULL;
+    X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
+                                    cert.len);
     int ret;
 
+    if (!x509_cert) {
+        return;
+    }
     /* ---------------------------------------------------------- *
      * Create the Input/Output BIO's.                             *
      * ---------------------------------------------------------- */
-    certbio = BIO_new(BIO_s_file());
     outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-    /* ---------------------------------------------------------- *
-     * Load the certificate from file (PEM).                      *
-     * ---------------------------------------------------------- */
-    if (BIO_read_filename(certbio, cert_filestr) <= 0) {
-        BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        return;
-    }
-
-    if (! (x509_cert = PEM_read_bio_X509(certbio, NULL, 0, NULL))) {
-      BIO_printf(outbio, "Error loading cert into memory\n");
-      return;
-    }
     /* ---------------------------------------------------------- *
      * Print the certificate                                      *
      * ---------------------------------------------------------- */
@@ -245,6 +214,11 @@ an_cert_generate_request(uint8_t *tp_label, uint8_t *key_label,
     an_udi_t my_udi = {};
     BIO *out_sin = NULL;
     an_cert_api_ret_enum retval = AN_CERT_API_SUCCESS;
+    int csr_der_fd;
+    struct stat st;
+    off_t size;
+    char *temp_buf;
+    ssize_t readBytes;
 
     if (!device_id || !domain_id || !pkcs10 || !pkcs10_sign) {
         printf("\n Invalid device or domain name");
@@ -318,7 +292,44 @@ an_cert_generate_request(uint8_t *tp_label, uint8_t *key_label,
         retval = AN_CERT_KEY_GET_PUBKEY_FAIL;
         goto free_all;
     }
+    
+    out = BIO_new_file(CSR_REQ_LOCATION, "w+");
+    ret = i2d_X509_REQ_bio(out, x509_req);
+    if (!ret){
+        retval = AN_CERT_UNKNOWN_FAILURE;
+        goto free_all;
+    }
+    BIO_free_all(out);
+    csr_der_fd = open (CSR_REQ_LOCATION, O_RDONLY);
+    if (csr_der_fd == -1) {
+        perror ("open");
+        return AN_CERT_UNKNOWN_FAILURE;
+    }
+    stat(CSR_REQ_LOCATION, &st);
+    size = st.st_size;
+    temp_buf = malloc(size);
+    if(!temp_buf) {
+        return AN_CERT_UNKNOWN_FAILURE;
+    }
+    //Read the src file
+    readBytes = read(csr_der_fd, temp_buf, size);
+    pkcs10->data = temp_buf;
+    pkcs10->len = size;
+#if 0
+    pkcs10->data = (char*)malloc(sizeof(x509_req) + 1);
+    if (!pkcs10->data) {
+       retval = AN_CERT_MEM_ALLOC_FAIL;
+        goto free_all;
+    }
+    memcpy(pkcs10->data, x509_req, sizeof(x509_req));
+    pkcs10->len = sizeof(x509_req) ;
 
+    ret=(int)BIO_write_filename(out, CSR_REQ_LOCATION);
+    if (!ret){
+        retval = AN_CERT_UNKNOWN_FAILURE;
+        goto free_all;
+    }
+#endif
     // set sign key of x509 req
     ret = X509_REQ_sign(x509_req, pKey, EVP_sha1());    // return x509_req->signature->length
     if (ret <= 0){
@@ -336,26 +347,28 @@ an_cert_generate_request(uint8_t *tp_label, uint8_t *key_label,
        retval = AN_CERT_UNKNOWN_FAILURE;
         goto free_all;
     }
-    ret=(int)BIO_write_filename(out_sin, CA_CERT_DER_LOCATION);
+#if 0
+    ret=(int)BIO_write_filename(out_sin, CSR_REQ_DER_LOCATION);
     if (!ret){
        retval = AN_CERT_UNKNOWN_FAILURE;
         goto free_all;
     }
-    pkcs10->data = (char*)malloc(sizeof(out_sin) + 1);
-    if (!pkcs10->data) {
+#endif
+    pkcs10_sign->data = (char*)malloc(sizeof(out_sin) + 1);
+    if (!pkcs10_sign->data) {
        retval = AN_CERT_MEM_ALLOC_FAIL;
         goto free_all;
     }
-    memcpy(pkcs10->data, out_sin, sizeof(out_sin));
-    pkcs10->len = sizeof(out_sin) ;
-
-    out = BIO_new_file(CSR_REQ_LOCATION, "w+");
-    ret = PEM_write_bio_X509_REQ(out, x509_req);
+    memcpy(pkcs10_sign->data, out_sin, sizeof(out_sin));
+    pkcs10_sign->len = sizeof(out_sin) ;
+   // out = BIO_new_file(CSR_REQ_LOCATION, "w+");
+   // ret = PEM_write_bio_X509_REQ(out, x509_req);
 
     //free
     free_all:
         X509_REQ_free(x509_req);
-        BIO_free_all(out);
+        //BIO_free_all(out);
+        BIO_free_all(out_sin);
 
         EVP_PKEY_free(pKey);
         BN_free(bne);
@@ -382,14 +395,14 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 an_cert_api_ret_enum
 an_cert_set_domain_ca_cert (uint8_t *tp_label, an_cert_t domain_ca_cert)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    an_cert_save (CA_CERT_LOCATION, domain_ca_cert);
     return (AN_CERT_API_SUCCESS);
 }
 
 an_cert_api_ret_enum
 an_cert_set_domain_device_cert (uint8_t *tp_label, an_cert_t device_cert)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    an_cert_save (DEVICE_CERT_LOCATION, device_cert);
     return (AN_CERT_API_SUCCESS);
 }
 
@@ -485,56 +498,59 @@ an_cert_unconfig_crl_auto_download (void)
 }
 
 an_cert_api_ret_enum
-an_cert_get_subject_ou (an_cert_t cert, uint8_t **subject_ou, uint16_t *len)
+an_cert_get_subject_cn (an_cert_t cert, uint8_t **subject_cn, uint16_t *len)
 {
-    STACK_OF(X509_INFO) *certstack;
-    const char ca_filestr[] = DEVICE_CERT_LOCATION;
-    X509_INFO *stack_item     = NULL;
     X509_NAME *certsubject = NULL;
-    BIO *stackbio = NULL;
-    BIO *outbio = NULL;
-    X509 *x509_cert = NULL;
-    int i;
-
-    /* ---------------------------------------------------------- *
-    * Create the Input/Output BIO's.                             *
-    * ---------------------------------------------------------- */
-    stackbio = BIO_new(BIO_s_file());
-    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-    /* ---------------------------------------------------------- *
-    * Load the file with the list of certificates in PEM format  *
-    * ---------------------------------------------------------- */
-    if (BIO_read_filename(stackbio, ca_filestr) <= 0) {
-        BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        return AN_CERT_INPUT_PARAM_INVALID;
+    X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
+                                cert.len);
+    char subject_cn_val[256] = "** n/a **";
+    
+    if(!x509_cert) {
+        return AN_CERT_UNKNOWN_FAILURE;
     }
 
-    certstack = PEM_X509_INFO_read_bio(stackbio, NULL, NULL, NULL);
-
-    /* ---------------------------------------------------------- *
-    * Cycle through the stack to display various cert data       *
-    * ---------------------------------------------------------- */
-    for (i = 0; i < sk_X509_INFO_num(certstack); i++) {
-        char subject_ou_val[256] = "** n/a **";
-        stack_item = sk_X509_INFO_value(certstack, i);
-        certsubject = X509_get_subject_name(stack_item->x509);
-        X509_NAME_get_text_by_NID(certsubject, NID_organizationalUnitName,
-                                           subject_ou_val, 256);
-       *len = strlen(subject_ou_val);
-        *subject_ou = (uint8_t *)malloc((*len)+1);
-        if (!*subject_ou) {
-            return (AN_CERT_MEM_ALLOC_FAIL);
-        }
-        memcpy(*subject_ou, subject_ou_val, *len);
+    certsubject = X509_get_subject_name(x509_cert);
+    X509_NAME_get_text_by_NID(certsubject, NID_commonName,
+                                    subject_cn_val, 256);
+    *len = strlen(subject_cn_val);
+    *subject_cn = (uint8_t *)malloc((*len));
+    if (!*subject_cn) {
+        return (AN_CERT_MEM_ALLOC_FAIL);
     }
+    memcpy(*subject_cn, subject_cn_val, *len);
     /* ---------------------------------------------------------- *
     * Free up the resources                                      *
     * ---------------------------------------------------------- */
-    sk_X509_INFO_pop_free(certstack, X509_INFO_free);
     X509_free(x509_cert);
-    BIO_free_all(stackbio);
-    BIO_free_all(outbio);
+
+   return (AN_CERT_API_SUCCESS);
+}
+
+an_cert_api_ret_enum
+an_cert_get_subject_ou (an_cert_t cert, uint8_t **subject_ou, uint16_t *len)
+{
+    X509_NAME *certsubject = NULL;
+    X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
+                            cert.len);
+    char subject_ou_val[256] = "** n/a **";
+    
+    if(!x509_cert) {
+        return AN_CERT_UNKNOWN_FAILURE;
+    }
+
+    certsubject = X509_get_subject_name(x509_cert);
+    X509_NAME_get_text_by_NID(certsubject, NID_organizationalUnitName,
+                                    subject_ou_val, 256);
+    *len = an_strlen(subject_ou_val);
+    *subject_ou = (uint8_t *)malloc((*len));
+    if (!*subject_ou) {
+        return (AN_CERT_MEM_ALLOC_FAIL);
+    }
+    memcpy(*subject_ou, subject_ou_val, *len);
+    /* ---------------------------------------------------------- *
+    * Free up the resources                                      *
+    * ---------------------------------------------------------- */
+    X509_free(x509_cert);
 
    return (AN_CERT_API_SUCCESS);
 }
@@ -542,56 +558,30 @@ an_cert_get_subject_ou (an_cert_t cert, uint8_t **subject_ou, uint16_t *len)
 an_cert_api_ret_enum
 an_cert_get_subject_sn (an_cert_t cert, uint8_t **serialnum, uint16_t *len)
 {
-    STACK_OF(X509_INFO) *certstack;
-    const char ca_filestr[] = DEVICE_CERT_LOCATION;
-    X509_INFO *stack_item     = NULL;
     X509_NAME *certsubject = NULL;
-    BIO *stackbio = NULL;
-    BIO *outbio = NULL;
-    X509 *x509_cert = NULL;
-    int i;
-
-    /* ---------------------------------------------------------- *
-    * Create the Input/Output BIO's.                             *
-    * ---------------------------------------------------------- */
-    stackbio = BIO_new(BIO_s_file());
-    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-    /* ---------------------------------------------------------- *
-    * Load the file with the list of certificates in PEM format  *
-    * ---------------------------------------------------------- */
-    if (BIO_read_filename(stackbio, ca_filestr) <= 0) {
-        BIO_printf(outbio, "Error loading cert bundle into memory\n");
-        return AN_CERT_INPUT_PARAM_INVALID;
+    X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
+                            cert.len);
+    char subject_serialNumber[256] = "** n/a **";
+    
+    if (!x509_cert) {
+        return AN_CERT_UNKNOWN_FAILURE;
     }
 
-    certstack = PEM_X509_INFO_read_bio(stackbio, NULL, NULL, NULL);
-
-    /* ---------------------------------------------------------- *
-    * Cycle through the stack to display various cert data       *
-    * ---------------------------------------------------------- */
-    for (i = 0; i < sk_X509_INFO_num(certstack); i++) {
-        char subject_serialNumber[256] = "** n/a **";
-        stack_item = sk_X509_INFO_value(certstack, i);
-        certsubject = X509_get_subject_name(stack_item->x509);
-        X509_NAME_get_text_by_NID(certsubject, NID_serialNumber,
-                                           subject_serialNumber, 256);
-        *len = strlen(subject_serialNumber);
-        *serialnum = (uint8_t *)malloc((*len)+1);
-        if (!*serialnum) {
-            return (AN_CERT_MEM_ALLOC_FAIL);
-        }
-        memcpy(*serialnum, subject_serialNumber, *len);
+    certsubject = X509_get_subject_name(x509_cert);
+    X509_NAME_get_text_by_NID(certsubject, NID_serialNumber,
+                                 subject_serialNumber, 256);
+    *len = strlen(subject_serialNumber);
+    *serialnum = (uint8_t *)malloc((*len));
+    if (!*serialnum) {
+        return (AN_CERT_MEM_ALLOC_FAIL);
     }
+    memcpy(*serialnum, subject_serialNumber, *len);
     /* ---------------------------------------------------------- *
     * Free up the resources                                      *
     * ---------------------------------------------------------- */
-    sk_X509_INFO_pop_free(certstack, X509_INFO_free);
     X509_free(x509_cert);
-    BIO_free_all(stackbio);
-    BIO_free_all(outbio);
 
-            return (AN_CERT_API_SUCCESS);
+    return (AN_CERT_API_SUCCESS);
 }
 
 uint16_t

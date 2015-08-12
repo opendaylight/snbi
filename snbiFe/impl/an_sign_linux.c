@@ -84,7 +84,7 @@ an_sign_gen_hash (uint8_t *in_data, uint32_t in_data_len, uint8_t *hash)
 
     hash[an_sha1_length-1] = '\0';
 	#endif
-     //SINDHU TO-DO
+     // TO-DO
     return (AN_SIGN_API_SUCCESS);
 }
 

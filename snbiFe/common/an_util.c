@@ -260,7 +260,6 @@ an_cert_validate_subject_ou (an_cert_t cert, uint8_t *ou_string)
     }
 
     result = an_cert_get_subject_ou(cert, &subject_ou, &len);
-
 	if (result == AN_CERT_OPER_NOT_SUPPORTED) {
 		return (TRUE);
 	}
@@ -272,13 +271,12 @@ an_cert_validate_subject_ou (an_cert_t cert, uint8_t *ou_string)
                     an_cert_enum_get_string(result));
        return FALSE;
     }
-
+            
     if (an_memcmp_s(subject_ou, AN_STR_MAX_LEN, ou_string,
                     an_strlen(ou_string), &indicator) != 0) {
         an_free_guard(subject_ou);
         return (FALSE);
     }
-
     an_free_guard(subject_ou);
     return (TRUE);
 }
