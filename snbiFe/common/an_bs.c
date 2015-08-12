@@ -886,6 +886,7 @@ an_bs_incoming_invite_message (an_msg_package *message)
             return;
         }
     }else {
+#if 0 // ToDo:: ANR signature not yet complete
         if (!an_addr_equal(&message->dest, &message->src)) { 
             DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_INFO, NULL,
                          "\n%sIncoming Invite message has no Signature,"
@@ -897,6 +898,7 @@ an_bs_incoming_invite_message (an_msg_package *message)
         DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL, 
           "\n%sANRA bootstrapping itself- skipping ANRA "
           "signature verification", an_bs_pak);
+#endif
     }
 
     if (message->masa_sign.len) {
@@ -1081,7 +1083,6 @@ an_bs_trigger_request_message (an_msg_package *invite)
                    an_bs_pak, an_cert_enum_get_string(result));
         return;
     }
-    
     an_msg_mgr_init_header(bs_request, AN_PROTO_ACP, 
                            AN_MSG_BS_REQUEST);
 
@@ -1099,7 +1100,6 @@ an_bs_trigger_request_message (an_msg_package *invite)
 	if (pkcs10_sign.len) {
 		bs_request->cert_request = pkcs10; 
 		AN_SET_BIT_FLAGS(bs_request->interest, AN_MSG_INT_UNSIGNED_CERT_REQ);
-
 		bs_request->cert_req_sign = pkcs10_sign;
 		AN_SET_BIT_FLAGS(bs_request->interest, AN_MSG_INT_CERT_REQ_SIGN);
 

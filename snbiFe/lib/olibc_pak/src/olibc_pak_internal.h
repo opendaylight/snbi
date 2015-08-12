@@ -4,7 +4,7 @@
 #include <olibc_pak.h>
 #include <sys/socket.h>
 
-#define OLIBC_MAX_PAK_BUF_SIZE 1472
+#define OLIBC_MAX_PAK_BUF_SIZE 5000
 
 #define OLIBC_IN_IFHNDL_SET 0x01
 #define OLIBC_OUT_IFHNDL_SET 0x02
