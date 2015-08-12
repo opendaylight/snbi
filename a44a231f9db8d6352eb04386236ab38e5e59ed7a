@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a79b1b5_2ac18080",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "I see that we use i2d and d2i extensively in our code, then why save this as PEM format ?",
+      "range": {
+        "startLine": 51,
+        "startChar": 23,
+        "endLine": 51,
+        "endChar": 26
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_4a0f1ce2",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "I see that we convert the DER format certificate to X509_cert multiple times, may be we should have parsed this  in DER format and should have populated an_cert_t as x509_cert. \n\nWe can move the parsing logic out of common if required.",
+      "range": {
+        "startLine": 91,
+        "startChar": 22,
+        "endLine": 91,
+        "endChar": 30
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_aad83054",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "I think we can use int i2d_X509_REQ(X509_REQ *a, unsigned char **pp);\ninstead of to a file, please check the man page of the API. \nWe can avoid writing and reading to a file.",
+      "range": {
+        "startLine": 297,
+        "startChar": 0,
+        "endLine": 297,
+        "endChar": 42
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_4adddc41",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "allocating memory of type pointer type.",
+      "range": {
+        "startLine": 319,
+        "startChar": 0,
+        "endLine": 319,
+        "endChar": 55
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_6ae21805",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "allocating memory of type pointer.",
+      "range": {
+        "startLine": 357,
+        "startChar": 25,
+        "endLine": 357,
+        "endChar": 29
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_4a82bc01",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "please put a null check on each of the variables being freed.",
+      "range": {
+        "startLine": 368,
+        "startChar": 0,
+        "endLine": 368,
+        "endChar": 13
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_caac8c8f",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 506,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "I am not sure I understand why this is initialized with ** n/a ***",
+      "range": {
+        "startLine": 506,
+        "startChar": 31,
+        "endLine": 506,
+        "endChar": 42
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_8add3417",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 513,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "this would already return string length, no need to strlen again. Please use the returned value.",
+      "range": {
+        "startLine": 513,
+        "startChar": 4,
+        "endLine": 513,
+        "endChar": 29
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_0aca844f",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 515,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "strlen doesnt consider the null character, not sure how this works without the null character when we use this to display.",
+      "range": {
+        "startLine": 515,
+        "startChar": 0,
+        "endLine": 515,
+        "endChar": 34
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_6ab538cc",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "please use an_malloc_guard instead of malloc.",
+      "range": {
+        "startLine": 516,
+        "startChar": 29,
+        "endLine": 516,
+        "endChar": 35
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_aae270d3",
+        "filename": "snbiFe/impl/an_mem_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "let us please raise a separate bug to fix this, basically set EOK to FALSE.",
+      "range": {
+        "startLine": 192,
+        "startChar": 10,
+        "endLine": 192,
+        "endChar": 11
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_cabd6c04",
+        "filename": "snbiFe/impl/an_sign_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-12T12:38:32Z",
+      "side": 1,
+      "message": "what is the TODO here ?, please raise a bugzilla and assign this, I see quiet a few TODOs. Please raise one bugzilla and capture all the DDTS.",
+      "range": {
+        "startLine": 87,
+        "startChar": 11,
+        "endLine": 87,
+        "endChar": 13
+      },
+      "revId": "a44a231f9db8d6352eb04386236ab38e5e59ed7a",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
