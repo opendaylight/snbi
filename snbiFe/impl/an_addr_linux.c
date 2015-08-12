@@ -13,6 +13,7 @@
 #include <an_str.h>
 #include <an_logger.h>
 #include <an_addr.h>
+#include <openssl/sha.h>
 
 #define ADDR_IPV6 20 /* IP Version 6 */
 #define ADDRLEN_IPV6 16 
@@ -88,7 +89,12 @@ const an_v6addr_t an_v6addr_loopback = {{AN_V6_LOOPBACK}};
 void 
 an_get_ipv6_group_id_frm_domain (uint8_t *domain_id, uint8_t* group_id)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    uint8_t sha1_result[20];
+
+    SHA1(domain_id, strlen(domain_id), sha1_result);
+    /* Copy least significant 40 bits to GROUPID in ipv6 address */
+    an_memcpy_s(group_id, AN_IPV6_GROUPID_SIZE, &sha1_result[0],
+                                             AN_IPV6_GROUPID_SIZE);
     return;
 }
 
@@ -299,9 +305,5 @@ boolean
 an_get_device_base_mac_addr (an_mac_addr chassis_mac[AN_IEEEBYTES])
 {
      return TRUE;
-}
-void
-an_str_convert_mac_addr_str_to_hex (const an_mac_addr *macstr, an_mac_addr *buf)
-{
 }
 
