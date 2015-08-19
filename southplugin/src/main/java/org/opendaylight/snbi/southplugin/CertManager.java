@@ -1,7 +1,9 @@
 /*
- * Copyright (c) 2014 Ericsson Systems, Inc. and others.  All rights reserved.
- * Anu Nair
- * anu.nair@ericsson.com
+ * Copyright (c) 2014, 2015 Ericsson Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
 package org.opendaylight.snbi.southplugin;
@@ -33,7 +35,7 @@ public class CertManager implements ICertManager, CommandProvider ,DataChangeLis
     private static final Logger logger = LoggerFactory.getLogger(CertManager.class);
     private static CertManager certManager = null;
     private CertManager() {
-    	
+
     }
     public static CertManager getInstance() {
     	if (certManager == null) {
@@ -93,12 +95,12 @@ public class CertManager implements ICertManager, CommandProvider ,DataChangeLis
     public void printWhiteListFromFile() {
         CertRegistrar.INSTANCE.printWhiteListFromFile();;
     }
-    
+
     @Override
     public void printWhiteListFromStore() {
         CertRegistrar.INSTANCE.printWhiteListFromStore();;
     }
-    
+
     @Override
     public void populateWhileListFromStore() {
         CertRegistrar.INSTANCE.populateWhileListFromStore();
@@ -190,11 +192,11 @@ public class CertManager implements ICertManager, CommandProvider ,DataChangeLis
     public void _printWhiteListFromStore(CommandInterpreter ci) {
         CertRegistrar.INSTANCE.printWhiteListFromStore();
     }
-    
+
     public void _populateWhileListFromStore(CommandInterpreter ci) {
         CertRegistrar.INSTANCE.populateWhileListFromStore();
     }
-    
+
     public void _printWhiteListFromFile(CommandInterpreter ci) {
         CertRegistrar.INSTANCE.printWhiteListFromFile();
     }
@@ -202,7 +204,7 @@ public class CertManager implements ICertManager, CommandProvider ,DataChangeLis
     public void _printCertificateLocation(CommandInterpreter ci) {
         logger.info("\n"+CertManagerConstants.KEY_CERT_PATH+"\n");
     }
-    
+
    @Override
    public void onDataChanged(
 		AsyncDataChangeEvent<InstanceIdentifier<?>, DataObject> change) {

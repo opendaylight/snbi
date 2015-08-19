@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.opendaylight.snbi.southplugin;
 
 import java.net.InetAddress;
@@ -8,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implements ISnbiNodeState {
     private static final Logger log = LoggerFactory.getLogger(SnbiNodeStateInvite.class);
-    
+
     public SnbiNodeStateInvite(SnbiNode node) {
         super(node);
     }
@@ -21,21 +29,21 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
     @Override
     public SnbiNodeState nodeStateSetEvent(eventContext evnt) {
         log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
-        sendNodeInviteMsg(evnt.getPkt().getSrcIP(), evnt.getPkt().getIngressInterface());        
+        sendNodeInviteMsg(evnt.getPkt().getSrcIP(), evnt.getPkt().getIngressInterface());
         return node.getCurrState();
     }
-    
+
     private boolean validateNodeForInvite() {
         if (node.getUDI() == null) {
             log.error("Validate Node for Invite failed with null UDI");
             return false;
         }
-        
+
         if (node.getRegistrar() == null || node.getRegistrar().getNodeself() == null ||
                 node.getRegistrar().getNodeself().getNodeAddress() == null) {
             log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null registrar address");
             return false;
-        }        
+        }
         if (node.getDeviceID() == null) {
             log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null device ID");
             return false;
@@ -47,17 +55,17 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
         if (CertManager.getInstance().getRootCACertificate() == null) {
             log.error("[node:"+node.getUDI()+"] Validate Node for Invite failed with Null CA certificate");
             return false;
-        }   
+        }
         return true;
     }
 
     private boolean sendNodeInviteMsg(InetAddress dstIP, NetworkInterface egressIntf) {
-        
+
         if (!validateNodeForInvite()) {
             return false;
         }
-        
-        SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, 
+
+        SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP,
                                    SnbiMsgType.SNBI_MSG_BS_INVITE);
 
         pkt.setUDITLV(node.getUDI());

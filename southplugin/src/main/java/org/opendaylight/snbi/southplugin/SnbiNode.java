@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.opendaylight.snbi.southplugin;
 
 import java.io.IOException;
@@ -80,7 +88,7 @@ public class SnbiNode {
     private SnbiNode (SnbiPkt pkt, SnbiRegistrar registrar) {
         lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
         String udi = pkt.getUDITLV();
-       
+
         log.debug("[node:"+udi+"] New node created");
         this.udi = udi;
         this.peerIfName = pkt.getIfNameTLV();

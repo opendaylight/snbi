@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.opendaylight.snbi.southplugin;
 
 import org.opendaylight.controller.md.sal.binding.api.DataBroker;
@@ -15,10 +23,10 @@ import org.slf4j.LoggerFactory;
 
 // Activator class following the new MD-SAL path
 public class Activator extends AbstractBindingAwareProvider {
-	
+
 	private DataBroker dataBroker;
 	private static Activator INSTANCE;
-	
+
 	public static final InstanceIdentifier<SnbiDomain>  SNBIDOMAIN_IID = InstanceIdentifier.builder(SnbiDomain.class).build();
 	private ListenerRegistration<DataChangeListener> dataChangeListenerRegistration = null;
 
@@ -28,7 +36,7 @@ public class Activator extends AbstractBindingAwareProvider {
 	public DataBroker getDataBroker() {
         return dataBroker;
     }
-	
+
     protected static final Logger logger = LoggerFactory
             .getLogger(Activator.class);
 
@@ -45,7 +53,7 @@ public class Activator extends AbstractBindingAwareProvider {
             CertManager certManager = CertManager.getInstance();
             certManager.start();
             this.dataBroker = session.getSALService(DataBroker.class);
-            dataChangeListenerRegistration = 
+            dataChangeListenerRegistration =
             		this.dataBroker.registerDataChangeListener(LogicalDatastoreType.CONFIGURATION,SNBIDOMAIN_IID,certManager,DataChangeScope.SUBTREE);
 
         } catch (Exception e) {

@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, 2015 Cisco Systems, Inc. and others. All rights reserved.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.opendaylight.snbi.southplugin;
 
 import java.net.InetAddress;
@@ -32,7 +40,7 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
         startPeriodicNICertRequest(evt.getPkt().getSrcIP(), evt.getPkt().getIngressInterface());
         return node.getCurrState();
     }
-    
+
     public SnbiNodeState handleNICertRspPktEvent (SnbiPkt pkt) {
         if (certReqRetryTimer != null) {
             certReqRetryTimer.cancel();
@@ -41,7 +49,7 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
         }
         return (super.handleNICertRspPktEvent(pkt));
     }
-    
+
     private void startPeriodicNICertRequest (InetAddress dstIP, NetworkInterface intf) {
         //     TimerTask certReqRetryTimerTask = null;
  //       retryCount = 0;
@@ -55,16 +63,16 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
                 //+ node.getUDI(), true);
         //certReqRetryTimer.schedule(certReqRetryTimerTask, 0, certReqRetryInterval);
     }
-    
+
     private void sendNICertRequest(InetAddress dstIP, NetworkInterface intf) {
 
-        SnbiPkt pkt = new SnbiPkt(SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, 
+        SnbiPkt pkt = new SnbiPkt(SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP,
                                   SnbiMsgType.SNBI_MSG_NI_CERT_REQ);
         pkt.setDstIP(dstIP);
         pkt.setUDITLV(node.getUDI());
         pkt.setEgressInterface(intf);
         SnbiMessagingInfra.getInstance().packetSend(pkt);
-        
+
         retryCount++;
         if (retryCount >= maxRetryAttempt) {
             certReqRetryTimer.cancel();
@@ -72,5 +80,5 @@ public class SnbiNodeStateNICertRequest extends SnbiNodeStateCommonEventHandlers
             certReqRetryTimer = null;
         }
     }
-    
+
 }
