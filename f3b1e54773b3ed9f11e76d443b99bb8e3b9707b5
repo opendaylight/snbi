@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a79b1b5_ea827aff",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "we have not freed x509_cert here.",
+      "range": {
+        "startLine": 80,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 16
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_ca79be30",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "certsubject memory not freed.",
+      "range": {
+        "startLine": 95,
+        "startChar": 18,
+        "endLine": 95,
+        "endChar": 39
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_0a88161e",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "x509 not freed upon failure.",
+      "range": {
+        "startLine": 96,
+        "startChar": 21,
+        "endLine": 96,
+        "endChar": 22
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_6a766a40",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "subject memory not freed.",
+      "range": {
+        "startLine": 99,
+        "startChar": 15,
+        "endLine": 99,
+        "endChar": 16
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_8a73c64c",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "no memory for null terminating character ?",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 102,
+        "endChar": 51
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_aa7c8221",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "x509 not freed here.",
+      "range": {
+        "startLine": 132,
+        "startChar": 9,
+        "endLine": 132,
+        "endChar": 15
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_2a2cf201",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 530,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "what happens to certsubject ?",
+      "range": {
+        "startLine": 530,
+        "startChar": 4,
+        "endLine": 530,
+        "endChar": 15
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_4a312e59",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "no memory for null character",
+      "range": {
+        "startLine": 539,
+        "startChar": 41,
+        "endLine": 539,
+        "endChar": 44
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_ea359a46",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "no memory for null character.",
+      "range": {
+        "startLine": 571,
+        "startChar": 41,
+        "endLine": 571,
+        "endChar": 44
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_aa3fa224",
+        "filename": "snbiFe/impl/an_cert_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-27T08:12:33Z",
+      "side": 1,
+      "message": "no memory for null character.",
+      "range": {
+        "startLine": 603,
+        "startChar": 40,
+        "endLine": 603,
+        "endChar": 43
+      },
+      "revId": "f3b1e54773b3ed9f11e76d443b99bb8e3b9707b5",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
