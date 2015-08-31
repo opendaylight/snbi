@@ -142,6 +142,8 @@ olibc_if_iterator_get_next (olibc_if_iterator_hdl if_iter_hdl,
     }
 
     if (!if_iter_hdl->pending_data_len) {
+        if_iter_hdl->nlmsg_len = 0;
+        memset(if_iter_hdl->nlmsg_buf, 0, OLIBC_MAX_NL_MSG_LEN);
         if (!olibc_nl_msg_recv(&if_iter_hdl->nl_sock,
                     if_iter_hdl->nlmsg_buf,
                     OLIBC_MAX_NL_MSG_LEN, 
