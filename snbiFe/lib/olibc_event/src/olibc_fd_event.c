@@ -93,6 +93,7 @@ olibc_fd_event_listener_create (olibc_fd_event_listener_hdl *fd_listener_hdl,
 
     fd_listener->fd = listener_info->fd;
     fd_listener->fd_listener_cbk = listener_info->fd_listener_cbk;
+    fd_listener->args = listener_info->args;
 
     evutil_make_socket_nonblocking(listener_info->fd);
 
