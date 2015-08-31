@@ -600,6 +600,20 @@ cparser_glue_test_interface_ip_address (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_test_interface_event_track (cparser_t *parser)
+{
+    cparser_cmd_test_interface_event_track(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_test_interface_event_destroy (cparser_t *parser)
+{
+    cparser_cmd_test_interface_event_destroy(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test_interface_intfname_enable (cparser_t *parser)
 {
     char *intfname_val;
@@ -750,6 +764,42 @@ cparser_node_t cparser_node_test_root_interface_intfname = {
     &cparser_node_test_root_interface_intfname_enable
 };
 
+cparser_node_t cparser_node_test_root_interface_event_destroy_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_interface_event_destroy,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_interface_event_destroy = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "event-destroy",
+    "destroy interface event tracking",
+    &cparser_node_test_root_interface_intfname,
+    &cparser_node_test_root_interface_event_destroy_eol
+};
+
+cparser_node_t cparser_node_test_root_interface_event_track_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_test_interface_event_track,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_test_root_interface_event_track = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "event-track",
+    "track interface events",
+    &cparser_node_test_root_interface_event_destroy,
+    &cparser_node_test_root_interface_event_track_eol
+};
+
 cparser_node_t cparser_node_test_root_interface_ip_address_eol = {
     CPARSER_NODE_END,
     0,
@@ -764,7 +814,7 @@ cparser_node_t cparser_node_test_root_interface_ip_address = {
     0,
     "ip-address",
     "get the IP addresses of the interfaces",
-    &cparser_node_test_root_interface_intfname,
+    &cparser_node_test_root_interface_event_track,
     &cparser_node_test_root_interface_ip_address_eol
 };
 
