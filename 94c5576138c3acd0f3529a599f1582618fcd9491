@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a79b1b5_82396643",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "alignment error, some issue with tab and space.",
+      "range": {
+        "startLine": 29,
+        "startChar": 8,
+        "endLine": 29,
+        "endChar": 28
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_423b4e38",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "why are we getting the fd here ?",
+      "range": {
+        "startLine": 39,
+        "startChar": 13,
+        "endLine": 39,
+        "endChar": 34
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_224092a4",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "Alignment error in quiet a few places... please take care.",
+      "range": {
+        "startLine": 65,
+        "startChar": 2,
+        "endLine": 65,
+        "endChar": 23
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_e2493ad1",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "we have not freed if_iterator memory.",
+      "range": {
+        "startLine": 66,
+        "startChar": 1,
+        "endLine": 66,
+        "endChar": 2
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_024556b2",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "may be have the entire RHS on a new line ?",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 68
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_a21342b7",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "we already have a goto statement, may be we can remove the return statement here.",
+      "range": {
+        "startLine": 116,
+        "startChar": 10,
+        "endLine": 116,
+        "endChar": 16
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_620d2a90",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "please check for null and then do a free, like\nif (if_event_listener) {\nolibc_free(\u0026if_event_listener);\n}",
+      "range": {
+        "startLine": 123,
+        "startChar": 2,
+        "endLine": 123,
+        "endChar": 12
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_821086a9",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "we have already free if_event_listener, before. so first uninit and then free.. Also please check for null on if_event_nl_sock_addr.",
+      "range": {
+        "startLine": 124,
+        "startChar": 8,
+        "endLine": 124,
+        "endChar": 28
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_c2167ea7",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "we need a return statement, here may be we can set the retval before jumping to \"cleanup\" and then cleanup and return.",
+      "range": {
+        "startLine": 125,
+        "startChar": 1,
+        "endLine": 125,
+        "endChar": 2
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_62844ad4",
+        "filename": "snbiFe/makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "please take care of the alignments, especially in makefiles..",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 47
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_42690e24",
+        "filename": "snbiFe/simulator/src/an_clisim_if_event_test.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "please give a better name like test_if_event_pthread_cbk",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 32
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_c2643e4b",
+        "filename": "snbiFe/simulator/src/an_clisim_if_event_test.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-08-31T10:18:07Z",
+      "side": 1,
+      "message": "please have a while loop until retval !\u003d OLIBC_RETVAL_SUCCESS. I understand we are expected to get only one interface event. But I think its better we have it this way so that tomorrow if there are more than one events we have the code already to catch those.",
+      "range": {
+        "startLine": 92,
+        "startChar": 10,
+        "endLine": 92,
+        "endChar": 36
+      },
+      "revId": "94c5576138c3acd0f3529a599f1582618fcd9491",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
