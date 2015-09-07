@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3a79b1b5_d4f70a58",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-09-07T07:32:05Z",
+      "side": 1,
+      "message": "please move this free within the if condition above..",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 14
+      },
+      "revId": "75161b9a9f082b679559a67b479ebe476c982a92",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_34a0be42",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-09-07T07:32:05Z",
+      "side": 1,
+      "message": "alignment, please take care.",
+      "range": {
+        "startLine": 109,
+        "startChar": 11,
+        "endLine": 109,
+        "endChar": 17
+      },
+      "revId": "75161b9a9f082b679559a67b479ebe476c982a92",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3a79b1b5_54a3fa4e",
+        "filename": "snbiFe/lib/olibc_net/src/olibc_if_event.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-09-07T07:32:05Z",
+      "side": 1,
+      "message": "we have to also uninit the netlink sock.. olibc_nl_sock_uninit",
+      "range": {
+        "startLine": 140,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 0
+      },
+      "revId": "75161b9a9f082b679559a67b479ebe476c982a92",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
