@@ -552,8 +552,7 @@ an_cert_get_subject_cn (an_cert_t cert, uint8_t **subject_cn, uint16_t *len)
     if (!*subject_cn) {
         return (AN_CERT_MEM_ALLOC_FAIL);
     }
-    memcpy(*subject_cn, subject_cn_val, (*len));
-    subject_cn[*len] = '\0';
+    memcpy(*subject_cn, subject_cn_val, (*len)+1);
     /* ---------------------------------------------------------- *
     * Free up the resources                                      *
     * ---------------------------------------------------------- */
@@ -590,8 +589,7 @@ an_cert_get_subject_ou (an_cert_t cert, uint8_t **subject_ou, uint16_t *len)
     if (!*subject_ou) {
         return (AN_CERT_MEM_ALLOC_FAIL);
     }
-    memcpy(*subject_ou, subject_ou_val, *len);
-    subject_ou[*len] = '\0';
+    memcpy(*subject_ou, subject_ou_val, (*len)+1);
     /* ---------------------------------------------------------- *
     * Free up the resources                                      *
     * ---------------------------------------------------------- */
@@ -627,8 +625,7 @@ an_cert_get_subject_sn (an_cert_t cert, uint8_t **serialnum, uint16_t *len)
     if (!*serialnum) {
         return (AN_CERT_MEM_ALLOC_FAIL);
     }
-    memcpy(*serialnum, subject_serialNumber, *len);
-    serialnum[*len] = '\0';
+    memcpy(*serialnum, subject_serialNumber, (*len)+1);
     /* ---------------------------------------------------------- *
     * Free up the resources                                      *
     * ---------------------------------------------------------- */
