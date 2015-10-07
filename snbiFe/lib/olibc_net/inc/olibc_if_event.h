@@ -14,7 +14,6 @@ typedef boolean (*olibc_if_event_listener_func_t)
 
 typedef struct olibc_if_event_listener_info_t_ {
     void *args;
-    uint32_t if_event_filter;
     olibc_if_event_listener_func_t if_event_listener_cbk;
     olibc_pthread_hdl pthread_hdl;
 } olibc_if_event_listener_info_t;
