@@ -16,6 +16,7 @@
 
 olibc_pthread_hdl an_pthread_hdl = NULL;
 boolean an_initialised = FALSE;
+olibc_msg_q_hdl an_pmsg_q_hdl = NULL;
 
 static void*
 an_linux_process (void *arg)
@@ -45,9 +46,99 @@ void an_proc_init (void)
     return;
 }
 
+boolean
+an_if_event_handler (uint32_t state, uint64_t if_index)
+{
+    olibc_retval_t retval;
+    if (!an_pmsg_q_hdl) {
+        return FALSE;
+    }
+    retval = olibc_msg_q_enqueue(an_pmsg_q_hdl, state,
+            if_index, NULL);
+     
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static boolean 
+an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
+{
+    uint32_t msg_type;
+    uint64_t if_index, if_hndl;
+    olibc_retval_t retval;
+
+    if (!q_event_hdl) {
+        return FALSE;
+    }
+
+    retval = olibc_msg_q_event_get_type(q_event_hdl, &msg_type);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
+    switch (msg_type) {
+        case AN_PMSG_IF_UP:
+            retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                  printf("\nFailed to get interface index");
+                  return FALSE;
+              }
+            if_hndl = (uint32_t) if_index;
+            an_handle_interface_up(if_index);
+            break;
+
+        case AN_PMSG_IF_DOWN:
+            retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                  printf("\nFailed to get interface index");
+                  return FALSE;
+            }
+            if_hndl = (uint32_t) if_index;
+            an_handle_interface_down(if_index); 
+            break;
+
+        default:
+            printf("\nUnknown type event received");
+            return FALSE;
+    }
+    return TRUE;
+}
+
+boolean
+an_pmsg_q_init ()
+{
+    olibc_retval_t retval;
+    olibc_msg_q_info_t msg_q_info;
+
+    an_proc_init();
+
+    if (!an_pthread_hdl) {
+        return FALSE;
+    }
+    
+    memset(&msg_q_info, 0, sizeof(olibc_msg_q_info_t));
+
+    msg_q_info.max_q_len = 10;
+    msg_q_info.pthread_hdl = an_pthread_hdl;
+    msg_q_info.msg_q_cbk = an_pmsg_q_cbk;
+
+    retval = olibc_msg_q_create(&an_pmsg_q_hdl, &msg_q_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+
 void
 an_attach_to_environment (void) 
 {
+    /* Create AN pmsg queue */
+    an_pmsg_q_init();
     /* Create AN socket */
     an_linux_sock_init();
     /* Infra enable for AN */
