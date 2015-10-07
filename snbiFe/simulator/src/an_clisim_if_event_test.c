@@ -112,7 +112,6 @@ cparser_cmd_test_interface_event_track (cparser_context_t *context)
     test_interface_event_track_cbk;
     if_event_listener_info.pthread_hdl = test_if_pthread_hdl;
     if_event_listener_info.args = "If event listener args";
-    if_event_listener_info.if_event_filter = OLIBC_FD_READ;
  
     retval = olibc_if_event_listener_create(&if_event_listener_info,
     &if_event_listener_hdl);
