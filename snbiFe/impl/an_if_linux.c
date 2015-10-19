@@ -209,6 +209,7 @@ an_if_enable_nd_on_all_intfs (void)
             OLIBC_RETVAL_SUCCESS) {
         an_if_enable_nd_on_intf(if_linux_info);
     }
+    olibc_list_iterator_destroy(&if_list_iter);
     return;
 }
 
@@ -228,6 +229,7 @@ an_if_walk (an_if_walk_func func, void *data)
             OLIBC_RETVAL_SUCCESS) {
         func(if_linux_info->if_index, data);
     }
+    olibc_list_iterator_destroy(&if_list_iter);
     return;
 }
 
