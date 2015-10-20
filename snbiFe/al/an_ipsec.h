@@ -26,6 +26,7 @@ void an_ipsec_profile_init(void);
 void an_ipsec_profile_uninit(void);
 //void an_ipsec_apply_on_tunnel(an_idbtype *tunnel_idb);
 //void an_ipsec_remove_on_tunnel(an_idbtype *tunnel_idb);
-boolean an_ipsec_apply_on_tunnel(an_if_t tunn_ifhndl);
+boolean an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
+                                    an_addr_t dst_ip, an_if_t local_ifhndl);
 void an_ipsec_remove_on_tunnel(an_if_t tunn_ifhndl);
 #endif
