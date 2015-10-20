@@ -985,7 +985,8 @@ an_acp_create_ipsec_on_gre_tunnel (an_nbr_t *nbr,
                   nbr_link_data)), nbr->udi.data,
                   an_if_get_name(nbr_link_data->local_ifhndl));
         
-        ipsec_apply_on_tunn = an_ipsec_apply_on_tunnel(tunn_ifhndl);
+        ipsec_apply_on_tunn = an_ipsec_apply_on_tunnel(tunn_ifhndl, addr_src,
+                            nbr_link_data->ipaddr, nbr_link_data->local_ifhndl);
         if (ipsec_apply_on_tunn && nbr_link_data->acp_info.sec_channel_established &&
             AN_CHECK_BIT_FLAGS(nbr_link_data->acp_info.sec_channel_negotiated,
                                nbr_link_data->acp_info.sec_channel_established)) {
