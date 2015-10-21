@@ -22,30 +22,16 @@ public abstract class SnbiNodeStateCommonEventHandlers implements ISnbiNodeState
     public SnbiNodeStateCommonEventHandlers (SnbiNode node) {
         this.node = node;
     }
-
+    
     @Override
-	public SnbiNodeState handleNDRefreshPktEvent (SnbiPkt pkt) {
-        log.debug("[node:"+node.getUDI()+"]Handle ND refresh Pkt Event: "+pkt.getUDITLV());
-        node.reStartExpiryTimer();
-        // No state change.
-        return node.getCurrState();
-    }
-
-    @Override
-	public SnbiNodeState handleNodeExpiredEvent () {
-        log.debug("[node:"+node.getUDI()+"] Handle Node Expired Event : "+node.getUDI());
-        return node.getCurrState();
-    }
-
-    @Override
-	public SnbiNodeState handleNICertReqPktEvent (SnbiPkt pkt) {
+	public SnbiNodeState handleNodeCertReqPktEvent (SnbiPkt pkt) {
         log.debug("[node:"+node.getUDI()+"] Handle NI Cert Req pkt event: "+pkt.getUDITLV());
         sendNodeCertResponseMsg(pkt.getSrcIP(), pkt.getIngressInterface());
         return node.getCurrState();
     }
 
     private void sendNodeCertResponseMsg (InetAddress dstIP, NetworkInterface egressIntf) {
-        SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, SnbiMsgType.SNBI_MSG_NI_CERT_RESP);
+        SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, SnbiMsgType.SNBI_MSG_NODE_CERT_RESP);
         pkt.setUDITLV(node.getRegistrar().getNodeself().getUDI());
         pkt.setDstIP(dstIP);
         pkt.setSrcIP(node.getRegistrar().getNodeself().getNodeAddress());
@@ -58,29 +44,14 @@ public abstract class SnbiNodeStateCommonEventHandlers implements ISnbiNodeState
     }
 
     @Override
-	public SnbiNodeState handleNICertRspPktEvent (SnbiPkt pkt) {
-        log.debug("[node:"+node.getUDI()+"] Handle NI Cert Resp Pkt Event: "+pkt.getUDITLV());
-
-        if (pkt.getDomainCertTLV() == null && node.getCertificate() == null) {
-            return (niCertRespValidateNodeGetNextState(pkt));
-        }
-        return node.getCurrState();
-    }
-
-    private SnbiNodeState niCertRespValidateNodeGetNextState (SnbiPkt pkt) {
-        return (bsInviteValidateGetNextState());
-    }
-
-    @Override
-	public SnbiNodeState handleNbrConnectPktEvent (SnbiPkt pkt) {
+	public SnbiNodeState handleNodeConnectPktEvent (SnbiPkt pkt) {
         log.debug("[node:"+node.getUDI()+"] Handle Nbr Connect pkt Event: "+pkt.getUDITLV());
         SnbiNodeState nextState = bsInviteValidateGetNextState();
-
         return nextState;
     }
 
     @Override
-	public SnbiNodeState handleBSReqPktEvent (SnbiPkt pkt) {
+	public SnbiNodeState handleNodeBSReqPktEvent (SnbiPkt pkt) {
         log.debug("[node:"+node.getUDI()+"] Handle BSReq Pkt Event: "+pkt.getUDITLV());
         SnbiNodeState nextState = bsReqValidateGetNextState();
         if (nextState == SnbiNodeState.SNBI_NODE_STATE_BOOTSTRAP) {
@@ -106,11 +77,5 @@ public abstract class SnbiNodeStateCommonEventHandlers implements ISnbiNodeState
         } else {
             return SnbiNodeState.SNBI_NODE_BS_REJECTED;
         }
-    }
-
-    public SnbiNodeState handleBSInvitePktEvent (SnbiPkt pkt) {
-        log.debug("[node:"+node.getUDI()+"] Handle BSInvite Pkt Event: "+pkt.getUDITLV());
-        return node.getCurrState();
-
     }
 }
