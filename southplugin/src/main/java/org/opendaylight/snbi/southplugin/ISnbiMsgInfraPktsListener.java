@@ -11,15 +11,12 @@ package org.opendaylight.snbi.southplugin;
  * Interface for the messaging service.
  */
 interface ISnbiMsgInfraPktsListener {
-    void incomingNDPktsListener (SnbiPkt pkt);
+    void incomingNodeCertReqPktsListener(SnbiPkt pkt);
 
-    void incomingNICertReqPktsListener (SnbiPkt pkt);
+    void incomingNodeCertRespPktsListener(SnbiPkt pkt);
 
-    void incomingNICertRespPktsListener (SnbiPkt pkt);
-
-    void incomingNbrConnectPktsListener (SnbiPkt pkt);
-
-    void incomingBSReqPktsListener (SnbiPkt pkt);
-
+    void incomingNodeConnectPktsListener(SnbiPkt pkt);
+  
+    void incomingNodeBSReqPktsListener(SnbiPkt pkt);
 }
 

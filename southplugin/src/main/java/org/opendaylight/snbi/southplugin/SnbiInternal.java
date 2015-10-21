@@ -51,20 +51,6 @@ public class SnbiInternal implements CommandProvider {
         }
     }
 
-    public void _SnbiShowNeighbors(CommandInterpreter ci) {
-        String domainName = ci.nextArgument();
-        List<SnbiNode> nodes = null;
-        if (domainName == null) {
-            ci.println("Domain Name not provided.");
-            return;
-        }
-        nodes = snbiInstance.getNeighbors(domainName);
-        for (SnbiNode node : nodes) {
-            System.out.println(" UDI: " + node.getUDI());
-            System.out.println("     IF-Name:" +node.getPeerIfName());
-        }
-    }
-
     private void registerWithOSGIConsole() {
         BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass())
                 .getBundleContext();

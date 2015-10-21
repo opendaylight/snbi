@@ -66,7 +66,7 @@ public class SnbiNodeStateInvite extends SnbiNodeStateCommonEventHandlers implem
         }
 
         SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP,
-                                   SnbiMsgType.SNBI_MSG_BS_INVITE);
+                                   SnbiMsgType.SNBI_MSG_NODE_BS_INVITE);
 
         pkt.setUDITLV(node.getUDI());
         pkt.setDstIP(dstIP);

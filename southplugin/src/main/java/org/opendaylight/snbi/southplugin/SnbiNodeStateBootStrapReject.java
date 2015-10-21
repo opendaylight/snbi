@@ -35,7 +35,7 @@ public class SnbiNodeStateBootStrapReject extends SnbiNodeStateCommonEventHandle
 
     private void sendNodeRejectMsg (InetAddress dstIP, NetworkInterface egressIntf) {
         SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP,
-                SnbiMsgType.SNBI_MSG_BS_REJECT);
+                SnbiMsgType.SNBI_MSG_NODE_BS_REJECT);
         pkt.setUDITLV(node.getUDI());
         pkt.setDstIP(dstIP);
         pkt.setEgressInterface(egressIntf);
