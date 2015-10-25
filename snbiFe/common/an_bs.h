@@ -19,6 +19,8 @@
 void an_bs_init(void);
 void an_bs_retrieve_saved_enrollment(void);
 void an_bs_uninit(void);
+extern boolean an_bs_is_initialized(void);
+
 
 uint8_t *an_bs_get_nbr_state_name(an_nbr_t *nbr);
 boolean an_bs_nbr_set_state(an_nbr_t *nbr, an_nbr_bs_state_e bs_state);

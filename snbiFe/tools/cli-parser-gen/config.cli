@@ -19,4 +19,6 @@ no("Negate a command") debug("Debugging functions") bootstrap("Bootstrap debug i
 
 no("Negate a command") debug("Debugging functions") all("Disable all debugs")
 
+registrar("Specify SNBI Registrar details") ip("IPv6 address") <STRING:address>("address")
+
 #endsubmode

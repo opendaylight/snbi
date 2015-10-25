@@ -6,9 +6,12 @@
 #include <olibc_msg_q.h>
 #include <an_proc_linux.h>
 #include <an_event_mgr_db.h>
+#include "an_external_anra.h"
 
 extern olibc_pthread_hdl an_pthread_hdl;
 extern an_udi_t an_udi_platform_linux;
+extern an_v6addr_t registrar_ip_addr;
+extern an_timer an_external_anra_bs_thyself_retry_timer;
 
 olibc_msg_q_hdl an_conf_q_hdl = NULL;
 
@@ -17,7 +20,8 @@ typedef enum an_conf_e_ {
     AN_CONFIG_AUTONOMIC_STOP,
     AN_CONFIG_UDI,
     AN_CONFIG_INTF_ENABLE,
-    AN_CONFIG_INTF_DISABLE
+    AN_CONFIG_INTF_DISABLE,
+    AN_CONFIG_REGISTRAR_IP
 } an_conf_e;
 
 boolean
@@ -203,6 +207,46 @@ an_conf_if_autonomic_disable (olibc_msg_q_event_hdl q_event_hdl)
     an_if_autonomic_disable(if_hndl);
 }
 
+static void
+an_conf_external_register_ip (olibc_msg_q_event_hdl q_event_hdl)
+{
+    int result;
+    char *reg_ip_str;
+    an_v6addr_t reg_ip;
+    olibc_retval_t retval;
+
+    retval = olibc_msg_q_event_get_args(q_event_hdl, NULL,
+                                        (void**) &reg_ip_str);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to get registrar IP");
+        an_free(reg_ip_str);
+        return ;
+    }
+
+    result = inet_pton(AF_INET6, reg_ip_str, (void*)&reg_ip);
+    if (result <= 0) {
+        if (result == 0) {
+            printf("Invalid Registrar IP");
+        } else {
+            printf("Registrar IP conversion error");
+        }
+        an_free(reg_ip_str);
+        return;
+    }
+    registrar_ip_addr = reg_ip;
+    /*memset(registrar_ip, 0, INET6_ADDRSTRLEN);
+      inet_ntop(AF_INET6, &reg_ip, registrar_ip, INET6_ADDRSTRLEN);
+      printf("Converted IP %s", registrar_ip);
+      strncpy(registrar_ip_addr, registrar_ip, INET6_ADDRSTRLEN); */
+
+    /*an_timer_init(&an_external_anra_bs_thyself_retry_timer,
+      AN_TIMER_TYPE_EXTERNAL_ANRA_BS_THYSELF_RETRY, NULL,
+      FALSE);*/
+    an_external_anra_set_ip(reg_ip);
+    an_free(reg_ip_str);
+}
+
 static boolean 
 an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
 {
@@ -242,6 +286,9 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
         case AN_CONFIG_INTF_DISABLE:
             an_conf_if_autonomic_disable(q_event_hdl);
            break;
+        case AN_CONFIG_REGISTRAR_IP:
+           an_conf_external_register_ip(q_event_hdl);
+           break;
         default:
             printf("\nUnknown type command received");
             return FALSE;
@@ -249,6 +296,25 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
     return TRUE;
 }
 
+boolean
+an_config_register_ip_cmd_handler (char *ip_str)
+{
+    int ip_len;
+    char *ip = NULL;
+    olibc_retval_t retval;
+
+    ip_len = strlen(ip_str);
+    ip = an_malloc(ip_len+1, "Registrar IP");
+    memset(ip, 0, ip_len+1);
+    strncpy(ip, ip_str, ip_len);
+
+    retval = olibc_msg_q_enqueue(an_conf_q_hdl, AN_CONFIG_REGISTRAR_IP,
+                                 0, ip);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+    return TRUE;
+}
     
 boolean
 an_system_init_linux ()

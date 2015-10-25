@@ -40,6 +40,8 @@ cparser_result_t cparser_cmd_configure_no_debug_bootstrap_type_level(cparser_con
     char **level_ptr);
 cparser_result_t cparser_cmd_configure_no_debug_bootstrap(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure_no_debug_all(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_registrar_ip_address(cparser_context_t *context,
+    char **address_ptr);
 cparser_result_t cparser_cmd_test(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_get_firstnode(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_init(cparser_context_t *context);

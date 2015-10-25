@@ -45,6 +45,7 @@ void an_event_device_cert_enroll_success(uchar * cert_der,
                 uint16_t cert_len, an_udi_t dest_udi,
                 an_addr_t proxy_device, an_iptable_t iptable);
 void an_event_anra_bootstrap_retry_timer_expired(void);
+void an_event_external_anra_bootstrap_retry_timer_expired(void);
 void an_event_device_cert_enroll_failed(void);
 void an_event_anra_up_locally(void);
 void an_event_anra_learnt(an_addr_t ipaddr);

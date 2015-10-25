@@ -102,6 +102,7 @@ CC_SNBI_COMMON_SRCS :=\
 	$(SNBI_COMMON_SRC)/an_srvc.c \
 	$(SNBI_COMMON_SRC)/an_srvc_db.c \
 	$(SNBI_COMMON_SRC)/an_tlv.c \
+	$(SNBI_COMMON_SRC)/an_external_anra.c \
 	$(SNBI_COMMON_SRC)/an_util.c
 
 
@@ -142,7 +143,7 @@ CC_SNBI_LINUX_AL_SRCS :=\
 	$(SNBI_LINUX_AL_SRC)/an_tunnel_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_udp_linux.c \
 	$(SNBI_LINUX_AL_SRC)/an_sock_linux.c \
-	$(SNBI_LINUX_AL_SRC)/an_conf_linux.c
+	$(SNBI_LINUX_AL_SRC)/an_conf_linux.c 
 
 CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_conf.c \

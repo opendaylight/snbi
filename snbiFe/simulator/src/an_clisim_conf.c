@@ -126,3 +126,14 @@ cparser_cmd_disable_privileged_mode (cparser_context_t *context)
     cparser_set_privileged_mode(context->parser, 0);
     return CPARSER_OK;
 }
+
+cparser_result_t
+cparser_cmd_configure_registrar_ip_address (cparser_context_t *context, char
+        **address_str)
+{
+    if (!an_config_register_ip_cmd_handler(*address_str)) {
+        return CPARSER_NOT_OK;
+    }
+
+    return (CPARSER_OK);
+}

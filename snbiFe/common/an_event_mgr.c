@@ -44,6 +44,7 @@
 #include "an_event_mgr.h"
 #include "an_intent.h"
 #include "an_config_download.h"
+#include "an_external_anra.h"
 
 extern void an_detach_from_environment(void);
 extern void an_attach_to_environment(void);
@@ -209,6 +210,7 @@ an_event_autonomics_init (void)
     an_anr_register_for_events();
     an_srvc_register_for_events();
     an_conig_download_register_for_events();
+    an_external_anra_register_for_events();
     /* Infra enable for AN */
     an_log_init();      
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
@@ -407,6 +409,13 @@ void
 an_event_anra_bootstrap_retry_timer_expired (void)
 {   
     an_event_notify_consumers(AN_EVENT_TIMER_ANR_BS_RETRY_EXPIRED, NULL); 
+}
+
+void
+an_event_external_anra_bootstrap_retry_timer_expired (void)
+{
+    an_event_notify_consumers(AN_EVENT_TIMER_EXTERNAL_ANR_BS_RETRY_EXPIRED,
+                              NULL);
 }
 
 void

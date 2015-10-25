@@ -221,6 +221,21 @@ cparser_glue_configure_no_debug_all (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_configure_registrar_ip_address (cparser_t *parser)
+{
+    char *address_val;
+    char **address_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_string(&parser->tokens[2], &address_val);
+    assert(CPARSER_OK == rc);
+    address_ptr = &address_val;
+    cparser_cmd_configure_registrar_ip_address(&parser->context,
+        address_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_test (cparser_t *parser)
 {
     cparser_cmd_test(&parser->context);
@@ -1757,6 +1772,42 @@ cparser_node_t cparser_node_test = {
     &cparser_node_test_eol
 };
 
+cparser_node_t cparser_node_configure_root_registrar_ip_address_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_configure_registrar_ip_address,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_configure_root_registrar_ip_address = {
+    CPARSER_NODE_STRING,
+    0,
+    "<STRING:address>",
+    "address",
+    NULL,
+    &cparser_node_configure_root_registrar_ip_address_eol
+};
+
+cparser_node_t cparser_node_configure_root_registrar_ip = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "ip",
+    "IPv6 address",
+    NULL,
+    &cparser_node_configure_root_registrar_ip_address
+};
+
+cparser_node_t cparser_node_configure_root_registrar = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "registrar",
+    "Specify SNBI Registrar details",
+    NULL,
+    &cparser_node_configure_root_registrar_ip
+};
+
 cparser_node_t cparser_node_configure_root_no_debug_all_eol = {
     CPARSER_NODE_END,
     0,
@@ -1944,7 +1995,7 @@ cparser_node_t cparser_node_configure_root_no = {
     0,
     "no",
     "Negate a command",
-    NULL,
+    &cparser_node_configure_root_registrar,
     &cparser_node_configure_root_no_debug
 };
 

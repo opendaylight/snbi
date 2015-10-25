@@ -1101,6 +1101,10 @@ an_process_timer_events (an_timer *expired_timer)
             an_timer_stop(expired_timer);
             an_event_anra_bootstrap_retry_timer_expired();
             break;
+        case AN_TIMER_TYPE_EXTERNAL_ANRA_BS_THYSELF_RETRY:
+            an_timer_stop(expired_timer);
+            an_event_external_anra_bootstrap_retry_timer_expired();
+            break;
 
         default:
             DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n%sTimer_Type [%s] invalid", 
