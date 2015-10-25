@@ -47,17 +47,6 @@ public class Snbi {
         registrarList.put(domainName, registrar);
     }
 
-    public List<SnbiNode> getNeighbors(String domainName) {
-        SnbiRegistrar registrar = null;
-
-        if (registrarList.containsKey(domainName)) {
-            registrar = registrarList.get(domainName);
-            return registrar.getNeighborNodes();
-        }
-        return null;
-    }
-
-
     protected void finalize () {
     }
 }

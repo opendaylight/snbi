@@ -50,15 +50,15 @@ public class SnbiUtils {
  * The Message types supported.
  */
 enum SnbiMsgType {
-    SNBI_MSG_ND_HELLO(1),
-    SNBI_MSG_ND_BYE(2),
-    SNBI_MSG_NI_CERT_REQ(3),
-    SNBI_MSG_NI_CERT_RESP(4),
-    SNBI_MSG_BS_INVITE(5),
-    SNBI_MSG_BS_REJECT(6),
-    SNBI_MSG_BS_REQ(7),
-    SNBI_MSG_BS_RESP(8),
-    SNBI_MSG_NBR_CONNECT(10);
+    SNBI_MSG_NODE_DISCOVERY_HELLO(1),
+    SNBI_MSG_NODE_BYE(2),
+    SNBI_MSG_NODE_CERT_REQ(3),
+    SNBI_MSG_NODE_CERT_RESP(4),
+    SNBI_MSG_NODE_BS_INVITE(5),
+    SNBI_MSG_NODE_BS_REJECT(6),
+    SNBI_MSG_NODE_BS_REQ(7),
+    SNBI_MSG_NODE_BS_RESP(8),
+    SNBI_MSG_NODE_CONNECT(10);
     private Integer value;
 
     private SnbiMsgType(Integer value) {

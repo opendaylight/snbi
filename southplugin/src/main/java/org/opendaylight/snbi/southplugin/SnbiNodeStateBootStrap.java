@@ -30,12 +30,13 @@ public class SnbiNodeStateBootStrap extends SnbiNodeStateCommonEventHandlers imp
     @Override
     public SnbiNodeState nodeStateSetEvent(eventContext evnt) {
         sendBSRespMsg(evnt.getPkt().getSrcIP(), evnt.getPkt().getIngressInterface());
-        return node.getCurrState();
+        return SnbiNodeState.SNBI_NODE_STATE_NO_CHANGE;
     }
 
     private void sendBSRespMsg (InetAddress dstIP, NetworkInterface egressIntf) {
-        SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, SnbiMsgType.SNBI_MSG_BS_RESP);
+        SnbiPkt pkt = new SnbiPkt (SnbiProtocolType.SNBI_PROTOCOL_BOOTSTRAP, SnbiMsgType.SNBI_MSG_NODE_BS_RESP);
         pkt.setDstIP(dstIP);
+        pkt.setSrcIP(node.getRegistrar().getNodeself().getNodeAddress());
         pkt.setUDITLV(node.getUDI());
         pkt.setEgressInterface(egressIntf);
         if (node.isBootStrapped()) {
@@ -43,5 +44,4 @@ public class SnbiNodeStateBootStrap extends SnbiNodeStateCommonEventHandlers imp
         }
         SnbiMessagingInfra.getInstance().packetSend(pkt);
     }
-
 }

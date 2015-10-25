@@ -8,14 +8,9 @@
 
 package org.opendaylight.snbi.southplugin;
 
-import java.io.IOException;
+
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.security.cert.X509Certificate;
-import java.util.Enumeration;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,208 +19,76 @@ import org.slf4j.LoggerFactory;
  * A SNBI node discovered through SNBI.
  */
 public class SnbiNode {
-    // Node Expiry timer, if no keep alive is received for 40 seconds, the node
-    // is deemed lost.
-    private Timer nodeExpiryTimer = null;
     // The UDI of the node.
     private String udi = null;
     // The peer interface name.
     private String peerIfName = null;
-    // The most recent Epoch time, when a refresh update was received.
+
     private InetAddress peerIfLLAddress = null;
-    private InetAddress proxyAddress = null;
     private InetAddress domainNodeIPaddr = null;
 
-    private long lastUpdateEpochTime;
     // Logger.
     private static final Logger log = LoggerFactory.getLogger(SnbiNode.class);
-    // The expiry time period.
-    private static final Integer ndExpiryTime = 40 * 1000; // 40 seconds Expiry
     private SnbiRegistrar registrar = null;
-    // The periodic hello timer period.
-    private static final Integer ndProbePeriod = 10 * 1000; // 10 seconds
-    // The periodic hello timer.
-    private Timer ndProbeTimer = null;
-    private SnbiMessagingInfra msgInstance = null;
-    private SnbiNodeStateNewNbr newNbrNode = null;
-    private SnbiNodeStateNbrLost lostNbrNode = null;
     private SnbiNodeStateRegistrar registrarNode = null;
-    private SnbiNodeStateNICertRequest niCertRequest = null;
+    private SnbiNodeStateNew newNode = null;
     private SnbiNodeStateInvite deviceInvite = null;
     private SnbiNodeStateBootStrap deviceBS = null;
     private SnbiNodeStateBootStrapReject deviceBsReject = null;
     private ISnbiNodeState currState = null;
     private X509Certificate cert = null;
     private boolean bootStrapped = false;
+    private snbiNodeType nodeType;
 
     private String deviceID = null;
-
-    public static SnbiNode createNeighborNode (SnbiPkt pkt, SnbiRegistrar registrar) {
-        SnbiNode node = new SnbiNode (pkt, registrar);
-        node.setState(SnbiNodeState.SNBI_NODE_STATE_NEW_NBR, new eventContext (pkt));
-        return node;
+    enum snbiNodeType {
+    	SNBI_NODE_TYPE_REGISTRAR,
+    	SNBI_NODE_TYPE_FE
     }
-
-    public static SnbiNode createBootStrapNode (SnbiPkt pkt, SnbiRegistrar registrar) {
-        SnbiNode node = new SnbiNode (pkt, registrar);
+    public static SnbiNode createNewNode (SnbiPkt pkt, SnbiRegistrar registrar) {
+        SnbiNode node = new SnbiNode (snbiNodeType.SNBI_NODE_TYPE_FE, pkt, registrar);
+        node.setState(SnbiNodeState.SNBI_NODE_STATE_NEW, null);
         return node;
     }
 
     public static SnbiNode createRegistrarNode (String UDI, SnbiRegistrar registrar) {
-        SnbiNode node = new SnbiNode (UDI, registrar);
+        SnbiNode node = new SnbiNode (snbiNodeType.SNBI_NODE_TYPE_REGISTRAR, UDI, registrar);
         node.setState(SnbiNodeState.SNBI_NODE_STATE_REGISTRAR, null);
         return node;
     }
 
-    private SnbiNode (String udi, SnbiRegistrar registrar) {
+    private SnbiNode (snbiNodeType nodeType, String udi, SnbiRegistrar registrar) {
+    	this.nodeType = nodeType;
         this.udi = udi;
         this.registrar = registrar;
-        this.msgInstance = SnbiMessagingInfra.getInstance();
         instantiateNodeStates();
     }
 
     // timer.
-    private SnbiNode (SnbiPkt pkt, SnbiRegistrar registrar) {
-        lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
+    private SnbiNode (snbiNodeType nodeType, SnbiPkt pkt, SnbiRegistrar registrar) {
         String udi = pkt.getUDITLV();
 
-        log.debug("[node:"+udi+"] New node created");
+        log.debug("[node:"+udi+"] New "+nodeType+" node created");
+    	this.nodeType = nodeType;
         this.udi = udi;
         this.peerIfName = pkt.getIfNameTLV();
         this.registrar = registrar;
         this.peerIfLLAddress = pkt.getIPV6LLTLV();
-        this.msgInstance = SnbiMessagingInfra.getInstance();
-
         instantiateNodeStates();
-
+    }
+    
+    public boolean nodeIsRegistrar() {
+    	return (this.nodeType == snbiNodeType.SNBI_NODE_TYPE_REGISTRAR);
     }
 
     private void instantiateNodeStates() {
-        newNbrNode = new SnbiNodeStateNewNbr(this);
+    	newNode = new SnbiNodeStateNew(this);
         deviceInvite = new SnbiNodeStateInvite(this);
-        lostNbrNode = new SnbiNodeStateNbrLost(this);
         registrarNode = new SnbiNodeStateRegistrar(this);
-        niCertRequest = new SnbiNodeStateNICertRequest(this);
         deviceBS = new SnbiNodeStateBootStrap(this);
         deviceBsReject = new SnbiNodeStateBootStrapReject(this);
     }
 
-    /**
-     * Start the Neighbour Discovery process.
-     */
-    public void ndStart() {
-        TimerTask ndProbeTimerTask = null;
-
-        if (ndProbeTimer != null) {
-            log.error("Timer already running Stop first");
-            return;
-        }
-
-        // Create a new timer task.
-        ndProbeTimerTask = new TimerTask() {
-            @Override
-			public void run() {
-                handleNDProbeTimerExpiredEvent();
-            }
-        };
-
-        ndProbeTimer = new Timer("ND Periodic Probe "
-                + registrar.getDomainName(), true);
-        ndProbeTimer.schedule(ndProbeTimerTask, ndProbePeriod, ndProbePeriod);
-        log.debug("Start ND timer");
-    }
-
-    /**
-     * Send periodic ND packets on all interfaces.
-     */
-    private void sendPeriodicNDProbePacketsOnAllInterfaces() {
-        try {
-            Enumeration<NetworkInterface> intflist = NetworkInterface
-                    .getNetworkInterfaces();
-            while (intflist.hasMoreElements()) {
-                NetworkInterface intf = intflist.nextElement();
-                if (intf.isUp() && !intf.isLoopback()) {
-                    sendPeriodicNDPackets(intf);
-                }
-            }
-        } catch (SocketException excpt) {
-            log.error("Failed to send periodic ND packets" + excpt);
-        } catch (IOException excpt) {
-            log.error("Failed to send periodicND Hello packets" + excpt);
-        }
-    }
-
-    /**
-     * Send periodic ND packets on an interface.
-     *
-     * @param intf
-     *            - The interface on which the ND packets has to be sent on.
-     * @throws SocketException
-     * @throws IOException
-     */
-    private void sendPeriodicNDPackets(NetworkInterface intf)
-            throws SocketException, IOException {
-//        log.debug("Send periodic Hello on interface "+intf.getDisplayName());
-        // Create a new Message Type.
-        SnbiPkt pkt = new SnbiPkt(
-                SnbiProtocolType.SNBI_PROTOCOL_ADJACENCY_DISCOVERY,
-                SnbiMsgType.SNBI_MSG_ND_HELLO);
-
-        pkt.setUDITLV(registrar.getNodeself().getUDI());
-        pkt.setIPV6LLTLV(intf);
-        pkt.setIfNameTLV(intf);
-        pkt.setEgressInterface(intf);
-        pkt.setDstIP(InetAddress.getByName("FF02::150"));
-        if (this.getRegistrar().getNodeself().isBootStrapped()) {
-            pkt.setDeviceIDTLV(this.getDeviceID());
-            pkt.setDomainIDTLV(this.getRegistrar().getDomainName());
-            pkt.setDeviceIPv6TLV(this.getNodeAddress());
-        }
-
-
-        msgInstance.packetSend(pkt);
-    }
-
-
-    // timer.
-
-    /**
-     * Start an Expiry Timer, if a timer already exists, then cancel/purge that
-     * because we have received an update for this neighbor.
-     */
-    public void startNewExpiryTimer() {
-        if (nodeExpiryTimer != null) {
-            // We have received an update, so cancel the old timer.
-            nodeExpiryTimer.cancel();
-            nodeExpiryTimer.purge();
-        }
-
-        log.debug("[node:"+udi+"]Starting new timer for udi ");
-        lastUpdateEpochTime = System.currentTimeMillis() / 1000L;
-        nodeExpiryTimer = new Timer("Neighbor Node Expiry Timer "
-                + this.udi, true);
-        nodeExpiryTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                handleKeepAliveTimerExpiredEvent();
-            }
-
-        }, ndExpiryTime, ndExpiryTime);
-    }
-
-    public void reStartExpiryTimer() {
-        startNewExpiryTimer();
-    }
-    /**
-     * Stop the Neighbour Discovery process.
-     */
-    public void ndStop() {
-        if (ndProbeTimer != null) {
-            ndProbeTimer.cancel();
-            ndProbeTimer.purge();
-            ndProbeTimer = null;
-        }
-    }
     /**
      * Get the UDI of the node.
      *
@@ -258,14 +121,6 @@ public class SnbiNode {
         domainNodeIPaddr = addr;
     }
 
-    @Override
-	protected void finalize() {
-        if (nodeExpiryTimer != null) {
-            nodeExpiryTimer.cancel();
-            nodeExpiryTimer.purge();
-        }
-    }
-
     // State machine.
     private void setState(SnbiNodeState newState, eventContext evnt) {
         while (setNewState(newState)) {
@@ -277,22 +132,14 @@ public class SnbiNode {
         log.debug("[node:"+this.getUDI()+"] CurrState "+
          (currState != null ? currState.getState():"NONE")+" NewState "+newState);
 
-        if (currState != null && currState.getState() == newState) {
+        if (currState != null && newState ==  SnbiNodeState.SNBI_NODE_STATE_NO_CHANGE) {
+        	// Stop the state machine.
             return false;
         }
 
         switch (newState) {
-            case SNBI_NODE_STATE_NEW_NBR:
-                currState = newNbrNode;
-                break;
-            case SNBI_NODE_STATE_NBR_LOST:
-                currState = lostNbrNode;
-                break;
             case SNBI_NODE_STATE_REGISTRAR:
                 currState = registrarNode;
-                break;
-            case SNBI_NODE_STATE_NI_CERT_REQUEST:
-                currState = niCertRequest;
                 break;
             case SNBI_NODE_BS_INVITE:
                 currState = deviceInvite;
@@ -302,6 +149,9 @@ public class SnbiNode {
                 break;
             case SNBI_NODE_BS_REJECTED:
             	currState = deviceBsReject;
+            	break;
+            case SNBI_NODE_STATE_NEW:
+            	currState = newNode;
             	break;
             default:
                 log.error("Unhandled state "+newState);
@@ -314,38 +164,16 @@ public class SnbiNode {
         return currState.getState();
     }
 
-    // Event Handlers.
-    private void handleKeepAliveTimerExpiredEvent() {
-        setState(currState.handleNodeExpiredEvent(), null);
+    public void handleNodeCertReqPktEvent (SnbiPkt pkt) {
+        setState(currState.handleNodeCertReqPktEvent(pkt), new eventContext(pkt));
     }
 
-    public void handleNICertReqPktEvent (SnbiPkt pkt) {
-        setState(currState.handleNICertReqPktEvent(pkt), new eventContext(pkt));
+    public void handleNodeConnectPktEvent(SnbiPkt pkt) {
+        setState(currState.handleNodeConnectPktEvent(pkt), new eventContext(pkt));
     }
 
-    private void handleNDProbeTimerExpiredEvent () {
-        sendPeriodicNDProbePacketsOnAllInterfaces();
-    }
-
-    /**
-     * Received a new hello packet, restart the Expiry timer.
-     *
-     * @param pkt
-     */
-    public void handleNDRefreshPktEvent(SnbiPkt pkt) {
-        setState(currState.handleNDRefreshPktEvent(pkt), new eventContext(pkt));
-    }
-
-    public void handleNICertRespPktEvent(SnbiPkt pkt) {
-        setState(currState.handleNICertRspPktEvent(pkt), new eventContext(pkt));
-    }
-
-    public void handleNbrConnectPktEvent(SnbiPkt pkt) {
-        setState(currState.handleNbrConnectPktEvent(pkt), new eventContext(pkt));
-    }
-
-    public void handleBSReqPktEvent(SnbiPkt pkt) {
-        setState(currState.handleBSReqPktEvent(pkt), new eventContext(pkt));
+    public void handleNodeBSReqPktEvent(SnbiPkt pkt) {
+        setState(currState.handleNodeBSReqPktEvent(pkt), new eventContext(pkt));
     }
 
     public void setDeviceID(String deviceID) {

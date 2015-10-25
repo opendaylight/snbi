@@ -29,8 +29,7 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
         log.debug("[node:"+node.getUDI()+"] Set state : "+this.getState());
         node.getRegistrar().validateNode(node);
         bootStrapSelf();
-        node.ndStart();
-        return node.getCurrState();
+        return SnbiNodeState.SNBI_NODE_STATE_NO_CHANGE;
     }
 
     private void bootStrapSelf () {
@@ -52,11 +51,5 @@ public class SnbiNodeStateRegistrar extends SnbiNodeStateCommonEventHandlers imp
         log.debug(" UDI is "+node.getUDI());
         CertificateMgmt.printCertificate(node.getCertificate());
         node.setBootStrapped(true);
-    }
-
-    @Override
-    public SnbiNodeState handleNodeExpiredEvent () {
-        log.debug("[node:"+node.getUDI()+"] Handle Node Expired Event");
-        return node.getCurrState();
     }
 }

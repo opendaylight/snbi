@@ -27,7 +27,7 @@
     </feature>
 
     <feature name='odl-snbi-southplugin' description='OpenDaylight :: SNBI :: SouthPlugin' version='${project.version}'>
-        <feature version='${yangtools.version}'>odl-yangtools-all</feature>
+        <feature version='${yangtools.version}'>odl-yangtools-common</feature>
         <feature version='${mdsal.version}'>odl-mdsal-broker</feature>
         <bundle>mvn:org.bouncycastle/bcprov-jdk15on/1.52</bundle>
         <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/1.52</bundle>
