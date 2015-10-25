@@ -26,14 +26,15 @@ import org.opendaylight.yang.gen.v1.http.netconfcentral.org.ns.snbi.rev240702.sn
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEventsListener {
+public class SnbiRegistrar implements ISnbiMsgInfraPktsListener {
     private SnbiNode myNode = null;
     private String domainName = null;
     private int rcvPktEventListenerHandle = 0;
     private static final Logger log = LoggerFactory.getLogger(SnbiRegistrar.class);
     private SnbiMessagingInfra msgInfraInstance = null;
     private ConcurrentHashMap <String, SnbiNode> acceptedNodesList = null;
-    private ConcurrentHashMap <String, SnbiNode> nbrNodesList = null;
+    private ConcurrentHashMap <String, SnbiNode> rejectedNodesList = null;
+    private ConcurrentHashMap <String, SnbiNode> nodesList = null;
     private String nodeRegistrarID;
     private Integer nodeMemberID = 0;
     private final String selfUDI = "PID:JAVA-CONTROLLER SN:1234";
@@ -42,7 +43,8 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         try {
         this.domainName = domainName;
         acceptedNodesList = new ConcurrentHashMap <String, SnbiNode>();
-        nbrNodesList = new ConcurrentHashMap <String, SnbiNode>();
+        nodesList = new ConcurrentHashMap <String, SnbiNode>();
+        rejectedNodesList = new ConcurrentHashMap <String, SnbiNode>();
 
         msgInfraInstance = SnbiMessagingInfra.getInstance();
         nodeRegistrarID = getFirstValidHostMacAddress();
@@ -93,6 +95,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
 
 
     public static boolean validateDomain(String domainName) {
+    	
     	HashMap<String, List<DeviceList>> domainInfoMap = CertRegistrar.INSTANCE.getDomainInfoMap();
 
     	if (domainInfoMap.containsKey(domainName))
@@ -137,79 +140,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
         return myNode;
     }
 
-    public List <SnbiNode> getNeighborNodes() {
-        return new ArrayList <SnbiNode>((nbrNodesList.values()));
-    }
 
-    @Override
-    public void incomingNDPktsListener(SnbiPkt pkt) {
-        SnbiNode node = null;
-        if (nbrNodesList.containsKey(pkt.getUDITLV())) {
-            node = nbrNodesList.get(pkt.getUDITLV());
-            log.debug("[node:"+node.getUDI()+"] Recived ND pkts: "+pkt.getUDITLV());
-            node.handleNDRefreshPktEvent(pkt);
-        } else {
-            node = SnbiNode.createNeighborNode(pkt, this);
-            nbrNodesList.put(node.getUDI(), node);
-            log.debug("[node:"+node.getUDI()+"] Recived ND pkts: "+pkt.getUDITLV());
-        }
-    }
-
-    @Override
-    public void neighborNodeLostEventListener(SnbiNode node) {
-        log.debug("[node:"+node.getUDI()+"] Neighbor node lost: "+node.getUDI());
-        nbrNodesList.remove(node.getUDI());
-    }
-
-    @Override
-    public void incomingNICertReqPktsListener(SnbiPkt pkt) {
-        SnbiNode node = myNode;
-        log.debug("[node:"+node.getUDI()+"] NI Cert Req Pkt: "+pkt.getUDITLV());
-        if (node.getUDI().equals(pkt.getUDITLV())) {
-            node.handleNICertReqPktEvent(pkt);
-            return;
-        }
-        log.debug("Cert Req outside UDI din't match pkt UDI:"+pkt.getUDITLV()+"pkt UDI len:"+pkt.getUDITLV().length()+
-                " Registrar UDI:"+node.getUDI()+" registrar udi len:"+node.getUDI().length());
-    }
-
-    @Override
-    public void incomingNICertRespPktsListener(SnbiPkt pkt) {
-        SnbiNode node = null;
-        if (nbrNodesList.containsKey(pkt.getUDITLV())) {
-            node = nbrNodesList.get(pkt.getUDITLV());
-            node.handleNICertRespPktEvent(pkt);
-            log.debug("[node:"+node.getUDI()+"] NI Cert Resp Pkt: "+pkt.getUDITLV());
-
-        } else {
-            node = SnbiNode.createNeighborNode(pkt, this);
-            nbrNodesList.put(node.getUDI(), node);
-        }
-    }
-
-    @Override
-    public void incomingNbrConnectPktsListener(SnbiPkt pkt) {
-        SnbiNode node = myNode;
-        log.debug("[node:"+node.getUDI()+"] NBR Connect Pkt: "+pkt.getUDITLV());
-
-        if (node.getUDI() != pkt.getUDITLV()) {
-            return;
-        }
-        node.handleNbrConnectPktEvent(pkt);
-    }
-
-    @Override
-	public void incomingBSReqPktsListener (SnbiPkt pkt) {
-        SnbiNode node = null;
-        if (acceptedNodesList.containsKey(pkt.getUDITLV())) {
-            node = acceptedNodesList.get(pkt.getUDITLV());
-            log.debug("[node:"+node.getUDI()+"] BS Req: Pkt UDI: "+pkt.getUDITLV());
-            node.handleBSReqPktEvent(pkt);
-            return;
-        }
-        log.debug("[node:null] BS Req no such accepted Pkt UDI: "+pkt.getUDITLV());
-
-    }
 
     private void setNodeDeviceID (SnbiNode node) {
         node.setDeviceID(nodeRegistrarID+"-"+nodeMemberID.toString());
@@ -221,19 +152,23 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
     }
 
     private void setNodeDeviceIP (SnbiNode node) {
-        ByteBuffer ipv6Addr = ByteBuffer.allocate(16);
-        Short prefix = 0xFD;
-
-        ipv6Addr.put(prefix.byteValue());
-        ipv6Addr.put(getGlobalIDfrmDomainID(this.domainName), 0, 5);
-        ipv6Addr.put(getSubnetID(),0,2);
-
-        if (node.getDeviceID()== null) {
-            setNodeDeviceID(node);
-        }
-        ipv6Addr.put(node.getDeviceID().getBytes(), 0, 8);
-
-        try {
+    	try {
+    		if (node.nodeIsRegistrar()) {
+    			node.setNodeAddress(InetAddress.getByName("fd6a:fbaa:36f9:0:4141:3a42:423a:1"));
+    			return;
+    		}
+    		
+    		ByteBuffer ipv6Addr = ByteBuffer.allocate(16);
+    		Short prefix = 0xFD;
+    		
+    		ipv6Addr.put(prefix.byteValue());
+    		ipv6Addr.put(getGlobalIDfrmDomainID(this.domainName), 0, 5);
+    		ipv6Addr.put(getSubnetID(),0,2);
+    		
+    		if (node.getDeviceID()== null) {
+    			setNodeDeviceID(node);
+    		}
+    		ipv6Addr.put(node.getDeviceID().getBytes(), 0, 8);
             node.setNodeAddress(InetAddress.getByAddress(ipv6Addr.array()));
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -258,18 +193,81 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener, ISnbiNodeEvents
     }
 
     public boolean validateNode(SnbiNode node) {
+    	
     	if (!isDeviceinActiveWhiteList(node.getUDI())) {
     		log.debug("Failed to validate node "+node.getUDI());
+    		if (rejectedNodesList == null) {
+    			rejectedNodesList = new ConcurrentHashMap <String, SnbiNode>();
+    		}
+    		if (!rejectedNodesList.containsKey(node.getUDI())) {
+    			rejectedNodesList.put(node.getUDI(), node);
+    		}
     		return false;
     	}
+    	    	
+    	if (rejectedNodesList != null && rejectedNodesList.containsKey(node.getUDI())) {
+    		rejectedNodesList.remove(node.getUDI());
+    	}
+    	
+    	
         if (acceptedNodesList == null) {
             acceptedNodesList = new ConcurrentHashMap <String, SnbiNode>();
         }
+        
         if (!acceptedNodesList.containsKey(node.getUDI())) {
             acceptedNodesList.put(node.getUDI(), node);
             setNodeDeviceID(node);
             setNodeDeviceIP(node);
         }
+        
         return true;
+    }
+    
+    // Packet event handlers.
+    @Override
+    public void incomingNodeCertReqPktsListener (SnbiPkt pkt) {
+        SnbiNode node = myNode;
+        log.debug("[node:"+node.getUDI()+"] NI Cert Req Pkt: "+pkt.getUDITLV());
+        if (node.getUDI().equals(pkt.getUDITLV())) {
+            node.handleNodeCertReqPktEvent(pkt);
+            return;
+        }
+        log.debug("Cert Req outside UDI din't match pkt UDI:"+pkt.getUDITLV()+"pkt UDI len:"+pkt.getUDITLV().length()+
+                " Registrar UDI:"+node.getUDI()+" registrar udi len:"+node.getUDI().length());
+    }
+
+    @Override
+    public void incomingNodeCertRespPktsListener(SnbiPkt pkt) {
+    	log.error("[PktUDI:"+pkt.getUDITLV()+"] Ignoring Received Cert Resp packet");
+    }
+
+    @Override
+    public void incomingNodeConnectPktsListener(SnbiPkt pkt) {
+        SnbiNode node = null;
+        if (!nodesList.containsKey(pkt.getUDITLV())) {
+        	node = SnbiNode.createNewNode(pkt, this);
+        	nodesList.put(node.getUDI(), node);
+        } else {
+        	node = nodesList.get(pkt.getUDITLV());
+        }
+        log.debug("[node:"+node.getUDI()+"] NBR Connect Pkt: "+pkt.getUDITLV());
+
+        if (node.getUDI().equals(pkt.getUDITLV()) == false) {
+        	log.error("[node:"+node.getUDI()+"] Mismatched with pkt udi "+pkt.getUDITLV());
+            return;
+        }
+        node.handleNodeConnectPktEvent(pkt);
+    }
+
+    @Override
+	public void incomingNodeBSReqPktsListener (SnbiPkt pkt) {
+        SnbiNode node = null;
+        if (acceptedNodesList.containsKey(pkt.getUDITLV())) {
+            node = acceptedNodesList.get(pkt.getUDITLV());
+            log.debug("[node:"+node.getUDI()+"] BS Req: Pkt UDI: "+pkt.getUDITLV());
+            node.handleNodeBSReqPktEvent(pkt);
+            return;
+        }
+        log.debug("[node:null] BS Req no such accepted Pkt UDI: "+pkt.getUDITLV());
     }
 }

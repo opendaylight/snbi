@@ -13,7 +13,7 @@ import java.net.DatagramPacket;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
+import java.net.DatagramSocket;
 import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.SocketException;
@@ -31,14 +31,12 @@ import org.slf4j.LoggerFactory;
  * desired type.
  */
 public class SnbiMessagingInfra {
-    // The TTL for the multicast message.
-    private static final byte mcastTTL = 1;
     // The source and destination port for SNBI.
     private final Integer snbiPortNumber = 4936;
     // Max UDP payload
     private final int MAX_UDP_PAYLOAD = 65535;
     // The multicast socket created during first time instantiation.
-    private MulticastSocket socket = null;
+    private DatagramSocket socket = null;
     // Multicast Thread
     private Thread pktRcvrThread = null;
     // Multicast Thread Terminate
@@ -147,41 +145,23 @@ public class SnbiMessagingInfra {
         }
     }
 
-    private void mcastJoinAllInterfaces() {
-    	SocketAddress mcastJoinSock =new InetSocketAddress(SnbiUtils.getIPv6MutlicastAddress(), snbiPortNumber);
-            Enumeration<NetworkInterface> intflist;
-			try {
-				intflist = NetworkInterface.getNetworkInterfaces();
-				while (intflist.hasMoreElements()) {
-					NetworkInterface intf = intflist.nextElement();
-					if (intf.isUp() && !intf.isLoopback()) {
-						socket.joinGroup(mcastJoinSock, intf);
-					}
-				}
-			} catch (SocketException e) {
-				log.error("Failed to join mcast group on all interface "+e);
-				e.printStackTrace();
-			} catch (IOException e) {
-				log.error("Failed to join mcast group on all interface "+e);
-				e.printStackTrace();
-			}
-    }
-
     /**
      * Setup a multicast socket, bind it to a port and join the multicast group.
      * @throws IOException
      *             - Throws IOException if creating a socket failed.
      */
     private void socketInit() throws IOException {
-        log.debug("Initing SnbiMulticastSocket");
-        socket = new MulticastSocket(snbiPortNumber);
-        socket.setReuseAddress(true);
-        // Nonintutive, set to TRUE not to loopback.
-        socket.setLoopbackMode(true);
-        // The number of hops the packets can propagate.
-        socket.setTimeToLive(mcastTTL);
+        log.debug("Initing Snbi Socket");
+        boolean sockreuse;
 
-        mcastJoinAllInterfaces();
+        SocketAddress bindAddress = new InetSocketAddress("fd6a:fbaa:36f9:0:4141:3a42:423a:1", snbiPortNumber);
+        socket = new DatagramSocket(null); // Create a unbound socket
+        socket.setReuseAddress(true);
+        sockreuse = socket.getReuseAddress();
+        
+        log.debug("Socket reuse "+sockreuse);
+
+        socket.bind(bindAddress);
 
         // Creating an anonymous thread.
         pktRcvrThread = new Thread("Pkt Listener Thread") {
@@ -191,7 +171,7 @@ public class SnbiMessagingInfra {
             }
         };
 
-        log.debug("Mcast listener thread started");
+        log.debug("Packet listener thread started");
         this.pktRcvrThreadrun = true;
         pktRcvrThread.start();
 
@@ -274,29 +254,29 @@ public class SnbiMessagingInfra {
         StringBuilder sb = new StringBuilder();
         sb.append("TLV Info - ");
         switch (pkt.getmsgType()) {
-            case SNBI_MSG_BS_INVITE:
+            case SNBI_MSG_NODE_BS_INVITE:
                 sb.append("Device UDI:" +pkt.getUDITLV()+" Domain ID:"+pkt.getDomainIDTLV());
                 sb.append("\n\t\t\t\tRegistrar ID:"+pkt.getRegistrarIDTLV()+" Device ID:"+pkt.getDeviceIDTLV());
                 sb.append("\n\t\t\t\tRegistarIPaddr:"+pkt.getRegistrarIPaddrTLV());
                 break;
-            case SNBI_MSG_BS_REJECT:
+            case SNBI_MSG_NODE_BS_REJECT:
                 break;
-            case SNBI_MSG_BS_REQ:
+            case SNBI_MSG_NODE_BS_REQ:
                 break;
-            case SNBI_MSG_BS_RESP:
+            case SNBI_MSG_NODE_BS_RESP:
                 break;
-            case SNBI_MSG_NBR_CONNECT:
+            case SNBI_MSG_NODE_CONNECT:
                 break;
-            case SNBI_MSG_ND_BYE:
+            case SNBI_MSG_NODE_BYE:
                 break;
-            case SNBI_MSG_ND_HELLO:
+            case SNBI_MSG_NODE_DISCOVERY_HELLO:
             	sb.append("Device UDI:"+pkt.getUDITLV()+" IF Name:"+pkt.getIfNameTLV());
             	sb.append("\n\t\t\t\t Device ID:"+pkt.getDeviceIDTLV()+" Domain Name:"+pkt.getDomainIDTLV());
             	sb.append("\n\t\t\t\t Device IP:"+pkt.gettDeviceIPv6TLV()+" IF IP: "+pkt.getIPV6LLTLV());
             	break;
-            case SNBI_MSG_NI_CERT_REQ:
+            case SNBI_MSG_NODE_CERT_REQ:
                 break;
-            case SNBI_MSG_NI_CERT_RESP:
+            case SNBI_MSG_NODE_CERT_RESP:
                 break;
             default:
                 break;
@@ -308,20 +288,17 @@ public class SnbiMessagingInfra {
 
     void matchAndNotify (ISnbiMsgInfraPktsListener listener, SnbiPkt pkt) {
         switch (pkt.getmsgType()) {
-            case SNBI_MSG_ND_HELLO:
-                listener.incomingNDPktsListener(pkt);
+            case SNBI_MSG_NODE_CERT_REQ:
+                listener.incomingNodeCertReqPktsListener(pkt);
                 break;
-            case SNBI_MSG_NI_CERT_REQ:
-                listener.incomingNICertReqPktsListener(pkt);
+            case SNBI_MSG_NODE_CERT_RESP:
+                listener.incomingNodeCertRespPktsListener(pkt);
                 break;
-            case SNBI_MSG_NI_CERT_RESP:
-                listener.incomingNICertRespPktsListener(pkt);
+            case SNBI_MSG_NODE_CONNECT:
+                listener.incomingNodeConnectPktsListener(pkt);
                 break;
-            case SNBI_MSG_NBR_CONNECT:
-                listener.incomingNbrConnectPktsListener(pkt);
-                break;
-            case SNBI_MSG_BS_REQ:
-                listener.incomingBSReqPktsListener(pkt);
+            case SNBI_MSG_NODE_BS_REQ:
+                listener.incomingNodeBSReqPktsListener(pkt);
                 break;
             default:
                 log.error("Pkt with invalid message type received "+pkt.getUDITLV()+" msgType "+pkt.getmsgType()+" protocol type "+pkt.getProtocolType());
@@ -344,11 +321,20 @@ public class SnbiMessagingInfra {
     private void packetSendInternal(SnbiPkt pkt)
             throws SocketException, IOException {
         DatagramPacket dgramPkt = null;
+        Inet6Address dest6Addr = null;
         NetworkInterface intf = pkt.getEgressInterface();
 
         try {
+        	
+        	dest6Addr = (Inet6Address)pkt.getDstIP();
+        	if (dest6Addr == null || (pkt.getSrcIP().equals(dest6Addr))) {
+        		dest6Addr = (Inet6Address)Inet6Address.getByName("::1");
+        	}
+        	
             if (intf != null) {
-                socket.setNetworkInterface(intf);
+            	dest6Addr = Inet6Address.getByAddress(dest6Addr.getHostAddress(), 
+            			                              dest6Addr.getAddress(), 
+            			                              intf.getIndex());
             }
 
             log.debug("OUT packet: Length:"+pkt.getMsgLength()+" UDI: "+pkt.getUDITLV()+"\n\t\t\tProtocol ID:"+pkt.getProtocolType()+
@@ -356,7 +342,8 @@ public class SnbiMessagingInfra {
                     +pkt.getDstIP()+"\n\t\t\tEgressIntf:"+pkt.getEgressInterface()+"\n\t\t\t"+getProtocolDebugMsg(pkt));
 
             dgramPkt = new DatagramPacket(pkt.getMsg(), pkt.getMsgLength(),
-                    pkt.getDstIP(), snbiPortNumber);
+            		dest6Addr, snbiPortNumber);
+            
 
             socket.send(dgramPkt);
         } catch (Exception excpt) {
@@ -394,11 +381,6 @@ public class SnbiMessagingInfra {
 
     private void socketUninit () {
         if (socket != null) {
-            try {
-                socket.leaveGroup(SnbiUtils.getIPv6MutlicastAddress());
-            } catch (IOException e) {
-                log.error("Failed to leave multicast group "+e);
-            }
             socket.disconnect();
             socket.close();
             socket = null;
@@ -423,12 +405,7 @@ public class SnbiMessagingInfra {
             throw  new NullPointerException("Destination IP is null");
         }
         try {
-            if (pkt.getDstIP().equals(SnbiUtils.getIPv6LoopbackAddress()) ||
-                pkt.getDstIP().equals(pkt.getSrcIP())){
-                pktRcvdNotifyQueue.put(pkt);
-            } else {
-               pktSendQueue.put(pkt);
-            }
+            pktSendQueue.put(pkt);            
         } catch (Exception excpt) {
             log.error("Failed to send pkt "+excpt);
         }
