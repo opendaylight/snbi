@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fad0f9df_1b316eec",
+        "filename": "snbiFe/impl/an_if_linux.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 477,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-10-25T16:38:35Z",
+      "side": 1,
+      "message": "we should probably lookup the list first and then malloc if required.",
+      "range": {
+        "startLine": 477,
+        "startChar": 0,
+        "endLine": 477,
+        "endChar": 55
+      },
+      "revId": "602514c233a507741fb3d1542dc7b74bbfe6e9f9",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fad0f9df_bb4dc274",
+        "filename": "snbiFe/impl/an_if_linux.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-10-25T16:38:35Z",
+      "side": 1,
+      "message": "curious why this is passed as an argument here ?",
+      "range": {
+        "startLine": 539,
+        "startChar": 34,
+        "endLine": 539,
+        "endChar": 35
+      },
+      "revId": "602514c233a507741fb3d1542dc7b74bbfe6e9f9",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fad0f9df_db520613",
+        "filename": "snbiFe/impl/an_proc_linux.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-10-25T16:38:35Z",
+      "side": 1,
+      "message": "pls have this if_hndl to be a 32 bit variable uint32_t.",
+      "range": {
+        "startLine": 69,
+        "startChar": 23,
+        "endLine": 69,
+        "endChar": 30
+      },
+      "revId": "602514c233a507741fb3d1542dc7b74bbfe6e9f9",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fad0f9df_7b575a03",
+        "filename": "snbiFe/impl/an_proc_linux.c",
+        "patchSetId": 2
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-10-25T16:38:35Z",
+      "side": 1,
+      "message": "pls remove this proc init..",
+      "range": {
+        "startLine": 116,
+        "startChar": 4,
+        "endLine": 116,
+        "endChar": 16
+      },
+      "revId": "602514c233a507741fb3d1542dc7b74bbfe6e9f9",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
