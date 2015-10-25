@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fad0f9df_db79a694",
+        "filename": "snbiFe/impl/an_ipsec_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-10-25T17:00:36Z",
+      "side": 1,
+      "message": "1024 bytes ?? on the stack. please reduce this to something  reasonable",
+      "range": {
+        "startLine": 65,
+        "startChar": 13,
+        "endLine": 65,
+        "endChar": 17
+      },
+      "revId": "7bb54696ff79326d91bfaffd6bfb2e3eddcf9949",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fad0f9df_7b6e7acb",
+        "filename": "snbiFe/impl/an_ipsec_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 531
+      },
+      "writtenOn": "2015-10-25T17:00:36Z",
+      "side": 1,
+      "message": "not sure I understand this, why are we getting cwd here ?, I dont see this being used anywhere else.",
+      "range": {
+        "startLine": 69,
+        "startChar": 15,
+        "endLine": 69,
+        "endChar": 18
+      },
+      "revId": "7bb54696ff79326d91bfaffd6bfb2e3eddcf9949",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
+    }
+  ]
+}
