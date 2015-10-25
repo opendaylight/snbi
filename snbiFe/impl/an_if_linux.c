@@ -17,11 +17,14 @@
 #include <an_mem.h>
 #include <an_nd.h>
 #include <olibc_addr.h>
+#include <olibc_if_event.h>
+#include <an_proc_linux.h>
 
 #define AN_LOOP_VIS_BW 8000000
 extern an_avl_tree  an_if_info_tree;
 
 olibc_list_hdl an_if_linux_list_hdl = NULL;
+olibc_if_event_listener_hdl an_if_event_listener_hdl = NULL;
 
 static 
 olibc_list_cbk_return_t
@@ -445,6 +448,110 @@ an_if_list_addr_linux_init (void)
     olibc_addr_iterator_destroy(&iter_hdl);
 }
 
+static boolean
+an_interface_event_cbk (olibc_if_event_hdl if_event)
+{
+    olibc_if_info_t if_info;
+    olibc_if_iterator_hdl if_iterator_hdl = NULL;
+    an_if_linux_info_t *if_linux_info;
+    olibc_retval_t retval;
+    uint32_t if_state;
+    uint64_t if_index;
+
+
+    if (!if_event) {
+        return FALSE;
+    }
+
+    retval = olibc_if_event_get_if_iterator (if_event,
+        &if_iterator_hdl);
+        
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%s Failed to get interface iterator handle", an_nd_event);
+        return FALSE;
+    }
+
+
+    memset(&if_info, 0, sizeof(olibc_if_info_t));
+    while (olibc_if_iterator_get_next(if_iterator_hdl, (void *)&if_info) ==
+            OLIBC_RETVAL_SUCCESS) {
+        retval = olibc_malloc((void **)&if_linux_info, 
+                              sizeof(an_if_linux_info_t), 
+                              "AN linux info");
+        if (!if_linux_info) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN If creation failed", an_nd_event);
+            return FALSE;
+        }
+
+    memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
+    if_linux_info->if_index = if_info.if_index;
+    if_linux_info->if_state = if_info.if_state;
+    if_linux_info->is_loopback = if_info.is_loopback;
+    if_linux_info->hw_type = if_info.hw_type;
+    if_linux_info->if_addr_list_hdl = NULL; 
+    memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
+    if_linux_info->hw_addr_len = if_info.hw_addr_len;
+
+    retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL, 
+                                    if_linux_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%s AN interface insert failed", an_nd_event);
+        return FALSE;
+     }
+    
+    if (if_linux_info->if_state == IF_UP) {
+        if_state = AN_PMSG_IF_UP; 
+     } else {
+        if_state = AN_PMSG_IF_DOWN;
+     }
+
+     if_index = if_linux_info->if_index;
+
+     retval = an_if_event_handler(if_state, if_index);
+
+     if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%s AN interface handler message enqueue failed",
+                an_nd_event);
+        return FALSE;
+     }
+ 
+
+    }
+        
+    return TRUE;
+
+}
+
+void
+an_if_event_linux_init (void)
+{
+    olibc_retval_t retval;
+    olibc_if_event_listener_info_t if_event_listener_info;
+
+    memset(&if_event_listener_info, 0, sizeof(olibc_if_event_listener_info_t));
+
+    if_event_listener_info.if_event_listener_cbk =
+        an_interface_event_cbk;
+    if_event_listener_info.pthread_hdl = an_pthread_hdl;
+    if_event_listener_info.args = "If event listener args";
+
+    retval = olibc_if_event_listener_create(&if_event_listener_info,
+            &an_if_event_listener_hdl);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%s AN If event creation failed", an_nd_event);
+        return;
+    }
+}
+
+
+
 void an_if_db_linux_init (void)
 {
     if (an_if_linux_list_hdl) {
@@ -452,6 +559,7 @@ void an_if_db_linux_init (void)
     }
     an_if_list_linux_init();
     an_if_list_addr_linux_init();
+    an_if_event_linux_init();
 }
 void
 an_if_services_init (void)
@@ -522,3 +630,5 @@ an_if_is_acp_interface (an_if_t an_ifhndl)
 printf("\n[SINO_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (FALSE);
 }
+
+
