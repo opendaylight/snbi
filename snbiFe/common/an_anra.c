@@ -11,6 +11,7 @@
 #include "../al/an_logger.h"
 #include "an_srvc_db.h"
 #include <an_str.h>
+#include "an_bs.h"
 
 uint8_t *an_anr_service_name;
 an_timer an_anra_bs_thyself_retry_timer = {0};
@@ -118,6 +119,21 @@ an_anra_incoming_nbr_connect_message (an_msg_package *message)
 void
 an_anra_incoming_bs_request_message (an_msg_package *bs_request_msg)
 {
+    if (!bs_request_msg || !bs_request_msg->udi.data ||
+        !bs_request_msg->udi.len) {
+        an_msg_mgr_free_message_package(bs_request_msg);
+        return;
+    }
+
+    if (!an_bs_forward_message_to_anra(bs_request_msg)) {
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                     "\n%sNot able to forward "
+                     "the Message[%s] to Autonomic Registrar", an_bs_pak,
+                     an_get_msg_name(bs_request_msg->header.msg_type));
+        an_msg_mgr_free_message_package(bs_request_msg);
+        return;
+    }
+
     return;
 }
 

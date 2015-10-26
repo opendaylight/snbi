@@ -30,6 +30,7 @@ typedef enum an_timer_e_ {
     AN_TIMER_TYPE_CONFIG_DOWNLOAD,
     AN_TIMER_TYPE_ANRA_BS_THYSELF_RETRY,
     AN_TIMER_TYPE_MAX,
+    AN_TIMER_TYPE_EXTERNAL_ANRA_BS_THYSELF_RETRY
 } an_timer_e;
 
 an_log_type_e an_get_log_timer_type(an_timer_e timer_type);

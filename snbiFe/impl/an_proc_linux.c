@@ -16,18 +16,24 @@
 
 olibc_pthread_hdl an_pthread_hdl = NULL;
 boolean an_initialised = FALSE;
+olibc_msg_q_hdl an_pmsg_q_hdl = NULL;
 
 static void*
 an_linux_process (void *arg)
 {
     olibc_pthread_dispatch_events(an_pthread_hdl);
     return NULL;
-} 
+}
 
-void an_proc_init (void) 
+void an_proc_init (void)
 {
     olibc_retval_t retval;
     olibc_pthread_info_t pthread_info;
+
+    if (an_pthread_hdl) {
+        // Process is already inited.
+        return;
+    }
 
     memset(&pthread_info, 0,sizeof(olibc_pthread_info_t));
     pthread_info.start_routine = an_linux_process;
@@ -45,9 +51,81 @@ void an_proc_init (void)
     return;
 }
 
-void
-an_attach_to_environment (void) 
+static boolean
+an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
 {
+    uint32_t msg_type;
+    uint64_t if_index, if_hndl;
+    olibc_retval_t retval;
+
+    if (!q_event_hdl) {
+        return FALSE;
+    }
+
+    retval = olibc_msg_q_event_get_type(q_event_hdl, &msg_type);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
+    switch (msg_type) {
+        case AN_PMSG_IF_UP:
+            retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                  printf("\nFailed to get interface index");
+                  return FALSE;
+              }
+            if_hndl = (uint32_t) if_index;
+            an_handle_interface_up(if_index);
+            break;
+
+        case AN_PMSG_IF_DOWN:
+            retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                  printf("\nFailed to get interface index");
+                  return FALSE;
+            }
+            if_hndl = (uint32_t) if_index;
+            an_handle_interface_down(if_index);
+            break;
+
+        default:
+            printf("\nUnknown type event received");
+            return FALSE;
+    }
+    return TRUE;
+}
+
+boolean
+an_pmsg_q_init ()
+{
+    olibc_retval_t retval;
+    olibc_msg_q_info_t msg_q_info;
+
+    if (!an_pthread_hdl) {
+        return FALSE;
+    }
+
+    memset(&msg_q_info, 0, sizeof(olibc_msg_q_info_t));
+
+    msg_q_info.max_q_len = 10;
+    msg_q_info.pthread_hdl = an_pthread_hdl;
+    msg_q_info.msg_q_cbk = an_pmsg_q_cbk;
+
+    retval = olibc_msg_q_create(&an_pmsg_q_hdl, &msg_q_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+    return TRUE;
+}
+
+
+void
+an_attach_to_environment (void)
+{
+    /* Create AN pmsg queue */
+    an_pmsg_q_init();
     /* Create AN socket */
     an_linux_sock_init();
     /* Infra enable for AN */
@@ -64,7 +142,7 @@ an_detach_from_environment (void)
 }
 
 void
-an_proc_uninit (void) 
+an_proc_uninit (void)
 {
     /* Wait till threads are complete before an_init continues. Unless we  */
     /* wait we run the risk of executing an exit which will terminate      */
@@ -104,7 +182,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return;
 }
 
-boolean 
+boolean
 an_is_system_configured_completely(void) {
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return FALSE;

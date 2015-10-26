@@ -82,8 +82,10 @@ an_cert_save (uint8_t *filename, an_cert_t cert)
 }
 
 an_cert_api_ret_enum
-an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
+an_cert_get_subject_name (an_cert_t cert, uint8_t **_subjname, uint16_t *_len)
 {
+    uint8_t *subjname = NULL;
+    uint16_t len = 0;
     X509_NAME *certsubject = NULL;
     an_cert_api_ret_enum retval = AN_CERT_API_SUCCESS;
     X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
@@ -99,14 +101,19 @@ an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
        goto free_all;
     }
     char *subj = X509_NAME_oneline(certsubject, NULL, 0);
+
     if (subj) {
-        *len = strlen(subj);
-        *name = (uint8_t *)an_malloc_guard((*len)+1, NULL);
-        if (!*name) {
+        len = strlen(subj);
+        subjname = (uint8_t *)an_malloc_guard((len)+1, NULL);
+        if (!subjname) {
             return (AN_CERT_MEM_ALLOC_FAIL);
         }
-        memcpy(*name, subj, *len);
-        name[*len] = '\0';
+        memcpy(subjname, subj, len);
+        subjname[len] = '\0';
+        *_subjname = subjname;
+        *_len = len;
+
+        retval = AN_CERT_API_SUCCESS;
     } else {
         retval = AN_CERT_UNKNOWN_FAILURE;
     }

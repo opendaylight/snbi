@@ -373,6 +373,8 @@ an_bs_trigger_nbr_connect_message (an_nbr_t *nbr)
              an_unix_time_get_elapsed_time(nbr->selected_anr_reference_time);
     }
 
+    nbr->selected_anr_addr = an_get_anra_ip();
+
     if (an_anra_is_configured()) {
         nbr->selected_anr_addr = an_anra_get_registrar_ip();
     } else if ((nbr_connect_triggered_time <=

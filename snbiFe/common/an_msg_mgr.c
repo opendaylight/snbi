@@ -17,6 +17,7 @@
 #include "an_idp.h"
 #include "an_srvc.h"
 #include "an_cnp.h"
+#include "an_external_anra.h"
 #include "../al/an_types.h"
 #include "../al/an_icmp6.h"
 #include "../al/an_pak.h"
@@ -1128,7 +1129,12 @@ an_msg_mgr_check_gtsm_ll_and_vrf_for_incoming_messages (an_pak_t *pak,
                 return (TRUE);
             } else if (an_msg_mgr_check_incoming_message_on_global_acp(msg_package)) {
                 return (TRUE);
-            } else {
+            } else if (!an_external_anra_is_configured()) {
+                DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL,
+                     "\n%sReceiving %s Message but no external ANRA configured "
+                     "dropping it",an_get_log_str(log),
+                     an_get_msg_name(msg_package->header.msg_type),
+                     an_if_get_name(msg_package->ifhndl));
                 return (FALSE);
             }
             
