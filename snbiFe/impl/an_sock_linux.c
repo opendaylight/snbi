@@ -148,7 +148,6 @@ an_linux_sock_init (void)
 
 #ifdef SO_REUSEPORT
     enable = TRUE;
-    printf("\n setting SO_REUSEPORT");
     if (setsockopt(an_sock_fd, SOL_SOCKET,
                    SO_REUSEPORT, &enable, sizeof(enable)) < 0) {
         DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,

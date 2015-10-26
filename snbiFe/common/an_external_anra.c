@@ -24,10 +24,16 @@ an_trigger_external_ra_connect_msg ()
     an_msg_package *message = NULL;
 
     if (!an_bs_is_initialized()) {
+        an_timer_start(&an_external_anra_bs_thyself_retry_timer,
+                   AN_EXTERNAL_ANRA_BS_THYSELF_RETRY_INTERVAL);
         return;
     }
 
     if (!an_get_udi(&myudi)) {
+       DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+               "\nUDI not available");
+       an_timer_start(&an_external_anra_bs_thyself_retry_timer,
+                   AN_EXTERNAL_ANRA_BS_THYSELF_RETRY_INTERVAL);
         return;
     }
 

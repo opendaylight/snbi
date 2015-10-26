@@ -54,8 +54,8 @@ void an_proc_init (void)
 static boolean
 an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
 {
-    uint32_t msg_type;
-    uint64_t if_index, if_hndl;
+    uint32_t msg_type, if_hndl;
+    uint64_t if_index;
     olibc_retval_t retval;
 
     if (!q_event_hdl) {

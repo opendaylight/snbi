@@ -353,9 +353,11 @@ an_if_list_linux_init (void)
     memset(&if_info, 0, sizeof(olibc_if_info_t));
     while (olibc_if_iterator_get_next(if_iter_hdl, (void *)&if_info) ==
             OLIBC_RETVAL_SUCCESS) {
+
         retval = olibc_malloc((void **)&if_linux_info,
                               sizeof(an_if_linux_info_t),
-                              "AN linux info");
+                             "AN linux info");
+
         if (!if_linux_info) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                     "\n%s AN If creation failed", an_nd_event);
@@ -492,9 +494,14 @@ an_interface_event_cbk (olibc_if_event_hdl if_event)
     memset(&if_info, 0, sizeof(olibc_if_info_t));
     while (olibc_if_iterator_get_next(if_iterator_hdl, (void *)&if_info) ==
             OLIBC_RETVAL_SUCCESS) {
+        if_linux_info = an_if_linux_get_info(if_info.if_index);
+        
+        if (!if_linux_info) {
         retval = olibc_malloc((void **)&if_linux_info,
                               sizeof(an_if_linux_info_t),
                               "AN linux info");
+        }
+
         if (!if_linux_info) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                     "\n%s AN If creation failed", an_nd_event);
@@ -554,7 +561,6 @@ an_if_event_linux_init (void)
     if_event_listener_info.if_event_listener_cbk =
         an_interface_event_cbk;
     if_event_listener_info.pthread_hdl = an_pthread_hdl;
-    if_event_listener_info.args = "If event listener args";
 
     retval = olibc_if_event_listener_create(&if_event_listener_info,
             &an_if_event_listener_hdl);
