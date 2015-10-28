@@ -40,9 +40,11 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.cms.CMSSignedDataGenerator;
 import org.bouncycastle.cms.SignerInfoGeneratorBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
@@ -52,8 +54,21 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.bouncycastle.x509.extension.*;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
+import org.bouncycastle.asn1.x509.X509Extension;
+import org.bouncycastle.x509.extension.X509ExtensionUtil;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStrictStyle;
+import java.security.Security;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.opendaylight.snbi.southplugin.KeyPairMgmt;
 
 // Class to manage certificates
 public class CertificateMgmt {
@@ -74,36 +89,42 @@ public class CertificateMgmt {
             .getLogger(CertificateMgmt.class);
 
     // create and sign the self signed certificate during startup
-    public static X509Certificate generateSelfSignedCertificate(
+    @SuppressWarnings("deprecation")
+	public static X509Certificate generateSelfSignedCACertificate(
             String hostname,String provider, KeyPair pair) {
         logger.info("Creating self signed certificate ");
         X509Certificate cert = null;
         try {
-            // Generate self-signed certificate
-            X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
-//            builder.addRDN(BCStyle.C, defaults.get("COUNTRY"));
-//            builder.addRDN(BCStyle.O, defaults.get("ORGANIZATION"));
-//            builder.addRDN(BCStyle.ST, defaults.get("STATE"));
-           // builder.addRDN(BCStyle.T, defaults.get("TITLE"));
-           // builder.addRDN(BCStyle.L, defaults.get("LOCALITY"));
-            //builder.addRDN(BCStyle.E, defaults.get("EMAIL"));
-            builder.addRDN(BCStyle.SN, BigInteger.valueOf(System.currentTimeMillis()).toString());
-            builder.addRDN(BCStyle.CN, hostname);
-
-            ContentSigner sigGen = new JcaContentSignerBuilder(
-                    CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).setProvider(provider
-                            ).build(pair.getPrivate());
+            Security.addProvider(new BouncyCastleProvider());
+            String subject = hostname;
+            String issuerName = hostname;
+            X500Name subjectFormated = new X500NameBuilder(BCStyle.INSTANCE).addRDN(BCStyle.CN, subject).build();
+            X500Name issuerFormated = new X500NameBuilder(BCStyle.INSTANCE).addRDN(BCStyle.CN, issuerName).build();
+            BigInteger serialNumber = BigInteger.ONE;
             Calendar now = Calendar.getInstance();
             Date notBefore = now.getTime();
             now.add(Calendar.YEAR, 3);
             Date notAfter = now.getTime();
-            BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
-            X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
-                    builder.build(), serial, notBefore, notAfter,
-                    builder.build(), pair.getPublic());
-            cert = new JcaX509CertificateConverter().setProvider(
-                    provider).getCertificate(
-                            certGen.build(sigGen));
+            JcaX509v3CertificateBuilder builder  = null;
+            builder  = new JcaX509v3CertificateBuilder(issuerFormated, serialNumber, notBefore,
+            notAfter, subjectFormated, pair.getPublic());
+            // Generate self-signed certificate
+            //  X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
+            // builder.addRDN(BCStyle.CN, hostname);
+            builder.addExtension(X509Extension.basicConstraints, true, new BasicConstraints(true));
+            SubjectKeyIdentifier subjectKeyIdentifier = new JcaX509ExtensionUtils().
+                createSubjectKeyIdentifier(pair.getPublic());
+            builder.addExtension(X509Extension.subjectKeyIdentifier, false, subjectKeyIdentifier);
+            KeyUsage keyUsage = new KeyUsage(KeyUsage.keyCertSign);
+            builder.addExtension(X509Extension.keyUsage, true, keyUsage);
+            ExtendedKeyUsage extendedKeyUsage  = new ExtendedKeyUsage(KeyPurposeId.anyExtendedKeyUsage);
+            builder.addExtension(X509Extension.extendedKeyUsage, false, extendedKeyUsage);
+            ContentSigner signer = new JcaContentSignerBuilder(
+                    CertManagerConstants.CERT_ALGORITHM.SHA1withRSA.toString()).
+                setProvider(provider).build(pair.getPrivate());
+            X509CertificateHolder holder = builder.build(signer);
+            cert = (X509Certificate) java.security.cert.CertificateFactory.getInstance("X.509").
+                generateCertificate(new ByteArrayInputStream(holder.getEncoded()));
         } catch (Throwable t) {
             t.printStackTrace();
         }
