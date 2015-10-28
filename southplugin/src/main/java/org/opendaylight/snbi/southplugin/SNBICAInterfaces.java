@@ -32,6 +32,7 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX500NameUtil;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
@@ -99,9 +100,11 @@ public enum SNBICAInterfaces {
         Date notBefore = now.getTime();
         now.add(Calendar.YEAR, 3);
         Date notAfter = now.getTime();
+        org.bouncycastle.asn1.x500.X500Name issuername = JcaX500NameUtil.getSubject(rootCert);
 
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
-                request.getSubject(), serial, notBefore, notAfter,
+
+        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(issuername,
+                serial, notBefore, notAfter,
                 request.getSubject(), rootCert.getPublicKey());
         if (signer == null) {
             try {

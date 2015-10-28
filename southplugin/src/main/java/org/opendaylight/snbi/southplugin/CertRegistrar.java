@@ -175,7 +175,7 @@ public enum CertRegistrar {
         KeyPair keyPair = KeyPairMgmt
                 .generateKeyPair(CertManagerConstants.ALGORITHM.RSA);
         X509Certificate cert = CertificateMgmt
-                .generateSelfSignedCertificate(CertManagerConstants.SNBI_STR,
+                .generateSelfSignedCACertificate(CertManagerConstants.SNBI_STR,
                         CertManagerConstants.BC, keyPair);
         logger.info("Created Self signed certificate ");
         CertificateMgmt.printCertificate(cert);
