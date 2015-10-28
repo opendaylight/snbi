@@ -131,6 +131,7 @@ an_ni_set_state (an_nbr_t *nbr, an_ni_state_e state)
     
     if (nbr->ni_state != state) {
 
+        nbr->ni_state = state;
         switch (state) {
         case AN_NI_INSIDE:
             an_event_nbr_inside_domain(nbr);
@@ -144,7 +145,6 @@ an_ni_set_state (an_nbr_t *nbr, an_ni_state_e state)
         default:
         break;
         }
-        nbr->ni_state = state;
     }
     return (TRUE);
 }
@@ -800,7 +800,6 @@ an_ni_incoming_cert_response (an_msg_package *message)
     DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
                 "\n%sRecvd AN NI cert response from  Nbr %s", 
                      an_bs_event, nbr->udi.data);
-
     if ((message->domain_cert.data != NULL) && 
         !an_ni_validate_cert_attributes(nbr->device_id,
                                         nbr->domain_id, 
