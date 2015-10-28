@@ -52,8 +52,13 @@ void
 an_ipv6_configure_addr_on_interface (an_if_t ifhndl, an_addr_t addr, 
                                      uint32_t prefix_len)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return;
+    char buf[100];
+    char ifname[50];
+
+    if_indextoname(ifhndl, ifname);
+    an_sprintf(buf,"%s %s%s%d %s %s", "ip addr add",
+            an_addr_get_string(&addr), "/",prefix_len, "dev",ifname );
+    system((buf));
 }
 
 void
