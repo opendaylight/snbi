@@ -602,20 +602,16 @@ an_config_loopback_cb (an_if_t ifhndl)
     an_vrf_info_t *vrf_info = NULL;
   
     vrf_info = an_vrf_get(); 
- 
     if (!an_if_is_up(ifhndl)) {
         return (TRUE);
     }
-
     if (an_if_is_loopback(ifhndl)) {
-
         /* Disable AN ND in ACP */
 
         an_nd_set_preference(ifhndl, AN_ND_CLIENT_INTERFACE_TYPE, AN_ND_CFG_DISABLED);
         an_nd_startorstop(ifhndl);
 
         an_if_make_volatile(ifhndl);
-
         if (an_acp_is_vrf_applicable()) {
             if (!an_vrf_configure_interface(ifhndl)) {
                 DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
@@ -630,7 +626,6 @@ an_config_loopback_cb (an_if_t ifhndl)
                       an_if_get_name(ifhndl), vrf_info->an_vrf_name, 
                       vrf_info->an_vrf_id);
         }
-
         addr = an_get_device_ip();
         an_ipv6_configure_addr_on_interface(ifhndl, addr, 128);        
 

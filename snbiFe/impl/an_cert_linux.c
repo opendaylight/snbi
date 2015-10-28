@@ -466,14 +466,12 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean
 an_tp_exists (uint8_t *cs_label)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (FALSE);
+    return (TRUE);
 }
 
 an_cert_validation_result_e 
 an_cert_validate (an_cert_t *peer_cert)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return(AN_CERT_VALIDITY_UNKNOWN);
 }
 
@@ -483,7 +481,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 boolean an_create_trustpoint (uint8_t* label, uint8_t* filename)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
@@ -523,7 +520,56 @@ an_cert_validation_result_e
 an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
                                              const an_log_type_e log_type)
 {
-            return (AN_CERT_VALIDITY_UNKNOWN);
+    X509_STORE         *store = NULL;
+    X509_STORE_CTX  *vrfy_ctx = NULL;
+    X509            *cert = NULL;
+    int    ret;
+    an_cert_t an_cert;
+    X509_NAME    *certsubject = NULL;
+    X509 *error_cert = NULL;
+    BIO *outbio = NULL;
+
+    if (!peer_cert || !peer_cert->data || !peer_cert->len) {
+        return (AN_CERT_VALIDITY_UNKNOWN);
+    }
+    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+    an_cert.data = peer_cert->data;
+    an_cert.len = peer_cert->len;
+
+    if (!(store=X509_STORE_new()))
+        return (AN_CERT_VALIDITY_UNKNOWN);
+
+    vrfy_ctx = X509_STORE_CTX_new();
+    cert = d2i_X509(NULL, (const unsigned char **)&an_cert.data,
+                                an_cert.len);
+
+
+    ret = X509_STORE_load_locations(store, CA_CERT_LOCATION, NULL);
+    if (ret != 1) {
+        return (AN_CERT_VALIDITY_UNKNOWN);
+    }
+
+    X509_STORE_CTX_init(vrfy_ctx, store, cert, NULL);
+
+    ret = X509_verify_cert(vrfy_ctx);
+
+    if(ret == 0) {
+        /*  get the offending certificate causing the failure */
+        error_cert  = X509_STORE_CTX_get_current_cert(vrfy_ctx);
+        certsubject = X509_NAME_new();
+        certsubject = X509_get_subject_name(error_cert);
+        BIO_printf(outbio, "Verification failed cert:\n");
+        X509_NAME_print_ex(outbio, certsubject, 0,
+                                      XN_FLAG_MULTILINE);
+        BIO_printf(outbio, "\n");
+ //       int err = X509_STORE_CTX_get_error(vrfy_ctx);
+ //       int depth = X509_STORE_CTX_get_error_depth(vrfy_ctx);
+        return (AN_CERT_VALIDITY_FAILED);
+    } else if (ret < 0) {
+        return (AN_CERT_VALIDITY_FAILED);
+    }
+    return (AN_CERT_VALIDITY_PASSED);
 }
 
 void
