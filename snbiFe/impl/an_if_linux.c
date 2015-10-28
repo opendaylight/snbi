@@ -248,22 +248,48 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 an_if_t
 an_if_create_loopback (uint32_t unit)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-        return (0);
+    an_if_linux_info_t *if_linux_info;
+    olibc_retval_t retval;
+
+    system("ip link add snbi-fe type dummy");
+    system("ip link set dev snbi-fe up");
+
+    retval = olibc_malloc((void **)&if_linux_info,
+                    sizeof(an_if_linux_info_t), "AN linux info");
+
+    if (!if_linux_info) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN If creation failed", an_nd_event);
+            return 0;
+    }
+
+    memcpy(if_linux_info->if_name, "snbi-fe", strlen("snbi-fe")+1);
+    if_linux_info->if_index = if_nametoindex("snbi-fe");
+    if_linux_info->if_state = IF_UP;
+    if_linux_info->is_loopback = TRUE;
+
+    retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
+                                    if_linux_info);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%s AN interface insert failed", an_nd_event);
+        return 0;
+    }
+
+    return (if_nametoindex("snbi-fe"));
 }
 
 an_if_t
 an_get_autonomic_loopback_ifhndl(void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (0);
+    return(if_nametoindex("snbi-fe"));
 }
 
 void
 an_if_remove_loopback (an_if_t lb_ifhndl)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-            return;
+    system("ip link delete snbi-fe type dummy");
 }
 
  /*
