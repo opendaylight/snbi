@@ -118,7 +118,7 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     FILE* fd = NULL;
     ssize_t nbytes;
     size_t bufsize = 0;
-    char *buffer;
+    char *buffer, cmd1[100];
     int position_in_file = 0;
 
     fd = fopen(ipsec_file, "r+");
@@ -128,25 +128,26 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     }
 
     while ((nbytes = getline(&buffer, &bufsize, fd))!= -1) {
-        if (strstr(buffer, an_if_get_name(local_ifhndl)) != NULL) {
+        if (strstr(buffer, an_if_get_name(tunn_ifhndl)) != NULL) {
            fseek(fd,position_in_file,SEEK_SET);
            fprintf(fd, "%s%s%s","conn ", an_if_get_name(tunn_ifhndl),"\n");
            fprintf(fd, "%s%s%s%s%s","        left=", an_addr_get_string(&src_ip)                                ,"%", an_if_get_name(local_ifhndl),"\n");
            fprintf(fd, "%s%s%s","        leftid=\"CN=*, OU=", 
                       an_get_domain_id(),"serialNumber=*\n");
            fprintf(fd, "%s%s%s%s%s","        right=",an_addr_get_string(&dst_ip)                        ,"%", an_if_get_name(local_ifhndl),"\n");
-           fprintf(fd, "%s","        rightid=%any\n");
+           fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=", 
+                      an_get_domain_id(),", serialNumber=*\"\n");
            fprintf(fd, "%s","        also=snbi_default\n");
            fprintf(fd, "%s","        auto=add\n");
            fclose(fd);
            system ("ipsec restart");
+           an_sprintf(cmd1, "%s %s","ipsec up ", an_if_get_name(tunn_ifhndl));
+           system (cmd1);
            return (TRUE);
         }
         position_in_file = ftell(fd);
     }
-        position_in_file = ftell(fd);
-        printf("\nend position in file %d", position_in_file);
-
+    position_in_file = ftell(fd);
     fclose(fd);
 
     fd = fopen(ipsec_file, "a+");
@@ -162,17 +163,27 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
                         "serialNumber=*\n");
     fprintf(fd, "%s%s%s%s%s","        right=", an_addr_get_string(&dst_ip), "%", 
                             an_if_get_name(local_ifhndl),"\n");
-    fprintf(fd, "%s","        rightid=%any\n");
+    fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=", 
+                      an_get_domain_id(),", serialNumber=*\"\n");
     fprintf(fd, "%s","        also=snbi_default\n");
     fprintf(fd, "%s","        auto=add\n");
     fflush(fd);
     fclose(fd);
     system ("ipsec update");
+    an_sprintf(cmd1, "%s %s","ipsec up ", an_if_get_name(tunn_ifhndl));
+    system (cmd1);
     return (TRUE);
 }
 
 void
 an_ipsec_remove_on_tunnel (an_if_t tunn_ifhndl)
 {
-    system ("ipsec down <tunn_name>");
+    char cmd1[100];
+
+    if (!tunn_ifhndl) {
+        return;
+    }
+
+    an_sprintf(cmd1, "%s %s","ipsec down ", an_if_get_name(tunn_ifhndl));
+    system (cmd1);
 }
