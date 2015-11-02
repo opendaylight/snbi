@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -33,6 +34,7 @@ import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX500NameUtil;
+import org.bouncycastle.cert.jcajce.JcaX500NameUtil;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
@@ -44,6 +46,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 
 public enum SNBICAInterfaces {
     INSTANCE;
@@ -101,11 +104,18 @@ public enum SNBICAInterfaces {
         now.add(Calendar.YEAR, 3);
         Date notAfter = now.getTime();
         org.bouncycastle.asn1.x500.X500Name issuername = JcaX500NameUtil.getSubject(rootCert);
+        JcaPKCS10CertificationRequest jpkcsreq = new 
+                                     JcaPKCS10CertificationRequest(request);
+        X509v3CertificateBuilder certGen;
+        try {
+            certGen = new JcaX509v3CertificateBuilder(issuername,
+                    serial, notBefore, notAfter,
+                    request.getSubject(), jpkcsreq.getPublicKey());
+        } catch (InvalidKeyException | NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+            return null;
+        }
 
-
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(issuername,
-                serial, notBefore, notAfter,
-                request.getSubject(), rootCert.getPublicKey());
         if (signer == null) {
             try {
                 signer = new JcaContentSignerBuilder(

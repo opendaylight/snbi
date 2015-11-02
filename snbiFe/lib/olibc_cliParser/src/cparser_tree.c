@@ -701,6 +701,98 @@ cparser_glue_test_quit (cparser_t *parser)
     return CPARSER_OK;
 }
 
+cparser_result_t
+cparser_glue_host (cparser_t *parser)
+{
+    cparser_cmd_host(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_host_cmd (cparser_t *parser)
+{
+    char *cmd_val;
+    char **cmd_ptr = NULL;
+    cparser_result_t rc;
+
+    rc = cparser_get_string(&parser->tokens[0], &cmd_val);
+    assert(CPARSER_OK == rc);
+    cmd_ptr = &cmd_val;
+    cparser_cmd_host_cmd(&parser->context,
+        cmd_ptr);
+    return CPARSER_OK;
+}
+
+cparser_result_t
+cparser_glue_host_quit (cparser_t *parser)
+{
+    cparser_cmd_host_quit(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_node_t cparser_node_host_root_quit_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_host_quit,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_host_root_quit = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "quit",
+    "Exit host submode",
+    NULL,
+    &cparser_node_host_root_quit_eol
+};
+
+cparser_node_t cparser_node_host_root_cmd_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_host_cmd,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_host_root_cmd = {
+    CPARSER_NODE_STRING,
+    0,
+    "<STRING:cmd>",
+    "Host command",
+    &cparser_node_host_root_quit,
+    &cparser_node_host_root_cmd_eol
+};
+
+cparser_node_t cparser_node_host_root = {
+    CPARSER_NODE_ROOT,
+    0,
+    NULL,
+    "Root of submode host",
+    NULL,
+    &cparser_node_host_root_cmd
+};
+
+cparser_node_t cparser_node_host_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_host,
+    NULL,
+    NULL,
+    &cparser_node_host_root
+};
+
+cparser_node_t cparser_node_host = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "host",
+    "Execute host specific commands",
+    NULL,
+    &cparser_node_host_eol
+};
+
 cparser_node_t cparser_node_test_root_quit_eol = {
     CPARSER_NODE_END,
     0,
@@ -1768,7 +1860,7 @@ cparser_node_t cparser_node_test = {
     0,
     "test",
     "Test mode",
-    NULL,
+    &cparser_node_host,
     &cparser_node_test_eol
 };
 

@@ -158,6 +158,7 @@ CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_snbi_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_event_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_if_event_test.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_host.c \
 	$(SNBI_CLISIM_SRC)/an_clisim.c
 
 CC_OLIBC_CLI_SRCS :=\

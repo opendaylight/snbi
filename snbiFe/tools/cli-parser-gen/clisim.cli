@@ -11,3 +11,6 @@ configure("SNBI Configuration mode")
 test("Test mode")
 
 #include "test.cli"
+
+host("Execute host specific commands")
+#include "host.cli"
