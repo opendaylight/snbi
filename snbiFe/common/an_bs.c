@@ -28,6 +28,7 @@
 #include "an_ni.h"
 #include "an_anra.h"
 //#include "an_topo_disc.h"
+#include <an_routing.h>
 
 #define REJECTED_NBR_REFRESH_COUNT 2*10
 #define AN_BS_MAX_WAIT_TIME_BEFORE_SELECTING_NEXT_ANR (5*60)
@@ -678,6 +679,7 @@ an_bs_bootstrap_device (an_msg_package *message)
    
     an_set_domain_id(message->domain_id);
     an_set_device_id(message->device_id);
+    an_notify_routing_device_id_availble();
     an_set_anr_macaddress(message->macaddress); 
     device_addr = an_get_v6addr_from_names(message->domain_id, 
                                     message->macaddress, 

@@ -31,4 +31,5 @@ void an_set_rpl_routing_info(void);
 char *an_get_rpl_tag_name(void);
 boolean an_get_rpl_floating_root_enable_flag(void);
 void an_rpl_connect_notify_callback(bool sense);
+void an_notify_routing_device_id_availble(void);
 #endif

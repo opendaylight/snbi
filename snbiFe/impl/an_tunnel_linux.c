@@ -42,10 +42,16 @@ an_tunnel_create (an_addr_t *src, an_addr_t *dst, an_if_t src_if, uint8_t mode)
             "mode ip6gre local",an_addr_get_string(src),"remote", 
             an_addr_get_string(dst), "dev", an_if_get_name(src_if));
 
-    an_sprintf(cmd2,"%s%d %s %s","ip addr add fe80::",tunnel_num,"dev"
-            , tunnel_name);
+
+    an_sprintf(cmd2,"%s%x:%x:%x:%d %s %s","ip addr add fe80::",
+            (uint16_t)(rand()%32768), (uint16_t)(rand()%32768),
+            (uint16_t)(rand()%32768),tunnel_num,
+            "dev",tunnel_name);
 
     an_sprintf(cmd3, "%s %s %s","ip link set dev", tunnel_name, "up");
+    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+            "\n%sTunnel Execs: \n\t %s \n\t %s \n\t %s", 
+            an_bs_event, cmd1, cmd2, cmd3);
     system(cmd1);
     system(cmd2);
     system(cmd3);

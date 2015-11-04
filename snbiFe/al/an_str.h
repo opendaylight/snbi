@@ -48,5 +48,7 @@ void an_strstr(uint8_t *dest, uint16_t dLen, uint8_t *src,
             uint16_t sLen, char **substr);
 uint8_t *an_itoa(uint8_t num, uint8_t *str);
 char *an_strtok_r(char *s, const char *delim, char **lasts);
+char* an_strchr(const char *str, int n);
+
 
 #endif

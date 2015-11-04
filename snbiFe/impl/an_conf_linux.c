@@ -10,7 +10,6 @@
 
 extern olibc_pthread_hdl an_pthread_hdl;
 extern an_udi_t an_udi_platform_linux;
-extern an_v6addr_t registrar_ip_addr;
 extern an_timer an_external_anra_bs_thyself_retry_timer;
 
 olibc_msg_q_hdl an_conf_q_hdl = NULL;
@@ -234,15 +233,7 @@ an_conf_external_register_ip (olibc_msg_q_event_hdl q_event_hdl)
         an_free(reg_ip_str);
         return;
     }
-    registrar_ip_addr = reg_ip;
-    /*memset(registrar_ip, 0, INET6_ADDRSTRLEN);
-      inet_ntop(AF_INET6, &reg_ip, registrar_ip, INET6_ADDRSTRLEN);
-      printf("Converted IP %s", registrar_ip);
-      strncpy(registrar_ip_addr, registrar_ip, INET6_ADDRSTRLEN); */
 
-    /*an_timer_init(&an_external_anra_bs_thyself_retry_timer,
-      AN_TIMER_TYPE_EXTERNAL_ANRA_BS_THYSELF_RETRY, NULL,
-      FALSE);*/
     an_external_anra_set_ip(reg_ip);
     an_free(reg_ip_str);
 }

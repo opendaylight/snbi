@@ -98,12 +98,12 @@ an_system_extern_ra_init (void)
 }
 
 an_v6addr_t
-an_get_registrar_ip (an_v6addr_t *reg_ip)
+an_external_anra_get_ip ()
 {
     return registrar_ip_addr;
 }
 void an_external_anra_set_ip (an_v6addr_t reg_ip)
-{
+{   
     if (an_external_anra_configured) {
         printf("\nExternal ANRA already configured");
         return;
