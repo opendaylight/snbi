@@ -73,7 +73,13 @@ void
 an_ipv6_unconfigure_addr_on_interface (an_if_t ifhndl, an_addr_t addr,
                                        uint32_t prefix_len)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+    char buf[100];
+    char ifname[50];
+
+    if_indextoname(ifhndl, ifname);
+    an_sprintf(buf,"%s %s%s%d %s %s", "ip addr del",
+            an_addr_get_string(&addr), "/",prefix_len, "dev",ifname );
+    system((buf));
     return;
 }
 

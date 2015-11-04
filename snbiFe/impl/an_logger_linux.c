@@ -268,14 +268,14 @@ void an_set_log_lev (an_log_type_e log_type, an_debug_level_e lev, boolean flag)
     if (flag) {
         if (lev <= an_debug_map[log_type]) {
             an_debug_map[log_type] = lev;
-            printf("\tDebugging Enabled for  %s %s",
+            printf("\n\tDebugging Enabled for  %s %s",
                    an_log_cfg_string[log_type],
                    an_log_lev_str[an_debug_map[log_type]]);
         }
     } else {
         if ((lev <= an_debug_map[log_type]) && 
              (an_debug_map[log_type] != AN_DEBUG_MAX)) {
-            printf("\tDebugging Disabled for  %s %s",
+            printf("\n\tDebugging Disabled for  %s %s",
                     an_log_cfg_string[log_type],
                     an_log_lev_str[an_debug_map[log_type]]);
             an_debug_map[log_type] = AN_DEBUG_MAX;
