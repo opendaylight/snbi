@@ -36,7 +36,7 @@ main (int argc, char *argv[])
 
 
 
-    while (-1 != (ch = getopt(argc, argv, "ihd"))) {
+    while (-1 != (ch = getopt(argc, argv, "ihdc:"))) {
         switch (ch) {
             case 'i':
                 interactive = 1;
@@ -44,10 +44,14 @@ main (int argc, char *argv[])
             case 'd':
                 debug  = 1;
                 break;
+            case 'c':
+                config_file = optarg;
+                break;
             case 'h':
                 printf("\n-h \tDisplay the help and exit");
                 printf("\n-i \tEnter into interactive mode");
                 printf("\n-d \tEnable parser debug mode");
+                printf("\n-c \tProvide an initial config file");
                 printf("\n\n");
                 return 0;
                 break;
