@@ -81,8 +81,8 @@ void an_notify_routing_device_id_availble()
 */
         an_sprintf(cmd, "sunshine --dagid rpl instanceid 1 "
             "--dao-if-filter snbi-* --ignore-pio "
-            "--dao-addr-filter fd::/8 --dag-if-filter snbi_tun_* "
-            "-p fd::/8 --syslog --stderr --verbose "
+            "--dao-addr-filter fd00::/8 --dag-if-filter snbi_tun_* "
+            "-p fd00::/8 --syslog --stderr --verbose "
             "--rank %s --interval 40000 > /tmp/rpl.log 2>&1 &", rank);
     DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
             "\n%sRPL Execs: \n\t%s \n\t%s", an_bs_event,
