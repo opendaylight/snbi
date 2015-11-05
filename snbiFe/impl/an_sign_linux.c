@@ -29,7 +29,9 @@ const uint8_t *an_sign_debug_enum_string [] = {
 
 const uint8_t *an_sign_enum_get_string (an_sign_api_ret_enum enum_type)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (an_sign_debug_enum_string[enum_type]);
 }
 
@@ -37,7 +39,9 @@ an_sign_api_ret_enum
 an_sign_data(uint8_t *data, uint16_t data_len, an_sign_digest_type_e digest_type,
               an_sign_t *sign, uint8_t *tp_label, uint8_t *key_label)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_SIGN_API_SUCCESS);
 }
 
@@ -45,7 +49,9 @@ an_sign_api_ret_enum
 an_verify_signature (uint8_t *data, uint16_t data_len_in, an_sign_digest_type_e digest_type,
                      an_cert_t cert, an_sign_t sign)
 {   
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_SIGN_API_SUCCESS);
 }
 
@@ -55,7 +61,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean an_smime_sign_message (uint8_t *data, uint16_t data_len,
         an_sign_t *sign, uint8_t *label)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (TRUE);
 }
 
@@ -66,7 +74,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean an_smime_reply_verify_and_extract (uint8_t* pkcs7_data, uint8_t* pki_label,
         uint8_t **data_extract, uint32_t *data_len)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 

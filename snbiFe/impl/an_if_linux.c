@@ -133,26 +133,34 @@ an_if_check_vlan_exists (uint32_t unit)
 boolean
 an_if_check_loopback_exists (uint32_t unit)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
 void
 an_if_platform_specific_cfg (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean an_if_bring_up (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 inline boolean an_if_is_tunnel (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
@@ -239,7 +247,9 @@ an_if_is_ethernet (an_if_t ifhndl)
 boolean
 an_if_make_volatile (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -297,7 +307,9 @@ an_if_remove_loopback (an_if_t lb_ifhndl)
 boolean
 an_if_recycle_matcher (an_idbtype *idb)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
    return FALSE;
 }
 
@@ -307,27 +319,35 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 clear_idb_subblocks (an_idbtype *idb)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 uint8_t*
 an_if_get_l2_mac_addr (an_hwidbtype *hwidb)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (NULL);
 }
 
 void
 an_if_set_svi_mac_addr (an_hwidbtype *hwidb, uint8_t* l2_mac)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_idbtype * an_if_number_to_swidb(an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
    return(NULL);
 }
 

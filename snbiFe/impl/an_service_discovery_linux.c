@@ -45,7 +45,9 @@ an_addr_t  syslog_sd_param_global;
 void
 an_service_clear_entry (an_service_type_t an_service_type)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -53,14 +55,18 @@ void
 an_sd_aaa_get_parse_data (an_aaa_param_t *aaa_sd_param_local,
                           char *parse_string)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 void
 an_discover_services (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -75,7 +81,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void  
 an_discover_services_deallocate (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -87,13 +95,17 @@ an_sd_cfg_global_commands (boolean set)
 
 void 
 an_clear_service_info_db (void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void 
 an_mdns_anra_service_add (an_addr_t anra_ip, an_if_t int_index, uint8_t *l2_mac) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 

@@ -95,48 +95,64 @@ void an_tunnel_remove (an_if_t ifhndl)
 boolean 
 an_vrf_unconfigure_interface (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
+#endif
     return TRUE;
 }
 
 boolean 
 an_vrf_configure_interface (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return TRUE;
 }
         
 boolean 
 an_vrf_define (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return FALSE;
 }
 
 void
 an_vrf_remove (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 void an_vrf_set_id (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 void
 an_tunnel_init (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 void
 an_tunnel_uninit (void) 
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 

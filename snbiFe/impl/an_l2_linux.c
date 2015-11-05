@@ -57,21 +57,27 @@ an_cd_info_db_remove(an_if_info_t *, an_cd_info_t *);
 
 boolean an_if_is_layer2 (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
 boolean
 an_l2_check_probe_possible (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
 boolean
 an_get_vlan_id (an_if_info_t *phy_an_if_info) 
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -79,7 +85,9 @@ void
 an_pak_init_l2_header (an_pak_t *an_pak, 
                        an_proto_channel_discovery_msg_type_e msg_type)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -88,28 +96,36 @@ an_l2_nd_trigger_hello (an_if_t ifhndl, boolean request,
                         an_dot1q_qinq_vlan_id_t *vlan_sb,
                         an_udi_t *dest_udi)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 void
 an_l2_disable_channel (an_if_t ifhndl, an_cd_info_t *an_cd_info)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return; 
 }
 
 boolean
 an_l2_check_channel_configured (an_if_t ifhndl, an_cd_info_t *an_cd_info)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
    return (FALSE);
 }
 
 boolean
 an_l2_enable_channel (an_if_t ifhndl, an_cd_info_t *an_cd_info)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -117,28 +133,36 @@ boolean
 an_copy_seed_to_actual_cd_info (an_cd_info_t *an_seed_cd_info, 
                                 an_cd_info_t *an_cd_info)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 void
 an_handle_l2_pak (an_pak_t *an_pak) 
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_if_t
 an_configure_vti_for_l2_port (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return 0;
 }
 
 void 
 an_disable_switchport_on_if (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 

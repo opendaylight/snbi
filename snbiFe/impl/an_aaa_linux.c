@@ -17,35 +17,47 @@
 boolean
 an_aaa_add_server (void)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#ifdef PRINT_STUBS_PRINTF
+#ifdef PRINT_STUBS_PRINTF    
+    printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
+#endif
     return (TRUE);
 }
 
 boolean
 an_aaa_add_server_to_sg (an_aaa_param_t *aaa_param)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 void 
 an_aaa_enable (an_aaa_param_t *aaa_param)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_aaa_update (an_aaa_param_t *aaa_param)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_aaa_disable (an_aaa_param_t *aaa_param)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 

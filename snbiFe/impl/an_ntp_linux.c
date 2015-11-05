@@ -26,28 +26,36 @@ an_clock_set (void)
 
 boolean an_ntp_add_remove_master (uint32_t stratum, boolean remove)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return TRUE;
 }
 
 boolean an_ntp_set_peer (an_ntp_peer_param_t *ntp_peer, boolean
         is_peer_association)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
 boolean
 an_ntp_remove_peer (an_ntp_peer_param_t *ntp_peer, boolean is_peer_association)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
 void
 an_ntp_do_calendar_update (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 

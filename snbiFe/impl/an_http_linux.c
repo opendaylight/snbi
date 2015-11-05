@@ -41,7 +41,9 @@ uint8_t *an_masa_prepare_soap_request(masa_msg_type type, an_sign_t sign, an_cer
 void
 anra_httpc_register (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -52,7 +54,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 anra_httpc_unregister (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
@@ -63,7 +67,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean 
 an_masa_resolve_url (uint8_t* url)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -73,7 +79,9 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void 
 an_initialize_post (httpc_app_req_params_t *req_params)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -86,14 +94,18 @@ uint8_t*
 an_masa_prepare_soap_request (masa_msg_type type, an_sign_t sign,
         an_cert_t sudi, uint32_t* len)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
             return (NULL);
 }
 
 void 
 an_masa_auth_request_static (masa_msg_type type)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
@@ -105,7 +117,9 @@ void
 an_masa_send_http_request (an_udi_t *udi, masa_msg_type type,
         masa_app_context *masa_context)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 

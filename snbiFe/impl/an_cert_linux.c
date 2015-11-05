@@ -213,42 +213,54 @@ an_cert_gen_certificate_request(int32_t pki_sd, an_mac_addr *mac_address, uint8_
              uint8_t *domain_id, uint8_t *key_label, an_cert_req_t *cert_req,
              an_sign_t *cert_req_sign, int8_t csr_type)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (FALSE);
 }
 
 void
 an_cert_verify_cb (void *ctx, uint status, uint cert_status)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_cert_fetch_cb (void *ctx,  ushort command, ushort status, uchar* rsp)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean
 an_cert_enroll_msg_cb (an_enroll_msg_t *msg)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 an_cert_api_ret_enum
 an_cert_grant_certificate (int32_t pki_sd, an_sign_t cert_req_sign, an_cert_t *cert)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
                 return (AN_CERT_MEM_ALLOC_FAIL);
 }
 
 boolean
 an_cert_grant_certificate_proxy (int32_t pki_sd, uint8_t *key_label, an_cert_req_t cert_req, an_cert_t *cert)
 { 
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -395,14 +407,18 @@ an_cert_enroll(an_cert_req_t *pkcs10, an_sign_t *pkcs10_sign, an_cert_req_t *sig
                an_key_t *public_key, an_cert_t *cert, an_udi_t device_udi,
                an_addr_t proxy_device, an_iptable_t iptable)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (AN_CERT_INPUT_PARAM_INVALID);
 }
 
 an_cert_api_ret_enum
 an_cert_reset_domain_ca_cert (uint8_t *tp_label)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_API_SUCCESS);
 }
 
@@ -452,14 +468,18 @@ an_cert_is_device_cert_valid (an_cert_t *cert)
 an_cert_api_ret_enum
 an_cert_get_device_cert_from_tp (uint8_t *tp_label, an_cert_t *cert)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_API_SUCCESS);
 }
 
 an_cert_api_ret_enum 
 an_cert_get_ca_cert_from_tp (uint8_t *tp_label, an_cert_t *cert)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_API_SUCCESS);
 }
 
@@ -488,19 +508,25 @@ an_cert_api_ret_enum
 an_cert_get_cert_expire_time (an_cert_t *cert,
                  an_unix_msec_time_t* validity_interval,
                  an_unix_time_t *validity_time) {
+#ifdef PRINT_STUBS_PRINTF    
 //printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return 0;
 }
 
 void 
 an_cert_displaycert_in_pem (uchar *cert_der, uint16_t cert_len) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_cert_api_ret_enum 
 an_cert_config_cert_renewal_on_trustpoint (void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_UNKNOWN_FAILURE);
 }
 

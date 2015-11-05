@@ -253,19 +253,25 @@ an_file_exist (uint8_t *filename)
 
 void 
 an_file_copy_to_stby_later (uint8_t *filename) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void 
 an_write_device_from_db_to_local_file (void *device, uint8_t file_identifier) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean 
 an_file_copy_to_standby(uint8_t *src_file) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 

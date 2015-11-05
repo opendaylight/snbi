@@ -100,14 +100,18 @@ an_udi_get_from_platform (an_udi_t *udi)
 boolean
 an_udi_is_format_valid (an_udi_t *udi)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 uint8_t *
 an_sudi_get_label (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (NULL);
 }
 

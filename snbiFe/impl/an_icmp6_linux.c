@@ -16,7 +16,9 @@
 inline uint8_t 
 an_icmp6_get_type(an_icmp6_hdr_t *icmp6)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
@@ -24,34 +26,44 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 inline uint32_t 
 an_icmp6_get_len (an_icmp6_hdr_t *icmp6_hdr, an_ipv6_hdr_t *ipv6_hdr)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (0);
 }
 
 inline uint16_t
 an_icmp6_get_cksum (an_icmp6_hdr_t *icmp6_hdr)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
 inline void 
 an_icmp6_set_cksum (an_icmp6_hdr_t *icmp6_hdr, uint16_t cksum)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 inline void
 an_icmp6_reset_cksum (an_icmp6_hdr_t *icmp6_hdr)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_ipv6_nd_opt_hdr * 
 an_icmp6_get_an_nd_opt_hdr (an_icmp6_hdr_t *icmp6_hdr, uint32_t icmp_len)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return NULL;
 }

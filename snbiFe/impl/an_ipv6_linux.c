@@ -37,13 +37,17 @@ inline boolean an_ipv6_enable_on_interface (an_if_t ifhndl)
 
 inline boolean an_ipv6_disable_on_interface (an_if_t ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 inline boolean an_ipv6_address_set_unnumbered (an_if_t ifhndl, an_if_t unnum_ifhndl)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (FALSE);
 }
 
@@ -65,7 +69,9 @@ void
 an_ipv6_configure_cga_on_interface (an_if_t ifhndl, an_v6addr_t v6addr, 
                                     uint32_t prefix_len)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -160,7 +166,9 @@ boolean an_ipv6_forward_pak (an_pak_t *pak, uint8_t *msg_block,
 
 inline uint8_t an_ipv6_hdr_get_version (an_ipv6_hdr_t *ipv6_hdr)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
@@ -187,13 +195,17 @@ inline uint8_t an_ipv6_hdr_get_next (an_ipv6_hdr_t *ipv6_hdr)
 
 inline uint8_t an_ipv6_hdr_get_hlim (an_ipv6_hdr_t *ipv6_hdr)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
 inline uint16_t an_ipv6_hdr_get_paylen (an_ipv6_hdr_t *ipv6_hdr)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
@@ -219,7 +231,9 @@ an_addr_t an_ipv6_get_best_source_addr (an_addr_t destination,
 
 boolean an_ipv6_is_our_address (an_addr_t address, an_iptable_t iptable)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
@@ -260,80 +274,104 @@ void *an_rwatch_ctx = NULL;
 void
 an_rwatch_cb (void *app_ctx)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 boolean
 an_rwatch_init (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
 boolean
 an_rwatch_uninit (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (FALSE);
 }
 
 void
 an_rwatch_start_track_ipaddr (an_addr_t ipaddr, an_afi_t af, an_iptable_t iptable)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_rwatch_stop_track_ipaddr (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_ipv6_routing_start_global_unicast (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_ipv6_routing_stop_global_unicast (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_ipv6_unicast_routing_enable_disable_register (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_ipv6_unicast_routing_enable_disable_unregister (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_list_t* 
 an_ipv6_get_list_of_ipv6_addresses_on_interface (an_if_t ifhndl) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return NULL;
 }
 
 void 
 an_ipv6_clean_all_v6addr_on_interface (an_list_t *list, an_if_t ifhndl) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void 
 an_ipv6_set_and_clean_v6addr_on_interface_and_nvgen (an_list_t *list, an_if_t ifhndl) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }

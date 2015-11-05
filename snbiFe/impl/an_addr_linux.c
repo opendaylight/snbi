@@ -102,7 +102,9 @@ void
 an_get_ipv6_interface_id_frm_device_id(uint8_t *device_id, 
                                        uint8_t* interface_id)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -286,18 +288,24 @@ an_addr_is_ipv6_multicast (an_addr_t address)
 
 an_v4addr_t 
 an_addr_get_v4addr_from_interface(an_if_t ifhndl) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_V4ADDR_ZERO);
 }
 
 void an_addr_set_v4addr_on_interface_and_nvgen (an_if_t ifhndl, an_v4addr_t v4addr, an_v4addr_t v4mask) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_v4addr_t 
 an_addr_get_v4mask_from_interface(an_if_t ifhndl) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_V4ADDR_ZERO);
 }
 
