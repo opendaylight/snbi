@@ -126,7 +126,7 @@ an_ipsec_profile_init (void)
     fprintf(fd_secret, "%s %s%s%s%s"," : RSA", cwd, "/",PRIVATE_KEY_LOCATION,"\n");
     fclose(fd_secret);
 
-    system ("ipsec restart");
+    system ("ipsec restart >& /dev/null");
     return;
 }
 
@@ -171,8 +171,9 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
            fprintf(fd, "%s","        also=snbi_default\n");
            fprintf(fd, "%s","        auto=add\n");
            fclose(fd);
-           system ("ipsec restart");
-           an_sprintf(cmd1, "%s %s","ipsec up ", an_if_get_name(tunn_ifhndl));
+           system ("ipsec restart >& /dev/null");
+           an_sprintf(cmd1, "%s %s %s","ipsec up ", an_if_get_name(tunn_ifhndl),
+                   ">& /dev/null");
            system (cmd1);
            return (TRUE);
         }
@@ -200,8 +201,9 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     fprintf(fd, "%s","        auto=add\n");
     fflush(fd);
     fclose(fd);
-    system ("ipsec update");
-    an_sprintf(cmd1, "%s %s","ipsec up ", an_if_get_name(tunn_ifhndl));
+    system ("ipsec update >& /dev/null");
+    an_sprintf(cmd1, "%s %s %s","ipsec up ", an_if_get_name(tunn_ifhndl), 
+            ">& /dev/null");
     system (cmd1);
     return (TRUE);
 }
@@ -215,6 +217,7 @@ an_ipsec_remove_on_tunnel (an_if_t tunn_ifhndl)
         return;
     }
 
-    an_sprintf(cmd1, "%s %s","ipsec down ", an_if_get_name(tunn_ifhndl));
+    an_sprintf(cmd1, "%s %s %s","ipsec down ", an_if_get_name(tunn_ifhndl), 
+            ">& /dev/null");
     system (cmd1);
 }
