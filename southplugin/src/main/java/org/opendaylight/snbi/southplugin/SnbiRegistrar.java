@@ -154,7 +154,7 @@ public class SnbiRegistrar implements ISnbiMsgInfraPktsListener {
     private void setNodeDeviceIP (SnbiNode node) {
     	try {
     		if (node.nodeIsRegistrar()) {
-    			node.setNodeAddress(InetAddress.getByName("fd6a:fbaa:36f9:0:4141:3a42:423a:1"));
+    			node.setNodeAddress(InetAddress.getByName("fd08::aaaa:bbbb:1"));
     			return;
     		}
     		
