@@ -43,7 +43,7 @@ an_tunnel_create (an_addr_t *src, an_addr_t *dst, an_if_t src_if, uint8_t mode)
             an_addr_get_string(dst), "dev", an_if_get_name(src_if));
 
 
-    an_sprintf(cmd2,"%s%x:%x:%x:%d %s %s","ip addr add fe80::",
+    an_sprintf(cmd2,"%s%x:%x:%x:%d/64 %s %s","ip addr add fe80::",
             (uint16_t)(rand()%32768), (uint16_t)(rand()%32768),
             (uint16_t)(rand()%32768),tunnel_num,
             "dev",tunnel_name);
