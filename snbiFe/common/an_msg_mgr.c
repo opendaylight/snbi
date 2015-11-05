@@ -1194,6 +1194,7 @@ an_msg_mgr_deliver_incoming_message (an_msg_package *msg_package,
      * For bootstrapping ourselves, there wouldn't be an input interface.
      */
     if (ifhndl) {
+        /*
         an_if_info = an_if_info_db_search(ifhndl, FALSE);  
         if (!an_if_is_cfg_autonomic_enabled(an_if_info)) {
            DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n%sAutonomic disabled "
@@ -1203,6 +1204,7 @@ an_msg_mgr_deliver_incoming_message (an_msg_package *msg_package,
             an_msg_mgr_free_message_package(msg_package);
             return (FALSE);        
         }
+        */
     }
 
     switch (msg_package->header.msg_type) {
