@@ -154,7 +154,7 @@ public class SnbiMessagingInfra {
         log.debug("Initing Snbi Socket");
         boolean sockreuse;
 
-        SocketAddress bindAddress = new InetSocketAddress("fd6a:fbaa:36f9:0:4141:3a42:423a:1", snbiPortNumber);
+        SocketAddress bindAddress = new InetSocketAddress("fd08::aaaa:bbbb:1", snbiPortNumber);
         socket = new DatagramSocket(null); // Create a unbound socket
         socket.setReuseAddress(true);
         sockreuse = socket.getReuseAddress();
