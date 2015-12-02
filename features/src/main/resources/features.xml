@@ -12,12 +12,10 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://karaf.apache.org/xmlns/features/v1.2.0 http://karaf.apache.org/xmlns/features/v1.2.0">
 
-    <repository>mvn:org.opendaylight.controller/features-base/${commons.opendaylight.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.yangtools/features-yangtools/${yangtools.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.controller/features-mdsal/${mdsal.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.netconf/features-restconf/${restconf.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.netconf/features-netconf-connector/${netconf.version}/xml/features</repository>
-    <repository>mvn:org.opendaylight.controller/features-nsf/${nsf.version}/xml/features</repository>
     <repository>mvn:org.opendaylight.dlux/features-dlux/0.3.0-SNAPSHOT/xml/features</repository>
 
     <feature name='odl-snbi-all' version='${project.version}' description='OpenDaylight :: snbi :: All'>
@@ -27,7 +25,7 @@
     </feature>
 
     <feature name='odl-snbi-southplugin' description='OpenDaylight :: SNBI :: SouthPlugin' version='${project.version}'>
-        <feature version='${yangtools.version}'>odl-yangtools-all</feature>
+        <feature version='${yangtools.version}'>odl-yangtools-common</feature>
         <feature version='${mdsal.version}'>odl-mdsal-broker</feature>
         <bundle>mvn:org.bouncycastle/bcprov-jdk15on/1.52</bundle>
         <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/1.52</bundle>
@@ -35,13 +33,9 @@
         <!--
         <bundle>mvn:org.eclipse.equinox/region/1.0.0.v20110506</bundle>
         <feature version='${mdsal.version}'>odl-mdsal-broker</feature>
-        <bundle>mvn:org.bouncycastle/bcprov-jdk15on/1.50</bundle>
-        <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/1.48</bundle>
-        <bundle>mvn:org.bouncycastle/bcpkix-jdk15on/1.50</bundle>
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
         <feature version='${config.version}'>odl-config-api</feature>
         <feature version='${yangtools.version}'>odl-yangtools-all</feature>
-        <bundle>mvn:org.bouncycastle/bcprov-jdk15on/1.48</bundle>
         <bundle>mvn:org.osgi/org.osgi.core/${osgi.core.version}</bundle>
         <feature version='${mdsal.version}'>odl-mdsal-netconf-connector</feature>
         <feature version='${mdsal.version}'>odl-restconf</feature>
@@ -65,7 +59,6 @@
 			<feature version='${nsf.version}'>odl-nsf-all</feature-->
 			<feature version='${restconf.version}'>odl-restconf</feature>
 			<feature version='${restconf.version}'>odl-mdsal-apidocs</feature>
-                        <feature version='${nsf.version}'>odl-nsf-all</feature>
 			<feature version='0.3.0-SNAPSHOT'>odl-dlux-core</feature>
 			<!--feature version='0.3.0-SNAPSHOT'>odl-dlux-core</feature-->	
 	</feature>
