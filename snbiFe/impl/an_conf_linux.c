@@ -7,6 +7,7 @@
 #include <an_proc_linux.h>
 #include <an_event_mgr_db.h>
 #include "an_external_anra.h"
+#include <time.h>
 
 extern olibc_pthread_hdl an_pthread_hdl;
 extern an_udi_t an_udi_platform_linux;
@@ -312,6 +313,9 @@ an_system_init_linux ()
 {
     olibc_retval_t retval;
     olibc_msg_q_info_t msg_q_info;
+
+    // Initialize rand with time.
+    srand(time(NULL));
 
     an_proc_init();
 

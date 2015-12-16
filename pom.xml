@@ -41,15 +41,8 @@
         <restconf.version>1.3.0-SNAPSHOT</restconf.version>
         <snbi.shell.version>1.2.0-SNAPSHOT</snbi.shell.version>
         <karaf.shell.version>3.0.0</karaf.shell.version>
-        <nsf.version>0.6.0-SNAPSHOT</nsf.version>
         <yangtools.version>0.8.0-SNAPSHOT</yangtools.version>
         <commons.opendaylight.version>1.6.0-SNAPSHOT</commons.opendaylight.version>
-        <devices.web.version>0.6.0-SNAPSHOT</devices.web.version>
-        <flows.web.version>0.6.0-SNAPSHOT</flows.web.version>
-        <topology.web.version>0.6.0-SNAPSHOT</topology.web.version>
-        <troubleshoot.web.version>0.6.0-SNAPSHOT</troubleshoot.web.version>
-        <osgi-brandfragment.web.version>0.2.0-SNAPSHOT</osgi-brandfragment.web.version>
-        <web.version>0.6.0-SNAPSHOT</web.version>
         <commons.opendaylight.version>1.6.0-SNAPSHOT</commons.opendaylight.version>
     </properties>
 
@@ -112,37 +105,6 @@
             </dependency>
 
             <!-- Supporting Libraries -->
-            <dependency>
-                <groupId>org.opendaylight.controller</groupId>
-                <artifactId>devices.web</artifactId>
-                <version>${devices.web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opendaylight.controller</groupId>
-                <artifactId>flows.web</artifactId>
-                <version>${flows.web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opendaylight.controller</groupId>
-                <artifactId>osgi-brandfragment.web</artifactId>
-                <version>${osgi-brandfragment.web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opendaylight.controller</groupId>
-                <artifactId>topology.web</artifactId>
-                <version>${topology.web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opendaylight.controller</groupId>
-                <artifactId>troubleshoot.web</artifactId>
-                <version>${troubleshoot.web.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.opendaylight.controller</groupId>
-                <artifactId>web</artifactId>
-                <version>${web.version}</version>
-            </dependency>
-
 
             <!-- Our artifacts
             <dependency>

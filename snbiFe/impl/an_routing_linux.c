@@ -59,7 +59,7 @@ void an_notify_routing_device_id_availble()
 
     rank = rank + 1;
 
-    system("sunshine -K");
+    system("sunshine -K > /dev/null 2>&1");
 /*
     if (an_external_anra_is_configured()) {
         memset(&external_ra_addr, 0, sizeof(an_addr_t));
@@ -79,16 +79,16 @@ void an_notify_routing_device_id_availble()
             "--rank %s > /tmp/rpl.log 2>&1 &", rank);
     }
 */
-        an_sprintf(cmd, "sunshine --dagid rpl instanceid 1 "
+        an_sprintf(cmd, "sunshine -D --dagid rpl instanceid 1 "
             "--dao-if-filter snbi-* --ignore-pio "
             "--dao-addr-filter fd00::/8 --dag-if-filter snbi_tun_* "
-            "-p fd00::/8 --syslog --stderr --verbose "
-            "--rank %s --interval 40000 > /tmp/rpl.log 2>&1 &", rank);
+            "-p fd00::/8 --stderr --verbose "
+            "--rank %s --interval 1000 > /tmp/rpl_cmd.log 2>&1", rank);
     DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
             "\n%sRPL Execs: \n\t%s \n\t%s", an_bs_event,
             "sysctl -w net.ipv6.conf.all.forwarding=1", cmd);
 
-    system("sysctl -w net.ipv6.conf.all.forwarding=1");
+    system("sysctl -w net.ipv6.conf.all.forwarding=1 > /dev/null 2>&1");
     system(cmd);
 }
 
