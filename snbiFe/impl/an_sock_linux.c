@@ -138,6 +138,25 @@ an_linux_sock_init (void)
         return FALSE;
     }
 
+    enable = TRUE;
+    if (setsockopt(an_sock_fd, SOL_SOCKET,
+                   SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+        "\nFailed to set sock address reuse options");
+        return FALSE;
+    }
+
+#ifdef SO_REUSEPORT
+    enable = TRUE;
+    if (setsockopt(an_sock_fd, SOL_SOCKET,
+                   SO_REUSEPORT, &enable, sizeof(enable)) < 0) {
+        DEBUG_AN_LOG(AN_LOG_ALL_ALL, AN_DEBUG_SEVERE, NULL,
+        "\nFailed to set sock port reuse options");
+        return FALSE;
+    }
+#endif
+
+    memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin6_family = AF_INET6;
     serv_addr.sin6_addr = in6addr_any;
     serv_addr.sin6_port = htons(AN_UDP_PORT);

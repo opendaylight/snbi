@@ -22,14 +22,18 @@ boolean global_ike_cli_executed_by_an = FALSE;
 void
 an_ikev2_profile_init (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_ikev2_profile_uninit (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 

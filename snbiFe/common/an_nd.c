@@ -1344,7 +1344,7 @@ an_nbr_link_init_cleanup_timer (an_nbr_t *nbr,
                  "\n%s Nbr Link Cleanup Initiated", an_nd_event);
     an_timer_init(&nbr_link_data->cleanup_timer,
                   AN_TIMER_TYPE_PER_NBR_LINK_CLEANUP, link_ctx, FALSE);
-	an_timer_start(&nbr_link_data->cleanup_timer, AN_NBR_LINK_CLEAN_INTERVAL);
+    an_timer_start(&nbr_link_data->cleanup_timer, AN_NBR_LINK_CLEAN_INTERVAL);
     return TRUE;
 }
 

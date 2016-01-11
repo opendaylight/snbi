@@ -15,14 +15,18 @@
 an_mem_elem_t* 
 an_mem_elem_alloc (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (NULL);
 }
 
 void
 an_mem_elem_free (an_mem_elem_t *mem_elem)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 

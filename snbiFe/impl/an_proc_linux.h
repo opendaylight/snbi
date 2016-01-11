@@ -29,8 +29,10 @@
 #include <an_if_mgr.h>
 #include <an_acp.h>
 #include <an.h>
+#include <olibc_msg_q.h>
 
 extern olibc_pthread_hdl an_pthread_hdl;
+extern olibc_msg_q_hdl an_pmsg_q_hdl;
 
 extern an_watched_boolean *an_wb_node_discovered;
 extern an_watched_boolean *an_setup_done_by_user;

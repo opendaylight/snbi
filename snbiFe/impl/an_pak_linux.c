@@ -103,13 +103,17 @@ inline uint8_t* an_pak_get_network_hdr (an_pak_t *pak)
 
 inline uint8_t* an_pak_get_datagram_hdr (an_pak_t *pak)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
 inline uint8_t* an_pak_get_transport_hdr (an_pak_t *pak)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
@@ -233,13 +237,17 @@ an_plat_pak_alloc (uint16_t paklen, an_if_t ifhndl, uint16_t len)
 
 boolean an_pak_grow (an_pak_t **pak_in, uint16_t extra_len)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 an_pak_t *an_pak_duplicate (an_pak_t *pak)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (NULL);
 }
 
@@ -251,13 +259,17 @@ inline boolean an_linktype_is_an (uint8_t linktype)
 inline size_t
 an_pak_subblock_getsize (an_pak_subblock_index_t idx)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (0);
 }
 
 void an_pak_subblock_setsize(an_pak_subblock_index_t idx, size_t size)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 

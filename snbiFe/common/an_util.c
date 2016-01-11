@@ -1025,7 +1025,7 @@ an_process_timer_events (an_timer *expired_timer)
         case AN_TIMER_TYPE_PER_NBR_LINK_CLEANUP:
             context = an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
-            an_event_nbr_link_cleanup_timer_expired(context);
+           // an_event_nbr_link_cleanup_timer_expired(context);
             break;
 
         case AN_TIMER_TYPE_HELLO_REFRESH:
@@ -1100,6 +1100,10 @@ an_process_timer_events (an_timer *expired_timer)
         case AN_TIMER_TYPE_ANRA_BS_THYSELF_RETRY:
             an_timer_stop(expired_timer);
             an_event_anra_bootstrap_retry_timer_expired();
+            break;
+        case AN_TIMER_TYPE_EXTERNAL_ANRA_BS_THYSELF_RETRY:
+            an_timer_stop(expired_timer);
+            an_event_external_anra_bootstrap_retry_timer_expired();
             break;
 
         default:

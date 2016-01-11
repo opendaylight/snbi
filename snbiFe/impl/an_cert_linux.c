@@ -82,8 +82,10 @@ an_cert_save (uint8_t *filename, an_cert_t cert)
 }
 
 an_cert_api_ret_enum
-an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
+an_cert_get_subject_name (an_cert_t cert, uint8_t **_subjname, uint16_t *_len)
 {
+    uint8_t *subjname = NULL;
+    uint16_t len = 0;
     X509_NAME *certsubject = NULL;
     an_cert_api_ret_enum retval = AN_CERT_API_SUCCESS;
     X509 *x509_cert = d2i_X509(NULL, (const unsigned char **)&cert.data, 
@@ -99,14 +101,19 @@ an_cert_get_subject_name (an_cert_t cert, uint8_t **name, uint16_t *len)
        goto free_all;
     }
     char *subj = X509_NAME_oneline(certsubject, NULL, 0);
+
     if (subj) {
-        *len = strlen(subj);
-        *name = (uint8_t *)an_malloc_guard((*len)+1, NULL);
-        if (!*name) {
+        len = strlen(subj);
+        subjname = (uint8_t *)an_malloc_guard((len)+1, NULL);
+        if (!subjname) {
             return (AN_CERT_MEM_ALLOC_FAIL);
         }
-        memcpy(*name, subj, *len);
-        name[*len] = '\0';
+        memcpy(subjname, subj, len);
+        subjname[len] = '\0';
+        *_subjname = subjname;
+        *_len = len;
+
+        retval = AN_CERT_API_SUCCESS;
     } else {
         retval = AN_CERT_UNKNOWN_FAILURE;
     }
@@ -206,42 +213,54 @@ an_cert_gen_certificate_request(int32_t pki_sd, an_mac_addr *mac_address, uint8_
              uint8_t *domain_id, uint8_t *key_label, an_cert_req_t *cert_req,
              an_sign_t *cert_req_sign, int8_t csr_type)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (FALSE);
 }
 
 void
 an_cert_verify_cb (void *ctx, uint status, uint cert_status)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_cert_fetch_cb (void *ctx,  ushort command, ushort status, uchar* rsp)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean
 an_cert_enroll_msg_cb (an_enroll_msg_t *msg)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
 an_cert_api_ret_enum
 an_cert_grant_certificate (int32_t pki_sd, an_sign_t cert_req_sign, an_cert_t *cert)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
                 return (AN_CERT_MEM_ALLOC_FAIL);
 }
 
 boolean
 an_cert_grant_certificate_proxy (int32_t pki_sd, uint8_t *key_label, an_cert_req_t cert_req, an_cert_t *cert)
 { 
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -388,14 +407,18 @@ an_cert_enroll(an_cert_req_t *pkcs10, an_sign_t *pkcs10_sign, an_cert_req_t *sig
                an_key_t *public_key, an_cert_t *cert, an_udi_t device_udi,
                an_addr_t proxy_device, an_iptable_t iptable)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return (AN_CERT_INPUT_PARAM_INVALID);
 }
 
 an_cert_api_ret_enum
 an_cert_reset_domain_ca_cert (uint8_t *tp_label)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_API_SUCCESS);
 }
 
@@ -445,28 +468,30 @@ an_cert_is_device_cert_valid (an_cert_t *cert)
 an_cert_api_ret_enum
 an_cert_get_device_cert_from_tp (uint8_t *tp_label, an_cert_t *cert)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_API_SUCCESS);
 }
 
 an_cert_api_ret_enum 
 an_cert_get_ca_cert_from_tp (uint8_t *tp_label, an_cert_t *cert)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_API_SUCCESS);
 }
 
 boolean
 an_tp_exists (uint8_t *cs_label)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-    return (FALSE);
+    return (TRUE);
 }
 
 an_cert_validation_result_e 
 an_cert_validate (an_cert_t *peer_cert)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return(AN_CERT_VALIDITY_UNKNOWN);
 }
 
@@ -476,7 +501,6 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 boolean an_create_trustpoint (uint8_t* label, uint8_t* filename)
 {
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
@@ -484,19 +508,25 @@ an_cert_api_ret_enum
 an_cert_get_cert_expire_time (an_cert_t *cert,
                  an_unix_msec_time_t* validity_interval,
                  an_unix_time_t *validity_time) {
+#ifdef PRINT_STUBS_PRINTF    
 //printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return 0;
 }
 
 void 
 an_cert_displaycert_in_pem (uchar *cert_der, uint16_t cert_len) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 an_cert_api_ret_enum 
 an_cert_config_cert_renewal_on_trustpoint (void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (AN_CERT_UNKNOWN_FAILURE);
 }
 
@@ -516,7 +546,56 @@ an_cert_validation_result_e
 an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
                                              const an_log_type_e log_type)
 {
-            return (AN_CERT_VALIDITY_UNKNOWN);
+    X509_STORE         *store = NULL;
+    X509_STORE_CTX  *vrfy_ctx = NULL;
+    X509            *cert = NULL;
+    int    ret;
+    an_cert_t an_cert;
+    X509_NAME    *certsubject = NULL;
+    X509 *error_cert = NULL;
+    BIO *outbio = NULL;
+
+    if (!peer_cert || !peer_cert->data || !peer_cert->len) {
+        return (AN_CERT_VALIDITY_UNKNOWN);
+    }
+    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+    an_cert.data = peer_cert->data;
+    an_cert.len = peer_cert->len;
+
+    if (!(store=X509_STORE_new()))
+        return (AN_CERT_VALIDITY_UNKNOWN);
+
+    vrfy_ctx = X509_STORE_CTX_new();
+    cert = d2i_X509(NULL, (const unsigned char **)&an_cert.data,
+                                an_cert.len);
+
+
+    ret = X509_STORE_load_locations(store, CA_CERT_LOCATION, NULL);
+    if (ret != 1) {
+        return (AN_CERT_VALIDITY_UNKNOWN);
+    }
+
+    X509_STORE_CTX_init(vrfy_ctx, store, cert, NULL);
+
+    ret = X509_verify_cert(vrfy_ctx);
+
+    if(ret == 0) {
+        /*  get the offending certificate causing the failure */
+        error_cert  = X509_STORE_CTX_get_current_cert(vrfy_ctx);
+        certsubject = X509_NAME_new();
+        certsubject = X509_get_subject_name(error_cert);
+        BIO_printf(outbio, "Verification failed cert:\n");
+        X509_NAME_print_ex(outbio, certsubject, 0,
+                                      XN_FLAG_MULTILINE);
+        BIO_printf(outbio, "\n");
+ //       int err = X509_STORE_CTX_get_error(vrfy_ctx);
+ //       int depth = X509_STORE_CTX_get_error_depth(vrfy_ctx);
+        return (AN_CERT_VALIDITY_FAILED);
+    } else if (ret < 0) {
+        return (AN_CERT_VALIDITY_FAILED);
+    }
+    return (AN_CERT_VALIDITY_PASSED);
 }
 
 void

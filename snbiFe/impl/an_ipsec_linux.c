@@ -40,31 +40,31 @@ create_debug_file (void)
         return;
     }
 
-    fprintf(fd, "%s", "charon {");
-    fprintf(fd, "%s", "    filelog {");
-    fprintf(fd, "%s", "        /var/log/charon.log {");
-    fprintf(fd, "%s", "            # add a timestamp prefix");
-    fprintf(fd, "%s", "            time_format = %b %e %T");
-    fprintf(fd, "%s", "            append = no");
-    fprintf(fd, "%s", "            default = 4");
-    fprintf(fd, "%s", "            ike = 4");
-    fprintf(fd, "%s", "            flush_line = yes");
-    fprintf(fd, "%s", "        }");
-    fprintf(fd, "%s", "        stderr {");
-    fprintf(fd, "%s", "            ike = 5");
-    fprintf(fd, "%s", "            knl = 5");
-    fprintf(fd, "%s", "           ike_name = yes");
-    fprintf(fd, "%s", "        }");
-    fprintf(fd, "%s", "        }");
-    fprintf(fd, "%s", "}");
+    fprintf(fd, "%s", "charon {\n");
+    fprintf(fd, "%s", "    filelog {\n");
+    fprintf(fd, "%s", "        /var/log/charon.log {\n");
+    fprintf(fd, "%s", "            # add a timestamp prefix\n");
+    fprintf(fd, "%s", "            time_format = %b %e %T\n");
+    fprintf(fd, "%s", "            append = no\n");
+    fprintf(fd, "%s", "            default = 4\n");
+    fprintf(fd, "%s", "            ike = 4\n");
+    fprintf(fd, "%s", "            flush_line = yes\n");
+    fprintf(fd, "%s", "        }\n");
+    fprintf(fd, "%s", "        stderr {\n");
+    fprintf(fd, "%s", "            ike = 5\n");
+    fprintf(fd, "%s", "            knl = 5\n");
+    fprintf(fd, "%s", "           ike_name = yes\n");
+    fprintf(fd, "%s", "        }\n");
+    fprintf(fd, "%s", "        }\n");
+    fprintf(fd, "%s", "}\n");
     fclose(fd);
 }
 void 
 an_ipsec_profile_init (void)
 {
-    char cwd[1024];
+    char cwd[256];
 
-    FILE* fd = NULL;
+    FILE *fd, *fd_ipsec, *fd_debug, *fd_secret = NULL;
 
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
         perror("getcwd() error");
@@ -79,7 +79,7 @@ an_ipsec_profile_init (void)
     }
 
     fprintf(fd, "%s","ca strongswan\n");
-    fprintf(fd, "%s%s%s%s","        cacert=",cwd,CA_CERT_LOCATION,"\n");
+    fprintf(fd, "%s%s%s%s%s","        cacert=",cwd,"/",CA_CERT_LOCATION,"\n");
     fprintf(fd, "%s","        auto=add\n");
     fprintf(fd, "%s","conn snbi_default\n");
     fprintf(fd, "%s","        ikelifetime=1440m\n");
@@ -88,14 +88,45 @@ an_ipsec_profile_init (void)
     fprintf(fd, "%s","        keyingtries=1\n");
     fprintf(fd, "%s","        keyexchange=ikev2\n");
     fprintf(fd, "%s","        authby=rsa\n");
-    fprintf(fd, "%s%s%s%s","        leftcert=",cwd,DEVICE_CERT_LOCATION,"\n");
+    fprintf(fd, "%s%s%s%s%s","        leftcert=",cwd,"/",DEVICE_CERT_LOCATION,"\n");
     fprintf(fd, "%s","        ike=aes128-aes192-aes256-sha256-sha384-sha512-sha-md5-prfsha512-prfsha384-prfsha256-prfmd5-modp1024-modp1536!\n");
     fprintf(fd, "%s","        esp=aes,sha!\n");
     fprintf(fd, "%s","        keyexchange=ikev2\n");
     fprintf(fd, "%s","        type=transport\n");
 
     fclose(fd);
-    system ("ipsec restart");
+
+    fd_ipsec = fopen("/etc/ipsec.conf", "a+");
+    
+    if (fd_ipsec == NULL) {
+        perror("Error");
+        return;
+    }
+
+    fprintf(fd_ipsec, "%s %s%s%s%s","include", cwd, "/", ipsec_file, "\n");
+    fclose(fd_ipsec);
+
+    fd_debug = fopen("/etc/strongswan.conf", "a+");
+    
+    if (fd_debug == NULL) {
+        perror("Error");
+        return;
+    }
+
+    fprintf(fd_debug, "%s %s%s%s%s","include", cwd, "/",ipsec_debug_file,"\n");
+    fclose(fd_debug);
+
+    fd_secret = fopen("/etc/ipsec.secrets", "a+");
+    
+    if (fd_secret == NULL) {
+        perror("Error");
+        return;
+    }
+
+    fprintf(fd_secret, "%s %s%s%s%s"," : RSA", cwd, "/",PRIVATE_KEY_LOCATION,"\n");
+    fclose(fd_secret);
+
+    system ("ipsec restart > /dev/null 2>&1");
     return;
 }
 
@@ -118,7 +149,7 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     FILE* fd = NULL;
     ssize_t nbytes;
     size_t bufsize = 0;
-    char *buffer;
+    char *buffer, cmd1[100];
     int position_in_file = 0;
 
     fd = fopen(ipsec_file, "r+");
@@ -128,25 +159,27 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     }
 
     while ((nbytes = getline(&buffer, &bufsize, fd))!= -1) {
-        if (strstr(buffer, an_if_get_name(local_ifhndl)) != NULL) {
+        if (strstr(buffer, an_if_get_name(tunn_ifhndl)) != NULL) {
            fseek(fd,position_in_file,SEEK_SET);
            fprintf(fd, "%s%s%s","conn ", an_if_get_name(tunn_ifhndl),"\n");
            fprintf(fd, "%s%s%s%s%s","        left=", an_addr_get_string(&src_ip)                                ,"%", an_if_get_name(local_ifhndl),"\n");
            fprintf(fd, "%s%s%s","        leftid=\"CN=*, OU=", 
-                      an_get_domain_id(),"serialNumber=*\n");
+                      an_get_domain_id(),", serialNumber=*\"\n");
            fprintf(fd, "%s%s%s%s%s","        right=",an_addr_get_string(&dst_ip)                        ,"%", an_if_get_name(local_ifhndl),"\n");
-           fprintf(fd, "%s","        rightid=%any\n");
+           fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=", 
+                      an_get_domain_id(),", serialNumber=*\"\n");
            fprintf(fd, "%s","        also=snbi_default\n");
            fprintf(fd, "%s","        auto=add\n");
            fclose(fd);
-           system ("ipsec restart");
+           system ("ipsec restart > /dev/null 2>&1");
+           an_sprintf(cmd1, "%s %s %s","ipsec up ", an_if_get_name(tunn_ifhndl),
+                   "> /dev/null 2>&1");
+           system (cmd1);
            return (TRUE);
         }
         position_in_file = ftell(fd);
     }
-        position_in_file = ftell(fd);
-        printf("\nend position in file %d", position_in_file);
-
+    position_in_file = ftell(fd);
     fclose(fd);
 
     fd = fopen(ipsec_file, "a+");
@@ -159,20 +192,32 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     fprintf(fd, "%s%s%s%s%s","        left=", an_addr_get_string(&src_ip), 
                            "%", an_if_get_name(local_ifhndl),"\n");
     fprintf(fd, "%s%s%s","        leftid=\"CN=*,OU=", an_get_domain_id(),
-                        "serialNumber=*\n");
+                        ", serialNumber=*\"\n");
     fprintf(fd, "%s%s%s%s%s","        right=", an_addr_get_string(&dst_ip), "%", 
                             an_if_get_name(local_ifhndl),"\n");
-    fprintf(fd, "%s","        rightid=%any\n");
+    fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=", 
+                      an_get_domain_id(),", serialNumber=*\"\n");
     fprintf(fd, "%s","        also=snbi_default\n");
     fprintf(fd, "%s","        auto=add\n");
     fflush(fd);
     fclose(fd);
-    system ("ipsec update");
+    system ("ipsec update > /dev/null 2>&1");
+    an_sprintf(cmd1, "%s %s %s","ipsec up ", an_if_get_name(tunn_ifhndl), 
+            "> /dev/null 2>&1");
+    system (cmd1);
     return (TRUE);
 }
 
 void
 an_ipsec_remove_on_tunnel (an_if_t tunn_ifhndl)
 {
-    system ("ipsec down <tunn_name>");
+    char cmd1[100];
+
+    if (!tunn_ifhndl) {
+        return;
+    }
+
+    an_sprintf(cmd1, "%s %s %s","ipsec down ", an_if_get_name(tunn_ifhndl), 
+            "> /dev/null 2>&1");
+    system (cmd1);
 }

@@ -40,6 +40,8 @@ cparser_result_t cparser_cmd_configure_no_debug_bootstrap_type_level(cparser_con
     char **level_ptr);
 cparser_result_t cparser_cmd_configure_no_debug_bootstrap(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure_no_debug_all(cparser_context_t *context);
+cparser_result_t cparser_cmd_configure_registrar_ip_address(cparser_context_t *context,
+    char **address_ptr);
 cparser_result_t cparser_cmd_test(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_get_firstnode(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_avl_init(cparser_context_t *context);
@@ -105,6 +107,10 @@ cparser_result_t cparser_cmd_test_interface_intfname_disable(cparser_context_t *
 cparser_result_t cparser_cmd_test_device_udi_udi(cparser_context_t *context,
     char **udi_ptr);
 cparser_result_t cparser_cmd_test_quit(cparser_context_t *context);
+cparser_result_t cparser_cmd_host(cparser_context_t *context);
+cparser_result_t cparser_cmd_host_cmd(cparser_context_t *context,
+    char **cmd_ptr);
+cparser_result_t cparser_cmd_host_quit(cparser_context_t *context);
 
 #ifdef __cplusplus
 }

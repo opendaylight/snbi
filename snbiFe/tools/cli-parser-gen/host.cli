@@ -1,0 +1,7 @@
+#submode "host"
+
+<STRING:cmd>("Host command")
+
+quit("Exit host submode")
+
+#endsubmode

@@ -23,12 +23,17 @@ an_linux_process (void *arg)
 {
     olibc_pthread_dispatch_events(an_pthread_hdl);
     return NULL;
-} 
+}
 
-void an_proc_init (void) 
+void an_proc_init (void)
 {
     olibc_retval_t retval;
     olibc_pthread_info_t pthread_info;
+
+    if (an_pthread_hdl) {
+        // Process is already inited.
+        return;
+    }
 
     memset(&pthread_info, 0,sizeof(olibc_pthread_info_t));
     pthread_info.start_routine = an_linux_process;
@@ -46,27 +51,11 @@ void an_proc_init (void)
     return;
 }
 
-boolean
-an_if_event_handler (uint32_t state, uint64_t if_index)
-{
-    olibc_retval_t retval;
-    if (!an_pmsg_q_hdl) {
-        return FALSE;
-    }
-    retval = olibc_msg_q_enqueue(an_pmsg_q_hdl, state,
-            if_index, NULL);
-     
-    if (retval != OLIBC_RETVAL_SUCCESS) {
-        return FALSE;
-    }
-    return TRUE;
-}
-
-static boolean 
+static boolean
 an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
 {
-    uint32_t msg_type;
-    uint64_t if_index, if_hndl;
+    uint32_t msg_type, if_hndl;
+    uint64_t if_index;
     olibc_retval_t retval;
 
     if (!q_event_hdl) {
@@ -97,7 +86,7 @@ an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
                   return FALSE;
             }
             if_hndl = (uint32_t) if_index;
-            an_handle_interface_down(if_index); 
+            an_handle_interface_down(if_index);
             break;
 
         default:
@@ -113,12 +102,10 @@ an_pmsg_q_init ()
     olibc_retval_t retval;
     olibc_msg_q_info_t msg_q_info;
 
-    an_proc_init();
-
     if (!an_pthread_hdl) {
         return FALSE;
     }
-    
+
     memset(&msg_q_info, 0, sizeof(olibc_msg_q_info_t));
 
     msg_q_info.max_q_len = 10;
@@ -135,7 +122,7 @@ an_pmsg_q_init ()
 
 
 void
-an_attach_to_environment (void) 
+an_attach_to_environment (void)
 {
     /* Create AN pmsg queue */
     an_pmsg_q_init();
@@ -155,7 +142,7 @@ an_detach_from_environment (void)
 }
 
 void
-an_proc_uninit (void) 
+an_proc_uninit (void)
 {
     /* Wait till threads are complete before an_init continues. Unless we  */
     /* wait we run the risk of executing an exit which will terminate      */
@@ -172,44 +159,58 @@ is_an_initialised (void)
 
 void
 an_process_send_message (an_thread_t pid, const char *key, ulong message_num, void *pointer, ulong message_arg) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_process_call(void){
 /* Schedule AN process to handle transition */
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_process_call_shut(void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_process_call_no_registrar(uint32_t value_chk) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
-boolean 
+boolean
 an_is_system_configured_completely(void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
 void
 an_process_set_boolean(an_watched_boolean *watch_bool) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean
 an_process_get_boolean(an_watched_boolean *watch_bool) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 

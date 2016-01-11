@@ -189,7 +189,9 @@ an_strncpy (char *dest, uint32_t dmax, const char *src)
 
 int an_snprintf (char *str, unsigned int str_m, const char *fmt, ...)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return 0;
 }
 

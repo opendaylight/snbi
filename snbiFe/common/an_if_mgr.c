@@ -273,6 +273,7 @@ an_if_is_autonomic_loopback (an_if_t loopbk_ifhndl)
 boolean
 an_if_is_autonomic_tunnel (an_if_t tunn_ifhndl)
 {
+    /*
     an_if_info_t *tunnel_if_info = NULL;
 
     if (!tunn_ifhndl) {
@@ -287,6 +288,7 @@ an_if_is_autonomic_tunnel (an_if_t tunn_ifhndl)
     if (!an_if_is_autonomically_created(tunnel_if_info)) {
         return (FALSE);
     }
+    */
 
     return (TRUE);
 }

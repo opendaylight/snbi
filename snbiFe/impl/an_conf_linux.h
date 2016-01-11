@@ -20,4 +20,8 @@ an_config_intf_enable_cmd_handler(int ifindex);
 
 extern boolean
 an_config_intf_disable_cmd_handler(int ifindex);
+
+extern boolean
+an_config_register_ip_cmd_handler(char *ip_str);
+
 #endif

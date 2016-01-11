@@ -34,7 +34,9 @@ an_ipsec_ss_open_close (char an_ipsec_policy[31], an_v6addr_t localip, an_v6addr
                                            ushort localport, ushort remoteport,
                                            int prot, an_if_t ifhndl, boolean openflag)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return (TRUE);
 }
 
@@ -49,13 +51,17 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean an_ipsec_ss_api_listen (an_crypto_ss_cnct_id *cnct_id,
                                      char *profile_name, ulong *flags)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
             return TRUE;
 }
 
 void an_ipsec_ss_api_listen_start(char an_ipsec_policy[31], boolean flag)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -63,27 +69,35 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 boolean      
 an_ipsec_create_ipsec_policy (int spi, char* an_acp_key, char an_ipsec_policy[31])
 {    
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return TRUE;
 }
 
 void an_ipsec_init_ss_api_layer (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
         return;
 }
 
 void
 an_hostname_set (uint8_t *name)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void
 an_config_save (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
@@ -102,14 +116,18 @@ an_platform_specific_init (void)
 void 
 an_platform_specific_uninit (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean
 an_is_platform_type_whales2 (void)
 {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
@@ -121,25 +139,33 @@ an_thread_check_and_suspend (void)
 
 boolean 
 an_if_check_type_layer3 (an_if_t ifhndl) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
 void 
 an_sd_cfg_if_commands (an_if_t ifhndl, boolean set) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 void 
 an_process_may_suspend (void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return;
 }
 
 boolean 
 an_anra_cs_up (void) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
@@ -151,13 +177,17 @@ an_is_active_rp (void)
 
 void 
 an_anra_cfg_ca_server (anr_ca_server_command_e command) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
    return;
 }
 
 boolean 
 an_cd_send_periodic_untagged_probe_cb (an_avl_node_t *node, void *data) {
+#ifdef PRINT_STUBS_PRINTF    
 printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
+#endif
     return FALSE;
 }
 
