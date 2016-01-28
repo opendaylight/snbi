@@ -17,6 +17,7 @@ cparser_result_t cparser_cmd_show_snbi_debugs(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_certificate_ca(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_certificate_device(cparser_context_t *context);
 cparser_result_t cparser_cmd_show_snbi_certificate_all(cparser_context_t *context);
+cparser_result_t cparser_cmd_show_snbi_if_db(cparser_context_t *context);
 cparser_result_t cparser_cmd_quit(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure(cparser_context_t *context);
 cparser_result_t cparser_cmd_configure_quit(cparser_context_t *context);

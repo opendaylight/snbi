@@ -76,7 +76,7 @@ an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
                   return FALSE;
               }
             if_hndl = (uint32_t) if_index;
-            an_handle_interface_up(if_index);
+            an_handle_interface_up(if_hndl);
             break;
 
         case AN_PMSG_IF_DOWN:
@@ -86,9 +86,17 @@ an_pmsg_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
                   return FALSE;
             }
             if_hndl = (uint32_t) if_index;
-            an_handle_interface_down(if_index);
+            an_handle_interface_down(if_hndl);
             break;
-
+        case AN_PMSG_IF_ERASED:
+            retval = olibc_msg_q_event_get_args(q_event_hdl, &if_index, NULL);
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                  printf("\nFailed to get interface index");
+                  return FALSE;
+            }
+            if_hndl = (uint32_t) if_index;
+            an_handle_interface_erased(if_hndl);
+            break;
         default:
             printf("\nUnknown type event received");
             return FALSE;

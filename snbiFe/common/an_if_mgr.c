@@ -110,9 +110,9 @@ an_if_info_db_remove (an_if_info_t *an_if_info)
     }
 
     DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
-                 "\n%sRemoving interface (%s) from IF Info DB", 
-                 an_nd_db, an_if_get_name(an_if_info->ifhndl));
-    
+                 "\n%sRemoving interface (%s)/%d from IF Info DB", 
+                 an_nd_db, an_if_get_name(an_if_info->ifhndl),
+                 an_if_info->ifhndl);
     an_avl_remove_node((an_avl_top_p *)&an_if_info_database,
                   (an_avl_node_t *)an_if_info, an_if_info_compare,
                   &an_if_info_tree); 
@@ -273,7 +273,6 @@ an_if_is_autonomic_loopback (an_if_t loopbk_ifhndl)
 boolean
 an_if_is_autonomic_tunnel (an_if_t tunn_ifhndl)
 {
-    /*
     an_if_info_t *tunnel_if_info = NULL;
 
     if (!tunn_ifhndl) {
@@ -288,8 +287,6 @@ an_if_is_autonomic_tunnel (an_if_t tunn_ifhndl)
     if (!an_if_is_autonomically_created(tunnel_if_info)) {
         return (FALSE);
     }
-    */
-
     return (TRUE);
 }
 

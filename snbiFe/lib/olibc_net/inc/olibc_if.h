@@ -14,6 +14,11 @@ typedef enum olibc_hw_if_type_e_ {
 typedef struct olibc_if_iterator_t_ *olibc_if_iterator_hdl;
 typedef struct olibc_if_event_t_ *olibc_if_event_hdl;
 
+typedef enum olibc_if_event_type_t_ {
+    IF_EVENT_NEW_LINK,
+    IF_EVENT_DEL_LINK
+} olibc_if_event_type_t;
+
 typedef enum olibc_if_state_e_ {
     IF_UP,
     IF_DOWN
@@ -44,7 +49,8 @@ olibc_if_iterator_create(olibc_if_iterator_filter_t *if_iter_filter,
 
 olibc_retval_t
 olibc_if_iterator_get_next(olibc_if_iterator_hdl if_iter_hdl,
-                           olibc_if_info_t *if_info_t);
+                           olibc_if_info_t *if_info_t,
+                           olibc_if_event_type_t *event_type);
 
 olibc_retval_t
 olibc_if_iterator_destroy(olibc_if_iterator_hdl *if_iter_hdl);

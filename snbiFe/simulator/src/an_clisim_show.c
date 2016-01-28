@@ -18,6 +18,8 @@
 #include <an_addr.h>
 #include <an_str.h>
 #include <an_logger_linux.h>
+#include <an_if.h>
+#include <an_if_mgr.h>
 
 
 uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
@@ -167,3 +169,40 @@ cparser_cmd_show_snbi_certificate_all(cparser_context_t *context)
     return CPARSER_OK;
 }
 
+void
+an_show_if_db (an_if_info_t *an_if_info)
+{
+    printf("\n");
+    printf("%13s(%3d)  |", an_if_get_name(an_if_info->ifhndl), 
+            an_if_info->ifhndl);
+    printf("    %10s         |",an_if_info->autonomically_created ? "YES":"NO");
+    printf("    %6s    |", an_if_info->if_cfg_autonomic_enable ? "YES":"NO");
+    printf(" %s", an_if_info->nd_oper == AN_ND_OPER_UP ? "OPER UP":"OPER DOWN");
+}
+
+an_avl_walk_e
+an_show_if_db_cb (an_avl_node_t *node, void *data)
+{
+    an_if_info_t *an_if_info = NULL;
+
+    if (!node) {
+        return (AN_AVL_WALK_FAIL);
+    }
+
+    an_if_info = (an_if_info_t *)node;
+
+    an_show_if_db(an_if_info);
+
+    return (AN_AVL_WALK_SUCCESS);
+}
+
+cparser_result_t
+cparser_cmd_show_snbi_if_db (cparser_context_t *context)
+{
+    printf("%80s\n", an_show_header);
+    printf("      If Info       | Autonomically Created | SNBI Enabled | ND OPER");
+    printf("\n%80s", an_table_header);
+    an_if_info_db_walk(an_show_if_db_cb, NULL);
+    printf("\n");
+    return CPARSER_OK;
+}

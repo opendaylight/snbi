@@ -13,6 +13,7 @@
 cparser_result_t 
 cparser_cmd_test_interface_list (cparser_context_t *context)
 {
+    olibc_if_event_type_t event_type;
     olibc_if_info_t if_info;
     olibc_if_iterator_filter_t filter;
     olibc_if_iterator_hdl if_iter_hdl;
@@ -26,7 +27,7 @@ cparser_cmd_test_interface_list (cparser_context_t *context)
     }
 
     memset(&if_info, 0, sizeof(if_info));
-    while (olibc_if_iterator_get_next(if_iter_hdl, &if_info) ==
+    while (olibc_if_iterator_get_next(if_iter_hdl, &if_info, &event_type) ==
             OLIBC_RETVAL_SUCCESS) {
         printf("\ninterface name: %s", if_info.if_name);
         printf("\nIndex : %d", if_info.if_index);
