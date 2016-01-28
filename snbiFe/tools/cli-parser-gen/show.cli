@@ -4,3 +4,4 @@ show("Show running system information") snbi("SNBI information") debugs("Debugs 
 show("Show running system information") snbi("SNBI information") certificate("Certificate information") ca("Certificate Authority certificate")
 show("Show running system information") snbi("SNBI information") certificate("Certificate information") device("Device Domain Certificate")
 show("Show running system information") snbi("SNBI information") certificate("Certificate information") all("All store certificates")
+show("Show running system information") snbi("SNBI information") if-db("SNBI interface DB")

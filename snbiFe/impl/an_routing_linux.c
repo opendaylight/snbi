@@ -32,8 +32,8 @@ void an_notify_routing_device_id_availble()
 {
     char device_id_prefix[50];
     char cmd[500];
-    char *external_ra = NULL;
-    an_addr_t external_ra_addr;
+//    char *external_ra = NULL;
+//    an_addr_t external_ra_addr;
     char *device_id = NULL;
     char *rank;
 

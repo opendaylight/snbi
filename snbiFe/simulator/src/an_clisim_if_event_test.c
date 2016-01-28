@@ -61,6 +61,7 @@ test_interface_event_pthread_create ()
 static boolean
 test_interface_event_track_cbk (olibc_if_event_hdl if_event)
 {
+    olibc_if_event_type_t event_type;
     olibc_retval_t retval;
     time_t timestamp;
     struct tm *ts;
@@ -88,8 +89,8 @@ test_interface_event_track_cbk (olibc_if_event_hdl if_event)
         return FALSE;
     }
 
-    while (olibc_if_iterator_get_next(if_iterator_hdl, &if_info) == 
-            OLIBC_RETVAL_SUCCESS) {
+    while (olibc_if_iterator_get_next(if_iterator_hdl, &if_info, 
+                &event_type) == OLIBC_RETVAL_SUCCESS) {
         printf("\ninterface name: %s", if_info.if_name);
         printf("\nif_state : %s",if_info.if_state == IF_UP ?
                 "IF_UP":"IF_DOWN");

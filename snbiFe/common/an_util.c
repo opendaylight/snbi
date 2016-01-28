@@ -1025,7 +1025,7 @@ an_process_timer_events (an_timer *expired_timer)
         case AN_TIMER_TYPE_PER_NBR_LINK_CLEANUP:
             context = an_mgd_timer_context(expired_timer);
             an_timer_stop(expired_timer);
-           // an_event_nbr_link_cleanup_timer_expired(context);
+            an_event_nbr_link_cleanup_timer_expired(context);
             break;
 
         case AN_TIMER_TYPE_HELLO_REFRESH:

@@ -16,7 +16,8 @@ olibc_if_rt_netlink_parse_info (struct nlmsghdr *nlh,
     struct ifinfomsg *iface;
     struct rtattr *attribute;
 
-    if (nlh->nlmsg_type != RTM_NEWLINK) {
+    if (nlh->nlmsg_type != RTM_NEWLINK &&
+        nlh->nlmsg_type != RTM_DELLINK) {
         return FALSE;
     }
 
@@ -128,12 +129,13 @@ olibc_if_iterator_destroy (olibc_if_iterator_hdl *if_iter_hdl)
 
 olibc_retval_t
 olibc_if_iterator_get_next (olibc_if_iterator_hdl if_iter_hdl,
-                            olibc_if_info_t *if_info)
+                            olibc_if_info_t *if_info, 
+                            olibc_if_event_type_t *event_type)
 {
     struct nlmsghdr *curr_data_ptr;
     uint32_t len;
 
-    if (!if_iter_hdl || !if_info) {
+    if (!if_iter_hdl || !if_info || !event_type) {
         return OLIBC_RETVAL_FAILED;
     }
 
@@ -163,6 +165,14 @@ olibc_if_iterator_get_next (olibc_if_iterator_hdl if_iter_hdl,
                 if_iter_hdl->iter_done = TRUE;
                 break;
             case RTM_NEWLINK:
+                *event_type = IF_EVENT_NEW_LINK;
+                memset(if_info, 0, sizeof(olibc_if_info_t));
+                if (!olibc_if_rt_netlink_parse_info(curr_data_ptr, if_info)) {
+                    return OLIBC_RETVAL_FAILED;
+                }
+                break;
+            case RTM_DELLINK:
+                *event_type = IF_EVENT_DEL_LINK;
                 memset(if_info, 0, sizeof(olibc_if_info_t));
                 if (!olibc_if_rt_netlink_parse_info(curr_data_ptr, if_info)) {
                     return OLIBC_RETVAL_FAILED;

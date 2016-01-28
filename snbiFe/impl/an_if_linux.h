@@ -20,6 +20,7 @@ typedef struct an_if_linux_info_t_ {
     uint32_t if_index;
     olibc_if_state_e if_state;
     boolean is_loopback;
+    boolean is_tunnel;
     uint8_t hw_addr[AN_IF_HW_ADDR_LEN];
     uint32_t hw_addr_len;
     uint32_t hw_type;

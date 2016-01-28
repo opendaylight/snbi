@@ -158,10 +158,14 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 
 inline boolean an_if_is_tunnel (an_if_t ifhndl)
 {
-#ifdef PRINT_STUBS_PRINTF    
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-#endif
-    return (FALSE);
+    an_if_linux_info_t *an_linux_if_info = NULL;
+
+    an_linux_if_info = an_if_linux_get_info(ifhndl);
+
+    if (!an_linux_if_info) {
+        return FALSE;
+    }
+    return (an_linux_if_info->is_tunnel);
 }
 
 
@@ -258,6 +262,8 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 an_if_t
 an_if_create_loopback (uint32_t unit)
 {
+    an_if_info_t *if_info;
+    an_if_t if_index = 0;
     an_if_linux_info_t *if_linux_info;
     olibc_retval_t retval;
 
@@ -274,9 +280,11 @@ an_if_create_loopback (uint32_t unit)
     }
 
     memcpy(if_linux_info->if_name, "snbi-fe", strlen("snbi-fe")+1);
-    if_linux_info->if_index = if_nametoindex("snbi-fe");
+    if_index = if_nametoindex("snbi-fe");
+    if_linux_info->if_index = if_index;
     if_linux_info->if_state = IF_UP;
     if_linux_info->is_loopback = TRUE;
+    if_linux_info->is_tunnel = FALSE;
 
     retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
                                     if_linux_info);
@@ -287,7 +295,16 @@ an_if_create_loopback (uint32_t unit)
         return 0;
     }
 
-    return (if_nametoindex("snbi-fe"));
+    if_info = an_if_info_db_search(if_index, TRUE);
+    if (if_info) {
+        if_info->autonomically_created = TRUE;
+        an_log(AN_LOG_ACP, "\nAN: Loopback - New name snbi-fe");
+               
+    } else {
+        an_log(AN_LOG_ERR, "\nAN: Loopback - New name snbi-fe , No IFINFO");
+    }
+
+    return (if_index);
 }
 
 an_if_t
@@ -374,6 +391,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 an_if_list_linux_init (void)
 {
+    olibc_if_event_type_t event_type;
     olibc_retval_t retval;
     olibc_if_info_t if_info;
     olibc_if_iterator_filter_t if_iter_filter;
@@ -399,7 +417,8 @@ an_if_list_linux_init (void)
     }
 
     memset(&if_info, 0, sizeof(olibc_if_info_t));
-    while (olibc_if_iterator_get_next(if_iter_hdl, (void *)&if_info) ==
+    while (olibc_if_iterator_get_next(if_iter_hdl, (void *)&if_info, 
+           &event_type) ==
             OLIBC_RETVAL_SUCCESS) {
 
         retval = olibc_malloc((void **)&if_linux_info,
@@ -409,10 +428,17 @@ an_if_list_linux_init (void)
         if (!if_linux_info) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                     "\n%s AN If creation failed", an_nd_event);
+            olibc_if_iterator_destroy(&if_iter_hdl);
             return;
+        }
+        if (event_type == IF_EVENT_DEL_LINK) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN If init DEL event received", an_nd_event);
+            continue;
         }
 
         memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
+        printf("\n New interface added %d",if_info.if_index);
         if_linux_info->if_index = if_info.if_index;
         if_linux_info->if_state = if_info.if_state;
         if_linux_info->is_loopback = if_info.is_loopback;
@@ -427,6 +453,7 @@ an_if_list_linux_init (void)
         if (retval != OLIBC_RETVAL_SUCCESS) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                     "\n%s AN interface insert failed", an_nd_event);
+            olibc_if_iterator_destroy(&if_iter_hdl);
             return;
         }
 
@@ -513,17 +540,52 @@ an_if_event_enqueue (uint32_t state, uint64_t if_index)
     return TRUE;
 }
 
+static
+olibc_list_cbk_return_t
+an_if_addr_linux_free_func (void *data)
+{
+    olibc_addr_info_t *addr_info_ptr = NULL;
+
+    if (!data) {
+        return OLIBC_LIST_CBK_RET_STOP;
+    }
+    addr_info_ptr = (olibc_addr_info_t *) data;
+
+    olibc_free((void **)&addr_info_ptr);
+    return OLIBC_LIST_CBK_RET_CONTINUE;
+}
+
+static
+olibc_list_cbk_return_t
+an_if_linux_free_func (void *data)
+{
+    an_if_linux_info_t *if_info = NULL;
+
+    if_info = (an_if_linux_info_t *)data;
+
+    if (if_info->if_addr_list_hdl) {
+        olibc_list_destroy(&if_info->if_addr_list_hdl,
+                an_if_addr_linux_free_func);
+    }
+
+    if (if_info) {
+        olibc_free((void **)&if_info);
+    }
+
+    return OLIBC_LIST_CBK_RET_CONTINUE;
+}
 
 static boolean
 an_interface_event_cbk (olibc_if_event_hdl if_event)
 {
     olibc_if_info_t if_info;
     olibc_if_iterator_hdl if_iterator_hdl = NULL;
-    an_if_linux_info_t *if_linux_info;
+    an_if_linux_info_t *if_linux_info, tmp_if_linux_info;
+    olibc_if_event_type_t event_type;
     olibc_retval_t retval;
     uint32_t if_state;
     uint64_t if_index;
-
+    boolean new_interface = FALSE;
 
     if (!if_event) {
         return FALSE;
@@ -540,60 +602,76 @@ an_interface_event_cbk (olibc_if_event_hdl if_event)
 
 
     memset(&if_info, 0, sizeof(olibc_if_info_t));
-    while (olibc_if_iterator_get_next(if_iterator_hdl, (void *)&if_info) ==
-            OLIBC_RETVAL_SUCCESS) {
-        if_linux_info = an_if_linux_get_info(if_info.if_index);
-        
-        if (!if_linux_info) {
-        retval = olibc_malloc((void **)&if_linux_info,
-                              sizeof(an_if_linux_info_t),
-                              "AN linux info");
+    while (olibc_if_iterator_get_next(if_iterator_hdl, (void *)&if_info,
+                &event_type) == OLIBC_RETVAL_SUCCESS) {
+        printf("\n Received event for %d event type %d \n", 
+                if_info.if_index, event_type);
+        if (event_type == IF_EVENT_NEW_LINK) {
+            if_linux_info = an_if_linux_get_info(if_info.if_index); 
+            if (!if_linux_info) {
+                retval = olibc_malloc((void **)&if_linux_info,
+                                  sizeof(an_if_linux_info_t),
+                                  "AN linux info");
+                new_interface = TRUE;
+            }
+
+            if (!if_linux_info) {
+                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                        "\n%s AN If creation failed", an_nd_event);
+                return FALSE;
+            } 
+            memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
+            if_linux_info->if_index = if_info.if_index;
+            if_linux_info->if_state = if_info.if_state;
+            if_linux_info->is_loopback = if_info.is_loopback;
+            if_linux_info->hw_type = if_info.hw_type;
+            if_linux_info->if_addr_list_hdl = NULL;
+            memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
+            if_linux_info->hw_addr_len = if_info.hw_addr_len;
+
+            retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
+                                        if_linux_info); 
+            if (retval != OLIBC_RETVAL_SUCCESS) {
+                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN interface insert failed", an_nd_event);
+                return FALSE;
+            } 
+            
+            if (if_linux_info->if_state == IF_UP) {
+                if_state = AN_PMSG_IF_UP;
+            } else { 
+                if_state = AN_PMSG_IF_DOWN;
+            } 
+            if_index = if_linux_info->if_index; 
+            if (new_interface) {
+                an_if_info_db_search(if_linux_info->if_index, TRUE);
+                an_if_enable_nd_on_intf(if_linux_info);
+            }
         }
 
-        if (!if_linux_info) {
+        if (event_type == IF_EVENT_DEL_LINK) {
+            if_linux_info = NULL;
+            tmp_if_linux_info.if_index = if_info.if_index;
+            olibc_list_remove_node(an_if_linux_list_hdl,  NULL,
+                    &tmp_if_linux_info, an_if_node_compare_cbk,
+                    (void **)&if_linux_info);
+            if (if_linux_info) {
+                if_index = if_linux_info->if_index; 
+                an_if_linux_free_func(if_linux_info);
+            } else {
+                continue;
+            }
+            if_state = AN_PMSG_IF_ERASED;
+        }
+
+        retval = an_if_event_enqueue(if_state, if_index); 
+        if (retval != OLIBC_RETVAL_SUCCESS) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                    "\n%s AN If creation failed", an_nd_event);
+                    "\n%s AN interface handler message enqueue failed",
+                    an_nd_event);
             return FALSE;
         }
-
-    memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
-    if_linux_info->if_index = if_info.if_index;
-    if_linux_info->if_state = if_info.if_state;
-    if_linux_info->is_loopback = if_info.is_loopback;
-    if_linux_info->hw_type = if_info.hw_type;
-    if_linux_info->if_addr_list_hdl = NULL;
-    memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
-    if_linux_info->hw_addr_len = if_info.hw_addr_len;
-
-    retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
-                                    if_linux_info);
-
-    if (retval != OLIBC_RETVAL_SUCCESS) {
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n%s AN interface insert failed", an_nd_event);
-        return FALSE;
-     }
-
-    if (if_linux_info->if_state == IF_UP) {
-        if_state = AN_PMSG_IF_UP;
-     } else {
-        if_state = AN_PMSG_IF_DOWN;
-     }
-
-     if_index = if_linux_info->if_index;
-
-     retval = an_if_event_enqueue(if_state, if_index);
-
-     if (retval != OLIBC_RETVAL_SUCCESS) {
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n%s AN interface handler message enqueue failed",
-                an_nd_event);
-        return FALSE;
-     }
-
-
     }
-
     return TRUE;
 
 }
@@ -646,42 +724,6 @@ an_if_services_init (void)
     an_if_db_linux_init();
 }
 
-static
-olibc_list_cbk_return_t
-an_if_addr_linux_free_func (void *data)
-{
-    olibc_addr_info_t *addr_info_ptr = NULL;
-
-    if (!data) {
-        return OLIBC_LIST_CBK_RET_STOP;
-    }
-    addr_info_ptr = (olibc_addr_info_t *) data;
-
-    olibc_free((void **)&addr_info_ptr);
-    return OLIBC_LIST_CBK_RET_CONTINUE;
-}
-
-
-
-static
-olibc_list_cbk_return_t
-an_if_linux_free_func (void *data)
-{
-    an_if_linux_info_t *if_info = NULL;
-
-    if_info = (an_if_linux_info_t *)data;
-
-    if (if_info->if_addr_list_hdl) {
-        olibc_list_destroy(&if_info->if_addr_list_hdl,
-                an_if_addr_linux_free_func);
-    }
-
-    if (if_info) {
-        olibc_free((void **)&if_info);
-    }
-
-    return OLIBC_LIST_CBK_RET_CONTINUE;
-}
 
 void
 an_if_services_uninit (void)
