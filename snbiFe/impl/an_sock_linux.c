@@ -96,8 +96,6 @@ an_linux_sock_leave_mld_group (an_if_t ifhndl, an_v6addr_t *group_addr)
                  "\n%sRemoving the ifindex %d from the multicast group",
                  an_nd_event, ifhndl);
     return TRUE;
-
-    return TRUE;
 }
 
 boolean

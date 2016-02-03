@@ -177,6 +177,7 @@ olibc_timer_stop (olibc_timer_hdl timer_hdl)
 
     timer_hdl->running = FALSE;
 
+//    event_remove_timer(&timer_hdl->evt);
     evtimer_del(&timer_hdl->evt);
     return OLIBC_RETVAL_SUCCESS;
 }

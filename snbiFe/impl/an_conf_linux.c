@@ -261,7 +261,6 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
         case AN_CONFIG_AUTONOMIC_START:
             an_event_db_init();
             an_autonomic_enable();
-            an_if_enable_nd_on_all_intfs();
             break;
 
         case AN_CONFIG_AUTONOMIC_STOP:

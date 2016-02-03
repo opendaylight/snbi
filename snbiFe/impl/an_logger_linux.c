@@ -17,6 +17,9 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
+#include <time.h>
+
 
 #define AN_LOG_FLAG_FROM_LOG_CFG(cfg) (an_pow(2, cfg - 1))
 int an_debug_map[AN_LOG_ALL_ALL] = {
@@ -183,15 +186,26 @@ static void an_log_all (boolean sense)
     }
 }
 
-void vbuginf(const char *fmt, va_list args) 
+void vbuginf (const char *fmt, va_list args)
 {
     an_file_api_ret_enum retval;
+    struct timeval tv1;
+    gettimeofday(&tv1, NULL);
 
-   if (!an_file_descr_is_valid(log_fd_)) {
-       printf("Invalid filedescriptor in vbuginf %d\n", log_fd_);
-       return;
+    struct tm tm1;
+    localtime_r(&tv1.tv_sec, &tm1);
+
+    char tbuf[64];
+    strftime(tbuf, sizeof(tbuf), "%F-%T", &tm1);
+
+    if (!an_file_descr_is_valid(log_fd_)) {
+        printf("Invalid filedescriptor in vbuginf %d\n", log_fd_);
+        return;
     }
-
+    if (fmt && fmt[0] == '\n') {
+        dprintf(log_fd_, "\n[%s.%u] - ", tbuf, (unsigned int)tv1.tv_usec/1000);
+        fmt = fmt+1;
+    }
     retval = an_file_write_fs(log_fd_, fmt, args);
     if (retval != AN_FILE_API_SUCCESS) {
         printf("Failed to write to write to fd %d\n", log_fd_);

@@ -16,6 +16,7 @@
 #include <an_str.h>
 #include <an_ipv6.h>
 #include <time.h>
+#include <an_if_linux.h>
 
 
 extern uint8_t sudi_trustpoint[];
@@ -173,6 +174,7 @@ an_sudi_check (void)
             an_set_udi(udi);
             an_event_udi_available();
             udi_available = TRUE;
+            an_if_enable_nd_on_all_intfs();
 
         } else {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,

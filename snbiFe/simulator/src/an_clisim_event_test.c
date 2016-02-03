@@ -23,9 +23,13 @@
 
 olibc_pthread_hdl test_pthread_hdl = NULL;
 olibc_timer_hdl test_timer_hdl = NULL;
+olibc_timer_hdl test_timer_hdl_2 = NULL;
+olibc_timer_hdl test_timer_hdl_1 = NULL;
 olibc_msg_q_hdl test_msg_q_hdl = NULL;
+#define TIMER_TYPE_1 1
+#define TIMER_TYPE_2 2
 
-int  SLEEP_TIME = 60*1;
+int  SLEEP_TIME = 5*1;
 
 void write_to_stdbout_cb (int severity, const char *msg)
 {
@@ -84,6 +88,48 @@ cparser_cmd_test_event_pthread_create (cparser_context_t *context)
         printf("Pthread creation failed\n");
     }
     return CPARSER_OK;
+}
+static boolean
+test_timer_routine_reset_cbk (olibc_timer_event_hdl tmp_event_hdl)
+{
+    static int cnt = 0;
+    olibc_timer_hdl timer_hdl = NULL;
+    olibc_retval_t retval;
+    time_t timestamp;
+    struct tm *ts;
+    char timestr[50];
+    uint32_t type;
+
+    memset(timestr, 0 , 50);
+
+    timestamp = time(NULL);
+
+    ts = localtime(&timestamp);
+    strftime(timestr, 50, "%B %d %H:%M:%S", ts);
+
+    retval = olibc_timer_event_get_hdl(tmp_event_hdl, &timer_hdl);
+    retval = olibc_timer_get_type(timer_hdl, &type);
+
+    printf("\n%s - Inside test timer reset routine cbk type %d\n", timestr, 
+           type);
+    sleep(SLEEP_TIME);
+    timestamp = time(NULL);
+
+    ts = localtime(&timestamp);
+    strftime(timestr, 50, "%B %d %H:%M:%S", ts);
+
+    printf("\n%s - Wokeup from sleep", timestr);
+
+    if (type == TIMER_TYPE_1 && cnt < 10) {
+        printf("\ntimer2 reset");
+        olibc_timer_reset(test_timer_hdl_2);
+        olibc_timer_stop(test_timer_hdl_1);
+        olibc_timer_start(test_timer_hdl_1, 2200);
+        cnt++;
+    } else {
+        printf("\n count %d, no reset", cnt);
+    }
+    return TRUE;
 }
 
 static boolean
@@ -184,11 +230,28 @@ cparser_cmd_test_event_timer_start_value (cparser_context_t *context,
 cparser_result_t
 cparser_cmd_test_event_timer_reset (cparser_context_t *context)
 {
+    /*
     olibc_retval_t retval;
 
     retval = olibc_timer_reset(test_timer_hdl);
 
     printf("\nTimer reset returned %s", olibc_retval_get_string(retval));
+    */
+    olibc_retval_t retval;
+    olibc_timer_info_t timer_info;
+    memset(&timer_info, 0, sizeof(olibc_timer_info_t));
+
+    timer_info.flags |= OLIBC_ONESHOT_TIMER;
+    timer_info.timer_cbk = test_timer_routine_reset_cbk;
+    timer_info.pthread_hdl = test_pthread_hdl;
+    timer_info.context = (void*)"Test timer";
+    timer_info.type = TIMER_TYPE_1;
+    retval = olibc_timer_create(&test_timer_hdl_1, &timer_info);
+    retval = olibc_timer_start(test_timer_hdl_1, 2200);
+
+    timer_info.type = TIMER_TYPE_2;
+    retval = olibc_timer_create(&test_timer_hdl_2, &timer_info);
+    retval = olibc_timer_start(test_timer_hdl_2, 2201);
     return CPARSER_OK;
 }
 
