@@ -20,7 +20,9 @@
 #include <an_logger_linux.h>
 #include <an_if.h>
 #include <an_if_mgr.h>
+#include <an_if_linux.h>
 
+extern olibc_list_hdl an_if_linux_list_hdl;
 
 uint8_t an_table_header[81] = {[0 ... 79] = '-', [80] = '\0'};
 uint8_t an_show_header[1] = {'\0'};
@@ -203,6 +205,32 @@ cparser_cmd_show_snbi_if_db (cparser_context_t *context)
     printf("      If Info       | Autonomically Created | SNBI Enabled | ND OPER");
     printf("\n%80s", an_table_header);
     an_if_info_db_walk(an_show_if_db_cb, NULL);
+    printf("\n");
+    return CPARSER_OK;
+}
+
+void print_system_if_db ()
+{
+    olibc_retval_t retval;
+    an_if_linux_info_t *if_linux_info = NULL;
+    olibc_list_iterator_hdl if_list_iter = NULL;
+
+    retval = olibc_list_iterator_create(an_if_linux_list_hdl, &if_list_iter);
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return;
+    }
+    while (olibc_list_iterator_get_next(if_list_iter,
+                                        (void **)&if_linux_info) ==
+            OLIBC_RETVAL_SUCCESS) {
+	printf("\n %s(%d) |", if_linux_info->if_name, if_linux_info->if_index);
+    }
+    olibc_list_iterator_destroy(&if_list_iter);
+    return;
+}
+
+cparser_result_t cparser_cmd_show_system_if_db(cparser_context_t *context)
+{
+    print_system_if_db();
     printf("\n");
     return CPARSER_OK;
 }

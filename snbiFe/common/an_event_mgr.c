@@ -212,7 +212,8 @@ an_event_autonomics_init (void)
     an_conig_download_register_for_events();
     an_external_anra_register_for_events();
     /* Infra enable for AN */
-    an_log_init();      
+    an_log_init();  
+    an_register_for_sig_quit();    
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                  "\n%sAutonomic init", an_nd_event);
 

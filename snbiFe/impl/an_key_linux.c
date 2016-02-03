@@ -110,7 +110,6 @@ an_key_get_private_key_from_keypair (uint8_t *key_label)
 boolean
 an_key_remove_keypair (uint8_t *key_label)
 {
-    printf("\n[SINO_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 

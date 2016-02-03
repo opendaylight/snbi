@@ -78,7 +78,6 @@ an_tunnel_create (an_addr_t *src, an_addr_t *dst, an_if_t src_if, uint8_t mode)
     retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
                                     if_linux_info);
 
-
     if (retval != OLIBC_RETVAL_SUCCESS) {
         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                 "\n%s AN interface insert failed", an_nd_event);

@@ -8,10 +8,13 @@
 #include <an_event_mgr_db.h>
 #include "an_external_anra.h"
 #include <time.h>
+#include <pthread.h>
 
 extern olibc_pthread_hdl an_pthread_hdl;
 extern an_udi_t an_udi_platform_linux;
 extern an_timer an_external_anra_bs_thyself_retry_timer;
+extern pthread_cond_t      quit_sig_con;
+extern pthread_mutex_t     quit_sig_mutex;
 
 olibc_msg_q_hdl an_conf_q_hdl = NULL;
 
@@ -266,6 +269,9 @@ an_conf_q_cbk (olibc_msg_q_event_hdl q_event_hdl)
 
         case AN_CONFIG_AUTONOMIC_STOP:
             an_autonomic_disable();
+	    pthread_mutex_lock(&quit_sig_mutex);	
+	    pthread_cond_broadcast(&quit_sig_con);
+            pthread_mutex_unlock(&quit_sig_mutex);
             break;
 
         case AN_CONFIG_UDI:
