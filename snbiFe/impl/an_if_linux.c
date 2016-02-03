@@ -259,41 +259,46 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (TRUE);
 }
 
+
 an_if_t
 an_if_create_loopback (uint32_t unit)
 {
     an_if_info_t *if_info;
     an_if_t if_index = 0;
-    an_if_linux_info_t *if_linux_info;
+    an_if_linux_info_t *if_linux_info = NULL;
     olibc_retval_t retval;
-
-    system("ip link add snbi-fe type dummy");
+	
+    if_index = if_nametoindex("snbi-fe");
+    if (!if_index) {
+       system("ip link add snbi-fe type dummy");
+       if_index = if_nametoindex("snbi-fe");
+    } 
     system("ip link set dev snbi-fe up");
 
-    retval = olibc_malloc((void **)&if_linux_info,
+    if_linux_info = an_if_linux_get_info (if_index);
+    if (!if_linux_info) {
+        retval = olibc_malloc((void **)&if_linux_info,
                     sizeof(an_if_linux_info_t), "AN linux info");
 
-    if (!if_linux_info) {
+        if (!if_linux_info) {
             DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
                     "\n%s AN If creation failed", an_nd_event);
             return 0;
+        }
+        retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
+                                    if_linux_info);
+        if (retval != OLIBC_RETVAL_SUCCESS) {
+            DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN interface insert failed", an_nd_event);
+            return 0;
+	}
     }
 
     memcpy(if_linux_info->if_name, "snbi-fe", strlen("snbi-fe")+1);
-    if_index = if_nametoindex("snbi-fe");
     if_linux_info->if_index = if_index;
     if_linux_info->if_state = IF_UP;
     if_linux_info->is_loopback = TRUE;
     if_linux_info->is_tunnel = FALSE;
-
-    retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
-                                    if_linux_info);
-
-    if (retval != OLIBC_RETVAL_SUCCESS) {
-        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                "\n%s AN interface insert failed", an_nd_event);
-        return 0;
-    }
 
     if_info = an_if_info_db_search(if_index, TRUE);
     if (if_info) {
@@ -575,6 +580,7 @@ an_if_linux_free_func (void *data)
     return OLIBC_LIST_CBK_RET_CONTINUE;
 }
 
+
 static boolean
 an_interface_event_cbk (olibc_if_event_hdl if_event)
 {
@@ -613,6 +619,21 @@ an_interface_event_cbk (olibc_if_event_hdl if_event)
                                   sizeof(an_if_linux_info_t),
                                   "AN linux info");
                 new_interface = TRUE;
+		memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
+		if_linux_info->if_index = if_info.if_index;
+		if_linux_info->is_loopback = if_info.is_loopback;
+		if_linux_info->hw_type = if_info.hw_type;
+                if_linux_info->if_addr_list_hdl = NULL;
+		memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
+		if_linux_info->hw_addr_len = if_info.hw_addr_len;
+		retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
+                                        if_linux_info); 
+		if (retval != OLIBC_RETVAL_SUCCESS) {
+                    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN interface insert failed", an_nd_event);
+                return FALSE;
+            } 
+            
             }
 
             if (!if_linux_info) {
@@ -620,23 +641,8 @@ an_interface_event_cbk (olibc_if_event_hdl if_event)
                         "\n%s AN If creation failed", an_nd_event);
                 return FALSE;
             } 
-            memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
-            if_linux_info->if_index = if_info.if_index;
             if_linux_info->if_state = if_info.if_state;
-            if_linux_info->is_loopback = if_info.is_loopback;
-            if_linux_info->hw_type = if_info.hw_type;
-            if_linux_info->if_addr_list_hdl = NULL;
-            memcpy(if_linux_info->hw_addr, if_info.hw_addr, AN_IF_HW_ADDR_LEN);
-            if_linux_info->hw_addr_len = if_info.hw_addr_len;
 
-            retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
-                                        if_linux_info); 
-            if (retval != OLIBC_RETVAL_SUCCESS) {
-                DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                    "\n%s AN interface insert failed", an_nd_event);
-                return FALSE;
-            } 
-            
             if (if_linux_info->if_state == IF_UP) {
                 if_state = AN_PMSG_IF_UP;
             } else { 

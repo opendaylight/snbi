@@ -656,10 +656,11 @@ an_config_loopback (void)
     }
 
     loopback_ifhndl = an_if_create_loopback(an_loopback_id);
-    DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
-                 "\n%sConfigured Loopback Interface [%d]", an_bs_event, an_loopback_id);
 
     if (loopback_ifhndl) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL, 
+                 "\n%sConfigured Loopback Interface [%d]", an_bs_event, 
+                 loopback_ifhndl);
         an_config_loopback_cb(loopback_ifhndl);
     }
 

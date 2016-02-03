@@ -66,6 +66,13 @@ cparser_glue_show_snbi_if_db (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_show_system_if_db (cparser_t *parser)
+{
+    cparser_cmd_show_system_if_db(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_quit (cparser_t *parser)
 {
     cparser_cmd_quit(&parser->context);
@@ -2397,6 +2404,33 @@ cparser_node_t cparser_node_quit = {
     &cparser_node_quit_eol
 };
 
+cparser_node_t cparser_node_show_system_if_db_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_show_system_if_db,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_show_system_if_db = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "if-db",
+    "System interface DB",
+    NULL,
+    &cparser_node_show_system_if_db_eol
+};
+
+cparser_node_t cparser_node_show_system = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "system",
+    "System information",
+    NULL,
+    &cparser_node_show_system_if_db
+};
+
 cparser_node_t cparser_node_show_snbi_if_db_eol = {
     CPARSER_NODE_END,
     0,
@@ -2537,7 +2571,7 @@ cparser_node_t cparser_node_show_snbi = {
     0,
     "snbi",
     "SNBI information",
-    NULL,
+    &cparser_node_show_system,
     &cparser_node_show_snbi_device
 };
 
