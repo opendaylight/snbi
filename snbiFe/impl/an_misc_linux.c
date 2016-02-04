@@ -20,12 +20,18 @@
 #include <an.h>
 #include <an_if.h>
 #include "an_cert_linux.h"
-
+#include "an_conf_linux.h"
+#include  <signal.h>
+#include "../common/an.h"
+#include <pthread.h>
 
 #define AN_IPSEC_MSG_ID 0x0
 #define AN_SPI 265
 #define an_debug_acp 1
 #define MAX_PID_LEN  18
+
+pthread_mutex_t     quit_sig_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t      quit_sig_con = PTHREAD_COND_INITIALIZER;
 
 static const char an_crypto_ss_api_debug_prefix[] = "AN ACP IPSec: ";
 
@@ -245,3 +251,19 @@ an_config_tftp_reset_source_idb (void)
 {
 }
 
+
+void  INThandler(int sig)
+{
+    int rValue;
+
+    printf("SNBI Process is exiting due to Ctrl-C hit\n");
+    rValue = pthread_mutex_lock(&quit_sig_mutex);
+    an_disable_cmd_handler();
+    pthread_cond_wait(&quit_sig_con, &quit_sig_mutex);
+    rValue = pthread_mutex_unlock(&quit_sig_mutex);
+    exit(0);
+}
+void an_register_for_sig_quit (void)
+{
+     signal(SIGINT, INThandler);
+}
