@@ -68,6 +68,30 @@
       "revId": "50ca14e1d80de1ee6606510de694be3f071ef9a9",
       "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9a3d3df0_324aa7c5",
+        "filename": "snbiFe/impl/an_misc_linux.c",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 3194
+      },
+      "writtenOn": "2016-02-04T09:27:39Z",
+      "side": 1,
+      "message": "Will be taken care in a separate bug.",
+      "parentUuid": "9a3d3df0_b2ffd766",
+      "range": {
+        "startLine": 255,
+        "startChar": 6,
+        "endLine": 255,
+        "endChar": 16
+      },
+      "revId": "50ca14e1d80de1ee6606510de694be3f071ef9a9",
+      "serverId": "7fc14799-209e-464c-9743-7a06c2c21a81",
+      "unresolved": false
     }
   ]
 }
