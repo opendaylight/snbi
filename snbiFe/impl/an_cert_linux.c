@@ -416,9 +416,7 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 an_cert_api_ret_enum
 an_cert_reset_domain_ca_cert (uint8_t *tp_label)
 {
-#ifdef PRINT_STUBS_PRINTF    
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-#endif
+    an_cert_cleanup();
     return (AN_CERT_API_SUCCESS);
 }
 
@@ -761,3 +759,11 @@ an_cert_validate_with_revoke_check (an_cert_t *peer_cert, void *device_ctx)
         return (AN_CERT_VALIDITY_UNKNOWN);
 }
 
+void
+an_cert_cleanup (void) 
+{
+   remove(PUBLIC_KEY_LOCATION);
+   remove(PRIVATE_KEY_LOCATION);
+   remove(DEVICE_CERT_LOCATION);
+   remove(CA_CERT_LOCATION);
+}
