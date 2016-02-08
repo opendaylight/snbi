@@ -181,4 +181,5 @@ an_cert_validate_subject_ou(an_cert_t cert, uint8_t *domain_id);
 boolean 
 an_cert_validate_subject_sn(an_cert_t cert, uint8_t *sn_string, 
                             uint16_t sn_length);
+void an_cert_cleanup(void);
 #endif

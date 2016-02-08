@@ -26,6 +26,7 @@ main (int argc, char *argv[])
     char *config_file = NULL;
     int ch, debug = 0;
     int interactive = 0;
+    int pre_cleanup = 0;
 
     memset(&parser, 0, sizeof(parser));
 
@@ -36,7 +37,7 @@ main (int argc, char *argv[])
 
 
 
-    while (-1 != (ch = getopt(argc, argv, "ihdc:"))) {
+    while (-1 != (ch = getopt(argc, argv, "ihdrc:"))) {
         switch (ch) {
             case 'i':
                 interactive = 1;
@@ -47,11 +48,16 @@ main (int argc, char *argv[])
             case 'c':
                 config_file = optarg;
                 break;
+            case 'r':
+                printf("\nSINO\n");
+                pre_cleanup = 1;
+                break;
             case 'h':
                 printf("\n-h \tDisplay the help and exit");
                 printf("\n-i \tEnter into interactive mode");
                 printf("\n-d \tEnable parser debug mode");
                 printf("\n-c \tProvide an initial config file");
+                printf("\n-r \tTo remove the stale entries");
                 printf("\n\n");
                 return 0;
                 break;
@@ -82,11 +88,16 @@ main (int argc, char *argv[])
         printf("Fail to initialize parser.\n");
         return -1;
     }
+    if (pre_cleanup){
+        an_config_global_cleanup_cmd_handler();
+    }
+
     if (interactive) {
         if (config_file) {
             (void)cparser_load_cmd(&parser, config_file);
         }
         cparser_run(&parser);
     }
+
     return 0;
 }

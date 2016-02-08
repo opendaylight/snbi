@@ -142,6 +142,14 @@ an_ipsec_profile_uninit (void)
                          "\n%s:%s file deleted successfully.\n",
                          ipsec_file);
     }
+    
+    status = remove(ipsec_debug_file);
+ 
+    if (status == 0 ) {
+       DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
+                         "\n%s:%s file deleted successfully.\n",
+                         ipsec_file);
+    }
 }
 
 boolean 
