@@ -443,7 +443,6 @@ an_if_list_linux_init (void)
         }
 
         memcpy(if_linux_info->if_name, if_info.if_name, AN_IF_NAME_LEN);
-        printf("\n New interface added %d",if_info.if_index);
         if_linux_info->if_index = if_info.if_index;
         if_linux_info->if_state = if_info.if_state;
         if_linux_info->is_loopback = if_info.is_loopback;
@@ -610,8 +609,6 @@ an_interface_event_cbk (olibc_if_event_hdl if_event)
     memset(&if_info, 0, sizeof(olibc_if_info_t));
     while (olibc_if_iterator_get_next(if_iterator_hdl, (void *)&if_info,
                 &event_type) == OLIBC_RETVAL_SUCCESS) {
-        printf("\n Received event for %d event type %d \n", 
-                if_info.if_index, event_type);
         if (event_type == IF_EVENT_NEW_LINK) {
             if_linux_info = an_if_linux_get_info(if_info.if_index); 
             if (!if_linux_info) {
