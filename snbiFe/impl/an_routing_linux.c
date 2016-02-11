@@ -19,6 +19,9 @@
 #include <an_external_anra.h>
 #include <an_str.h>
 
+bool rpl_daemon_enabled = 0;
+
+
 
 void an_rpl_global_enable(an_rpl_info_t *an_rpl_info)
 {
@@ -36,6 +39,13 @@ void an_notify_routing_device_id_availble()
 //    an_addr_t external_ra_addr;
     char *device_id = NULL;
     char *rank;
+
+    if (rpl_daemon_enabled) {
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_SEVERE,NULL,
+                "\n%s RPL Daemon Alread enabled ", an_bs_pak);
+        return;
+    }
+
 
     memset(device_id_prefix, 0, 50);
 
@@ -82,7 +92,7 @@ void an_notify_routing_device_id_availble()
         an_sprintf(cmd, "sunshine -D --dagid rpl instanceid 1 "
             "--dao-if-filter snbi-* --ignore-pio "
             "--dao-addr-filter fd00::/8 --dag-if-filter snbi_tun_* "
-            "-p fd00::/8 --stderr --verbose "
+            "-p fd00::/8 --stderr --verbose --timelog "
             "--rank %s --interval 1000 > /tmp/rpl_cmd.log 2>&1", rank);
     DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
             "\n%sRPL Execs: \n\t%s \n\t%s", an_bs_event,
@@ -90,6 +100,7 @@ void an_notify_routing_device_id_availble()
 
     system("sysctl -w net.ipv6.conf.all.forwarding=1 > /dev/null 2>&1");
     system(cmd);
+    rpl_daemon_enabled = TRUE;
 }
 
 void an_rpl_global_disable(uint8 *tag_name)
@@ -137,9 +148,8 @@ printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
 void
 an_acp_routing_uninit (void)
 {
-#ifdef PRINT_STUBS_PRINTF    
-printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-#endif
+    system("sunshine -K > /dev/null 2>&1");
+    rpl_daemon_enabled = FALSE;
     return;
 }
 

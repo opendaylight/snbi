@@ -991,7 +991,7 @@ an_bs_incoming_response_message (an_msg_package *response)
         return;
     }
 
-    DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_INFO, NULL, 
+    DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_INFO, NULL,
             "\n%sReceived Domain Cert from Autonomic Registrar", an_bs_pak);   
     if (an_get_domain_cert(&domain_cert)) {
         clock_valid = an_ntp_is_system_clock_valid();
