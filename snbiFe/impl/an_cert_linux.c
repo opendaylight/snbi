@@ -719,6 +719,7 @@ an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
     BIO_printf(outbio, "\nVerification result text: %s\n",
             X509_verify_cert_error_string(vrfy_ctx->error));
             */
+    retval = AN_CERT_VALIDITY_PASSED;
 
     if(ret == 0) {
 
@@ -734,7 +735,7 @@ an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
         
         BIO_printf(outbio, "\nError - %d, depth %d ", err, depth);
         BIO_printf(outbio, "\n");
-        retval = AN_CERT_VALIDITY_PASSED;
+        retval = AN_CERT_VALIDITY_FAILED;
     } else if (ret < 0) {
         retval = AN_CERT_VALIDITY_FAILED;
     }
