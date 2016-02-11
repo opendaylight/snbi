@@ -16,11 +16,10 @@ Installing openssl
 wget https://www.openssl.org/source/openssl-1.0.2-latest.tar.gz
 tar -zxvf openssl-1.0.2-latest.tar.gz
 cd openssl-1.0.2
-./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl
+./config --prefix=/usr --openssldir=/usr
 make
 sudo make install
 openssl version
-sudo apt-get install libssl-dev
 
 TODO
 ----

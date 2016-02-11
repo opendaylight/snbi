@@ -20,6 +20,9 @@
 #include <sys/stat.h>
 #include "../al/an_str.h"
 #include <unistd.h>
+#include <an_ntp.h>
+#include <openssl/asn1.h>
+
 
 void 
 an_openssl_init (void) 
@@ -454,6 +457,7 @@ an_cert_is_device_cert_valid (an_cert_t *cert)
 
     status_bf = X509_cmp_current_time(X509_get_notBefore(x509_cert));
     status_af = X509_cmp_current_time(X509_get_notAfter(x509_cert));
+
     if(status_bf < 0 && status_af > 0) {
         X509_free(x509_cert);
         return (TRUE);
@@ -507,11 +511,50 @@ boolean an_create_trustpoint (uint8_t* label, uint8_t* filename)
 an_cert_api_ret_enum 
 an_cert_get_cert_expire_time (an_cert_t *cert,
                  an_unix_msec_time_t* validity_interval,
-                 an_unix_time_t *validity_time) {
-#ifdef PRINT_STUBS_PRINTF    
-//printf("\n[SRK_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
-#endif
-    return 0;
+                 an_unix_time_t *validity_time)
+{
+    int ret;
+    time_t end_time;
+    time_t now;
+    an_cert_t an_cert;
+    ASN1_TIME *asn1_end_time;
+    ASN1_TIME *asn1_epoch_time;
+    X509 *x509_cert = NULL;
+    an_unix_msec_time_t cert_expiry_time = 0;
+    int pday = 0, psec = 0;
+
+    an_cert.data = cert->data;
+    an_cert.len = cert->len;
+
+    x509_cert = d2i_X509(NULL, (const unsigned char **)&an_cert.data,
+                         an_cert.len);
+
+    if(!x509_cert) {
+        return (AN_CERT_UNKNOWN_FAILURE);
+    }
+
+    asn1_end_time = X509_get_notAfter(x509_cert);
+    asn1_epoch_time = ASN1_TIME_set(NULL, 0);
+    ret = ASN1_TIME_diff(&pday, &psec, asn1_epoch_time, asn1_end_time);
+
+    end_time  = pday * 24 * 60 * 60 + psec;
+
+    now = an_unix_time_get_current_timestamp();
+
+    if (end_time > now) {
+        cert_expiry_time = end_time - now;
+        cert_expiry_time = cert_expiry_time * 1000L;
+    } else {
+        cert_expiry_time = 0;
+    }
+
+    *validity_interval = cert_expiry_time;
+    *validity_time = end_time;
+
+    X509_free(x509_cert);
+    ASN1_STRING_free(asn1_epoch_time);
+
+    return AN_CERT_API_SUCCESS;
 }
 
 void 
@@ -542,20 +585,78 @@ an_cert_config_trustpoint (an_addr_t enrol_ip)
             return (AN_CERT_API_SUCCESS);
 }
 
+void printCert (X509 *x509_cert)
+{
+    BIO *outbio = NULL;
+    int ret;
+
+    if (!x509_cert) {
+        return;
+    }
+    /* ---------------------------------------------------------- *
+     * Create the Input/Output BIO's.                             *
+     * ---------------------------------------------------------- */
+    outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
+    if (!outbio) {
+        goto free_all;
+    }
+    /* ---------------------------------------------------------- *
+     * Print the certificate                                      *
+     * ---------------------------------------------------------- */
+    ret = X509_print_ex(outbio, x509_cert, 0, 0);
+    /* ---------------------------------------------------------- *
+     * Free up the resources                                      *
+     * ---------------------------------------------------------- */
+    free_all:
+        if (x509_cert)
+            X509_free(x509_cert);
+        if (outbio)
+            BIO_free_all(outbio);
+}
+
+/*
+static int  verify_cb(int ok, X509_STORE_CTX *ctx)
+{
+    if (!ok)
+    {
+        // check the error code and current cert
+        X509 *currentCert = X509_STORE_CTX_get_current_cert(ctx);
+        int certError = X509_STORE_CTX_get_error(ctx);
+        int depth = X509_STORE_CTX_get_error_depth(ctx);
+        //printCert(currentCert);
+        printf("\n\n");
+        printf("\nError depth %d, certError %d\n", depth, certError);
+    }
+
+    return(ok);
+}
+*/
+
 an_cert_validation_result_e
 an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
-                                             const an_log_type_e log_type)
+                                        const an_log_type_e log_type)
 {
-    X509_STORE         *store = NULL;
-    X509_STORE_CTX  *vrfy_ctx = NULL;
-    X509            *cert = NULL;
-    int    ret;
+//    uint8_t validity_time_str[TIME_DIFF_STR];
+//    an_unix_time_t validity_time;
+//    an_unix_msec_time_t cert_validity_interval;
+    int ret;
+    X509 *cert = NULL;
     an_cert_t an_cert;
-    X509_NAME    *certsubject = NULL;
-    X509 *error_cert = NULL;
     BIO *outbio = NULL;
+    X509 *error_cert = NULL;
+    X509_STORE *store = NULL;
+    X509_NAME *certsubject = NULL;
+    X509_STORE_CTX  *vrfy_ctx = NULL;
+    an_cert_validation_result_e retval;
+//    ASN1_TIME *asn_epoch_time;
 
     if (!peer_cert || !peer_cert->data || !peer_cert->len) {
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\n%s Invalid peer cert received while validating peer cert"
+                " peer_cert %p, peer_cert->date %p, peer_cert->len %d",
+                an_bs_pak,
+                peer_cert, peer_cert ? peer_cert->data:NULL,
+                peer_cert ? peer_cert->len : 0);
         return (AN_CERT_VALIDITY_UNKNOWN);
     }
     outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
@@ -563,8 +664,13 @@ an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
     an_cert.data = peer_cert->data;
     an_cert.len = peer_cert->len;
 
-    if (!(store=X509_STORE_new()))
-        return (AN_CERT_VALIDITY_UNKNOWN);
+    if (!(store=X509_STORE_new())) {
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\n%s Failed to create store while validating peer cert",
+                an_bs_pak);
+        retval = AN_CERT_VALIDITY_UNKNOWN;
+        goto cleanup;
+    }
 
     vrfy_ctx = X509_STORE_CTX_new();
     cert = d2i_X509(NULL, (const unsigned char **)&an_cert.data,
@@ -573,29 +679,81 @@ an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
 
     ret = X509_STORE_load_locations(store, CA_CERT_LOCATION, NULL);
     if (ret != 1) {
-        return (AN_CERT_VALIDITY_UNKNOWN);
+        DEBUG_AN_LOG(AN_LOG_BS_PACKET, AN_DEBUG_MODERATE, NULL,
+                "\n%s Failed to load CA cert from file",
+                an_bs_pak);
+        retval = AN_CERT_VALIDITY_UNKNOWN;
+        goto cleanup;
     }
+
+//    X509_STORE_set_verify_cb(store, verify_cb);
 
     X509_STORE_CTX_init(vrfy_ctx, store, cert, NULL);
 
+/*
+    asn_epoch_time = ASN1_TIME_set(NULL, time(NULL));
+    BIO_puts(outbio, "\n");
+    BIO_puts(outbio, "CurrTime=");
+    ASN1_TIME_print(outbio, asn_epoch_time);
+
+    BIO_puts(outbio, "\n");
+    BIO_puts(outbio, "notBefore=");
+    ASN1_TIME_print(outbio, X509_get_notBefore(cert));
+    BIO_puts(outbio, "\n");
+
+
+    BIO_puts(outbio, "\n");
+    BIO_puts(outbio, "notAfter=");
+    ASN1_TIME_print(outbio, X509_get_notAfter(cert));
+    BIO_puts(outbio, "\n");
+
+    int status_bf, status_af;
+    status_bf = X509_cmp_current_time(X509_get_notBefore(cert));
+    status_af = X509_cmp_current_time(X509_get_notAfter(cert));
+    printf("\nstatus_bf = %d, status_af = %d \n", status_bf, status_af);
+    */
+
     ret = X509_verify_cert(vrfy_ctx);
 
+    /*
+    BIO_printf(outbio, "\nVerification result text: %s\n",
+            X509_verify_cert_error_string(vrfy_ctx->error));
+            */
+    retval = AN_CERT_VALIDITY_PASSED;
+
     if(ret == 0) {
+
         /*  get the offending certificate causing the failure */
         error_cert  = X509_STORE_CTX_get_current_cert(vrfy_ctx);
         certsubject = X509_NAME_new();
         certsubject = X509_get_subject_name(error_cert);
-        BIO_printf(outbio, "Verification failed cert:\n");
+        BIO_printf(outbio, "\nVerification failed cert:\n");
         X509_NAME_print_ex(outbio, certsubject, 0,
                                       XN_FLAG_MULTILINE);
+        int err = X509_STORE_CTX_get_error(vrfy_ctx);
+        int depth = X509_STORE_CTX_get_error_depth(vrfy_ctx);
+        
+        BIO_printf(outbio, "\nError - %d, depth %d ", err, depth);
         BIO_printf(outbio, "\n");
- //       int err = X509_STORE_CTX_get_error(vrfy_ctx);
- //       int depth = X509_STORE_CTX_get_error_depth(vrfy_ctx);
-        return (AN_CERT_VALIDITY_FAILED);
+        retval = AN_CERT_VALIDITY_FAILED;
     } else if (ret < 0) {
-        return (AN_CERT_VALIDITY_FAILED);
+        retval = AN_CERT_VALIDITY_FAILED;
     }
-    return (AN_CERT_VALIDITY_PASSED);
+cleanup:
+    if (vrfy_ctx) {
+        X509_STORE_CTX_free(vrfy_ctx);
+    }
+
+    if (store) {
+        X509_STORE_free(store);
+    }
+    if (outbio) {
+        BIO_free_all(outbio);
+    }
+    if (cert) {
+        X509_free(cert);
+    }
+    return (retval);
 }
 
 void
