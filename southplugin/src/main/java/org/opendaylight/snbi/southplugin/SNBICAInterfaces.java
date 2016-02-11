@@ -87,7 +87,7 @@ public enum SNBICAInterfaces {
     }
 
     // generate X509 certificate from the CSR and signer which contains the signature.
-    // certificate validity is for 3 years from now
+    // certificate validity is for 4 years from last year.
     // extract the serial number from csr and use signature from csr or create one
     public X509Certificate generateX509Certificate(PKCS10CertificationRequest request, ContentSigner signer) {
         X509Certificate rootCert = CertificateMgmt
@@ -100,8 +100,9 @@ public enum SNBICAInterfaces {
         //BigInteger serial = BigInteger.valueOf(new Long(values[0].getValue().toString()).longValue());
         BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
         Calendar now = Calendar.getInstance();
+        now.add(Calendar.YEAR, -1);
         Date notBefore = now.getTime();
-        now.add(Calendar.YEAR, 3);
+        now.add(Calendar.YEAR, 4);
         Date notAfter = now.getTime();
         org.bouncycastle.asn1.x500.X500Name issuername = JcaX500NameUtil.getSubject(rootCert);
         JcaPKCS10CertificationRequest jpkcsreq = new 
