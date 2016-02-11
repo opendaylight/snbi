@@ -102,8 +102,9 @@ public class CertificateMgmt {
             X500Name issuerFormated = new X500NameBuilder(BCStyle.INSTANCE).addRDN(BCStyle.CN, issuerName).build();
             BigInteger serialNumber = BigInteger.ONE;
             Calendar now = Calendar.getInstance();
+            now.add(Calendar.YEAR, -1);
             Date notBefore = now.getTime();
-            now.add(Calendar.YEAR, 3);
+            now.add(Calendar.YEAR, 4);
             Date notAfter = now.getTime();
             JcaX509v3CertificateBuilder builder  = null;
             builder  = new JcaX509v3CertificateBuilder(issuerFormated, serialNumber, notBefore,
