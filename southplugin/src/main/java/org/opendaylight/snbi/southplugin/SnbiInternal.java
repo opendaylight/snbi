@@ -72,12 +72,8 @@ public class SnbiInternal implements CommandProvider {
 
     void start() throws Exception {
         log.debug("START called!");
-        try {
             // Get instance will also init Messaging Infra.
-            SnbiMessagingInfra.getInstance();
-        } catch (Exception excpt) {
-            throw excpt;
-        }
+           // SnbiMessagingInfra.getInstance();
         registerWithOSGIConsole();
     }
 
