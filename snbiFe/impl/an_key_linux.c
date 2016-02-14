@@ -6,7 +6,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-
+#include <an_logger.h>
 #include <an_types.h>
 #include <an_key.h>
 #include <an_mem.h>
@@ -73,7 +73,8 @@ an_key_get_public_key (uint8_t *key_label, an_key_t *key)
 
     ret = (PEM_read_bio_RSAPublicKey(rsa_pub_bio, &rsa_pub, NULL, NULL)!= NULL);
     if (ret == 0) {
-        printf("\n Failed to read publickey from file");
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+                "\n%sFailed to read public key from key pair",an_bs_event);
         return FALSE;
     }
     BIO *pub = BIO_new(BIO_s_mem());
@@ -98,7 +99,9 @@ an_key_get_private_key_from_keypair (uint8_t *key_label)
     BIO* rsa_pub_bio = BIO_new_file(cert_filestr, "r");
     pkey = PEM_read_bio_PrivateKey(rsa_pub_bio, NULL, NULL, NULL);
     if (pkey == NULL) {
-        printf("\n Failed to read privatekey from file");
+        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_INFO, NULL,
+                "\n%sFailed to read private key from key pair",an_bs_event);
+        return FALSE;
     }
     fprintf(stdout, "RSA Private Key: (%d bit)\n", EVP_PKEY_bits(pkey));
 
