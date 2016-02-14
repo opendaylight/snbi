@@ -1466,6 +1466,27 @@ an_nd_check_if_nbr_on_valid_link (an_if_t my_ifhndl,  an_addr_t remote_ipaddr)
 
 /*-------------------------AN ND event handlers -------------------------*/
 void
+an_nd_interface_down_event_handler (void *if_info_ptr)
+{
+    an_if_info_t *an_if_info = NULL;
+    an_if_t *ifhndl_info, ifhndl;
+
+    if(!if_info_ptr) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%sInvalid context to handle interface event ");
+        return;
+    }
+    ifhndl_info = (an_if_t *)if_info_ptr;
+    ifhndl = *ifhndl_info;
+
+    an_if_info = an_if_info_db_search(ifhndl, FALSE);
+    if (!an_if_info) {
+        return;
+    }
+    an_event_interface_deactivated(ifhndl);
+}
+
+void
 an_nd_interface_up_event_handler (void *if_info_ptr)
 {
     an_if_info_t *an_if_info = NULL;
@@ -1717,6 +1738,9 @@ an_nd_register_for_events (void)
 {
     an_event_register_consumer(AN_MODULE_ND,
                         AN_EVENT_INTERFACE_UP, an_nd_interface_up_event_handler);
+    an_event_register_consumer(AN_MODULE_ND,
+                        AN_EVENT_INTERFACE_DOWN,
+                        an_nd_interface_down_event_handler);
     an_event_register_consumer(AN_MODULE_ND,
                         AN_EVENT_INTERFACE_ACTIVATE, 
                         an_nd_interface_activate_event_handler);

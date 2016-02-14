@@ -715,28 +715,23 @@ an_cert_validate_override_revoke_check (an_cert_t *peer_cert,
 
     ret = X509_verify_cert(vrfy_ctx);
 
-    /*
-    BIO_printf(outbio, "\nVerification result text: %s\n",
-            X509_verify_cert_error_string(vrfy_ctx->error));
-            */
     retval = AN_CERT_VALIDITY_PASSED;
 
-    if(ret == 0) {
+    if(ret <= 0) {
 
         /*  get the offending certificate causing the failure */
         error_cert  = X509_STORE_CTX_get_current_cert(vrfy_ctx);
-        certsubject = X509_NAME_new();
         certsubject = X509_get_subject_name(error_cert);
+
         BIO_printf(outbio, "\nVerification failed cert:\n");
-        X509_NAME_print_ex(outbio, certsubject, 0,
-                                      XN_FLAG_MULTILINE);
+        BIO_printf(outbio, "\nVerification result text: %s ret code %d\n",
+            X509_verify_cert_error_string(vrfy_ctx->error), ret);
+        X509_NAME_print_ex(outbio, certsubject, 0, XN_FLAG_MULTILINE);
         int err = X509_STORE_CTX_get_error(vrfy_ctx);
         int depth = X509_STORE_CTX_get_error_depth(vrfy_ctx);
         
         BIO_printf(outbio, "\nError - %d, depth %d ", err, depth);
         BIO_printf(outbio, "\n");
-        retval = AN_CERT_VALIDITY_FAILED;
-    } else if (ret < 0) {
         retval = AN_CERT_VALIDITY_FAILED;
     }
 cleanup:
