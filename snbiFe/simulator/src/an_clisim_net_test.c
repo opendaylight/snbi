@@ -56,6 +56,7 @@ cparser_cmd_test_interface_ip_address (cparser_context_t *context)
     char ip_str[INET6_ADDRSTRLEN];
     olibc_addr_iterator_hdl iter_hdl;
     olibc_addr_iterator_filter_t filter;
+    olibc_addr_event_type_t addr_event;
 
     filter.flags |= (OLIBC_FLAG_IPV4 | OLIBC_FLAG_IPV6);
     retval = olibc_addr_iterator_create(&filter, &iter_hdl);
@@ -66,7 +67,8 @@ cparser_cmd_test_interface_ip_address (cparser_context_t *context)
         return CPARSER_OK;
     }
     memset(&addr_info, 0, sizeof(olibc_addr_info_t));
-    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index,
+                                        &addr_event)
             == OLIBC_RETVAL_SUCCESS) {
         printf("\nif_index %d", if_index);
         if (addr_info.addr_family == AF_INET) {
@@ -95,6 +97,7 @@ cparser_cmd_test_interface_ipv6_address (cparser_context_t *context)
     char ip_str[INET6_ADDRSTRLEN];
     olibc_addr_iterator_hdl iter_hdl;
     olibc_addr_iterator_filter_t filter;
+    olibc_addr_event_type_t addr_event;
 
     filter.flags |= OLIBC_FLAG_IPV6;
     retval = olibc_addr_iterator_create(&filter, &iter_hdl);
@@ -105,8 +108,8 @@ cparser_cmd_test_interface_ipv6_address (cparser_context_t *context)
         return CPARSER_OK;
     }
     memset(&addr_info, 0, sizeof(olibc_addr_info_t));
-    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
-            == OLIBC_RETVAL_SUCCESS) {
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index,
+                          &addr_event) == OLIBC_RETVAL_SUCCESS) {
         printf("\nif_index %d", if_index);
         if (addr_info.addr_family == AF_INET) {
             inet_ntop(addr_info.addr_family, &addr_info.addrv4, ip_str,
@@ -134,6 +137,7 @@ cparser_cmd_test_interface_ipv4_address (cparser_context_t *context)
     char ip_str[INET6_ADDRSTRLEN];
     olibc_addr_iterator_hdl iter_hdl;
     olibc_addr_iterator_filter_t filter;
+    olibc_addr_event_type_t addr_event;
 
     filter.flags |= (OLIBC_FLAG_IPV4);
     retval = olibc_addr_iterator_create(&filter, &iter_hdl);
@@ -144,8 +148,8 @@ cparser_cmd_test_interface_ipv4_address (cparser_context_t *context)
         return CPARSER_OK;
     }
     memset(&addr_info, 0, sizeof(olibc_addr_info_t));
-    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
-            == OLIBC_RETVAL_SUCCESS) {
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index,
+                &addr_event) == OLIBC_RETVAL_SUCCESS) {
         printf("\nif_index %d", if_index);
         if (addr_info.addr_family == AF_INET) {
             inet_ntop(addr_info.addr_family, &addr_info.addrv4, ip_str,

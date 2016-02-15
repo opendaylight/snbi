@@ -15,6 +15,12 @@ typedef enum olibc_addr_scope_e_ {
     OLIBC_ADDR_SCOPE_NOWHERE
 } olibc_addr_scope_e;
 
+typedef enum olibc_addr_event_type_t_ {
+    ADDR_EVENT_NEW,
+    ADDR_EVENT_DEL,
+} olibc_addr_event_type_t;
+
+
 typedef struct olibc_addr_info_t {
     uint8_t addr_family;
     union {
@@ -36,7 +42,8 @@ olibc_addr_iterator_create(olibc_addr_iterator_filter_t *filter_info,
 extern olibc_retval_t  
 olibc_addr_iterator_get_next(olibc_addr_iterator_hdl iter_hdl, 
                              olibc_addr_info_t *addr, 
-                             uint32_t *if_index);
+                             uint32_t *if_index,
+                             olibc_addr_event_type_t *addr_event);
 
 extern olibc_retval_t
 olibc_addr_iterator_destroy(olibc_addr_iterator_hdl *iter_hdl);

@@ -475,6 +475,7 @@ an_if_list_addr_linux_init (void)
     olibc_addr_iterator_hdl iter_hdl;
     olibc_addr_iterator_filter_t filter;
     an_if_linux_info_t *an_linux_if_info = NULL;
+    olibc_addr_event_type_t addr_event;
 
     memset(&filter, 0 , sizeof(olibc_addr_iterator_filter_t));
 
@@ -486,7 +487,8 @@ an_if_list_addr_linux_init (void)
     }
 
     memset(&addr_info, 0, sizeof(olibc_addr_info_t));
-    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index)
+    while (olibc_addr_iterator_get_next(iter_hdl, &addr_info, &if_index,
+                &addr_event)
             == OLIBC_RETVAL_SUCCESS) {
         if (addr_info.addr_family != AF_INET6) {
             continue;

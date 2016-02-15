@@ -158,6 +158,7 @@ CC_SNBI_CLISIM_SRCS :=\
 	$(SNBI_CLISIM_SRC)/an_clisim_snbi_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_event_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_if_event_test.c \
+	$(SNBI_CLISIM_SRC)/an_clisim_addr_event_test.c \
 	$(SNBI_CLISIM_SRC)/an_clisim_host.c \
 	$(SNBI_CLISIM_SRC)/an_clisim.c
 
@@ -189,7 +190,8 @@ CC_OLIBC_NET_SRCS := $(OLIBC_NET_SRC)/olibc_if_rt_netlink.c \
 	$(OLIBC_NET_SRC)/olibc_addr_rt_netlink.c \
 	$(OLIBC_NET_SRC)/olibc_rt_netlink.c \
 	$(OLIBC_NET_SRC)/olibc_netlink.c \
-	$(OLIBC_NET_SRC)/olibc_if_event.c
+	$(OLIBC_NET_SRC)/olibc_if_event.c \
+	$(OLIBC_NET_SRC)/olibc_addr_event.c
 
 CC_OLIBC_PAK_SRCS := $(OLIBC_PAK_SRC)/olibc_pak.c
 

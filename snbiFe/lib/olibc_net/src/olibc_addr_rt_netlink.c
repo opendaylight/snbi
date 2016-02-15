@@ -15,7 +15,8 @@ olibc_addr_rt_netlink_parse_info (struct nlmsghdr *nlh,
     struct in_addr *addrv4;
     char dbg_str[INET6_ADDRSTRLEN];
 
-    if (nlh->nlmsg_type != RTM_NEWADDR) {
+    if ((nlh->nlmsg_type != RTM_NEWADDR) &&
+        (nlh->nlmsg_type != RTM_DELADDR)) {
         return FALSE;
     }
 
@@ -144,7 +145,8 @@ olibc_addr_iterator_create (olibc_addr_iterator_filter_t *filter_info,
 olibc_retval_t
 olibc_addr_recv (olibc_addr_iterator_hdl iter_hdl,
                  olibc_addr_info_t *addr_info,
-                 uint32_t *if_index)
+                 uint32_t *if_index,
+                 olibc_addr_event_type_t *addr_event)
 {
     uint32_t len;
     struct nlmsghdr *curr_data_ptr;
@@ -181,6 +183,15 @@ olibc_addr_recv (olibc_addr_iterator_hdl iter_hdl,
                 }
                 break;
             case RTM_NEWADDR:
+                *addr_event = ADDR_EVENT_NEW;
+                memset(addr_info, 0, sizeof(olibc_addr_info_t));
+                if (!olibc_addr_rt_netlink_parse_info(curr_data_ptr,
+                            addr_info, if_index)) {
+                    return OLIBC_RETVAL_FAILED;
+                }
+                break;
+            case RTM_DELADDR:
+                *addr_event = ADDR_EVENT_DEL;
                 memset(addr_info, 0, sizeof(olibc_addr_info_t));
                 if (!olibc_addr_rt_netlink_parse_info(curr_data_ptr,
                             addr_info, if_index)) {
@@ -226,11 +237,12 @@ olibc_addr_iterator_destroy (olibc_addr_iterator_hdl *iter_hdl)
 olibc_retval_t
 olibc_addr_iterator_get_next (olibc_addr_iterator_hdl iter_hdl, 
                               olibc_addr_info_t *addr_info,
-                              uint32_t *if_index)
+                              uint32_t *if_index,
+                              olibc_addr_event_type_t *addr_event)
 {
     olibc_retval_t retval;
 
-    if (!iter_hdl || !addr_info || !if_index) {
+    if (!iter_hdl || !addr_info || !if_index || !addr_event) {
         olibc_log_error("Invalid input");
         return OLIBC_RETVAL_INVALID_INPUT;
     }
@@ -252,7 +264,7 @@ olibc_addr_iterator_get_next (olibc_addr_iterator_hdl iter_hdl,
             iter_hdl->oper_flags &= ~OLIBC_ADDR_OPER_FLAG_IPV6_ITERATION;
             iter_hdl->oper_flags |= OLIBC_ADDR_OPER_FLAG_IPV4_ITERATION;
         }
-        retval = olibc_addr_recv(iter_hdl, addr_info, if_index);
+        retval = olibc_addr_recv(iter_hdl, addr_info, if_index, addr_event);
 
         if (retval != OLIBC_RETVAL_SUCCESS) {
             return retval;
@@ -277,7 +289,7 @@ olibc_addr_iterator_get_next (olibc_addr_iterator_hdl iter_hdl,
             iter_hdl->oper_flags |= OLIBC_ADDR_OPER_FLAG_IPV6_ITERATION;
         }
 
-        retval = olibc_addr_recv(iter_hdl, addr_info, if_index);
+        retval = olibc_addr_recv(iter_hdl, addr_info, if_index, addr_event);
         if (retval != OLIBC_RETVAL_SUCCESS) {
             return retval;
         }

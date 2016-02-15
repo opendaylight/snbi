@@ -102,6 +102,7 @@ cparser_result_t cparser_cmd_test_interface_ipv6_address(cparser_context_t *cont
 cparser_result_t cparser_cmd_test_interface_ip_address(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_interface_event_track(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_interface_event_destroy(cparser_context_t *context);
+cparser_result_t cparser_cmd_test_interface_addr_track(cparser_context_t *context);
 cparser_result_t cparser_cmd_test_interface_intfname_enable(cparser_context_t *context,
     char **intfname_ptr);
 cparser_result_t cparser_cmd_test_interface_intfname_disable(cparser_context_t *context,
