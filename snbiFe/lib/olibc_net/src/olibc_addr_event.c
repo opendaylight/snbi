@@ -17,15 +17,18 @@ olibc_addr_event_cbk (olibc_fd_event_hdl fd_event_hdl)
     olibc_addr_event_listener_t *addr_event_listener = NULL;
 
     if (!fd_event_hdl) {
+        olibc_log_error("\nNull FD addr event handle received");
         return FALSE;
     }
 
     retval = olibc_fd_event_get_type(fd_event_hdl, &ev_type);
     if (retval != OLIBC_RETVAL_SUCCESS) {
+        olibc_log_error("\nFailed to get fd event type in addr event");
         return FALSE;
     }
 
     if (!(ev_type & OLIBC_FD_READ)) {
+        olibc_log_error("\nInvalid fd event type %d in addr event", ev_type);
         return FALSE;
     }
 
@@ -57,6 +60,7 @@ olibc_addr_event_cbk (olibc_fd_event_hdl fd_event_hdl)
         } else {
             addr_iterator->oper_flags |= (OLIBC_ADDR_OPER_FLAG_IPV6_ITERATION);
         }
+        olibc_log_debug("\nNotify address event");
 
         addr_event_listener_cbk(&addr_event);
         olibc_free((void**) &addr_iterator);
@@ -78,6 +82,7 @@ olibc_addr_event_listener_create (
     if (!addr_event_listener_info || !addr_event_listener_hdl ||
         !addr_event_listener_info->addr_event_listener_cbk ||
         !addr_event_listener_info->flags) {
+        olibc_log_error("\nInvalid input while creating address listener");
         return OLIBC_RETVAL_INVALID_INPUT;
     }
 
@@ -98,11 +103,14 @@ olibc_addr_event_listener_create (
 
     if (!olibc_nl_sock_init(&addr_event_listener->addr_event_nl_sock_addr,
                 NETLINK_ROUTE)) {
+        olibc_free((void **) &addr_event_listener);
+        olibc_log_error("\nSock init failed while creating address listener");
         return (OLIBC_RETVAL_FAILED);
     }
 
     if (!olibc_nl_sock_bind(&addr_event_listener->addr_event_nl_sock_addr,
                              groups)) {
+        olibc_log_error("\nSock bind failed while creating address listener");
         retval = OLIBC_RETVAL_FAILED;
         goto cleanup;
     }
@@ -118,9 +126,11 @@ olibc_addr_event_listener_create (
     olibc_fd_event_listener_create(&addr_event_listener->
                 fd_event_listener_hdl,&fd_event_listener_info);
     if(retval != OLIBC_RETVAL_SUCCESS) {
-          goto cleanup;
+        olibc_log_error("\nFD event failed while creating address listener");
+        goto cleanup;
     }
     *addr_event_listener_hdl = addr_event_listener;
+    olibc_log_debug("\nAddress listener creation success");
     return OLIBC_RETVAL_SUCCESS;
 
 cleanup:

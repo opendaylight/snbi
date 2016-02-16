@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include "olibc_netlink.h"
 #include <olibc_common.h>
+#include <olibc_log.h>
 
 boolean
 olibc_nl_sock_init (olibc_nl_sock_t *nl_sock, uint32_t nl_pf)
@@ -34,6 +35,7 @@ olibc_nl_sock_bind (olibc_nl_sock_t *nl_sock, uint32_t mgroups)
     struct sockaddr_nl local_nl_addr; 
 
     if (!nl_sock) {
+        olibc_log_error("\nFailed to bind socket, NULL nl sock");
         return FALSE;
     }
     
@@ -45,10 +47,12 @@ olibc_nl_sock_bind (olibc_nl_sock_t *nl_sock, uint32_t mgroups)
 
     if (bind(nl_sock->nl_fd, (struct sockaddr *)&local_nl_addr,
             sizeof(local_nl_addr)) < 0) {
+        olibc_log_error("\nFailed to bind socket");
         close(nl_sock->nl_fd);
         return FALSE;
     }
 
+    olibc_log_debug("\nNL Sock bind successful");
     return TRUE;
 }
 

@@ -110,10 +110,12 @@ an_show_nbr_command_cb (an_avl_node_t *node, void *data_ptr)
     if (!nbr) {
         return (AN_AVL_WALK_FAIL);
     }
-    printf("\n%-35.35s|%-20.20s|%-15.15s",
+    printf("\n%-35.35s|%-20.20s(%d)|%-15.15s(%d)",
            nbr->udi.data, 
            nbr->device_id ? nbr->device_id : (uint8_t *)"         --",
-           nbr->domain_id ? nbr->domain_id : (uint8_t *)"       -- ");
+           nbr->device_id ? (int) strlen(nbr->device_id) : 0,
+           nbr->domain_id ? nbr->domain_id : (uint8_t *)"       -- ",
+           nbr->domain_id ? (int) strlen(nbr->domain_id) : 0);
 
     an_nbr_link_db_walk(nbr->an_nbr_link_list,
                       an_show_nbr_list_name_cb, NULL);

@@ -19,12 +19,15 @@
 #include <olibc_addr.h>
 #include <olibc_if_event.h>
 #include <an_proc_linux.h>
+#include <olibc_addr_event.h>
 
 #define AN_LOOP_VIS_BW 8000000
 extern an_avl_tree  an_if_info_tree;
 
 olibc_list_hdl an_if_linux_list_hdl = NULL;
 olibc_if_event_listener_hdl an_if_event_listener_hdl = NULL;
+olibc_addr_event_listener_hdl an_addr_event_listener_hdl = NULL;
+
 
 static
 olibc_list_cbk_return_t
@@ -97,6 +100,7 @@ an_if_linux_get_ipv6_ll (an_if_t ifhndl)
             return addr_info_ptr->addrv6;
         }
     }
+    olibc_list_iterator_destroy(&if_list_iter);
     return AN_V6ADDR_ZERO;
 }
 
@@ -581,6 +585,128 @@ an_if_linux_free_func (void *data)
     return OLIBC_LIST_CBK_RET_CONTINUE;
 }
 
+static olibc_list_cbk_return_t
+an_addr_node_compare_cbk (void *data1, void *data2)
+{
+    olibc_addr_info_t *addr1, *addr2; 
+    
+    if (!data1 || !data2) {
+        return (OLIBC_LIST_CBK_RET_STOP);
+    }
+
+    addr1 = data1;
+    addr2 = data2;
+
+    if (!memcmp(addr1, addr2, sizeof(olibc_addr_info_t))) {
+        return (OLIBC_LIST_CBK_RET_EQUAL);
+    }
+    return OLIBC_LIST_CBK_RET_CONTINUE;
+}
+
+static boolean
+an_addr_event_cbk (olibc_addr_event_hdl addr_event)
+{
+    uint32_t if_index;
+    olibc_retval_t retval;
+    olibc_addr_info_t addr_info, *addr_info_ptr;
+    an_if_linux_info_t *if_linux_info;
+    olibc_addr_event_type_t event_type;
+    olibc_addr_iterator_hdl addr_iterator_hdl;
+    bool new_interface = FALSE, exists = FALSE;
+    olibc_list_iterator_hdl if_list_iter = NULL; 
+
+    printf("\n Received addr event");
+
+    if (!addr_event) {
+        return FALSE;
+    }
+
+    retval = olibc_addr_event_get_iterator(addr_event,
+                                           &addr_iterator_hdl);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        printf("\nFailed to get addr iterator handle");
+        return FALSE;
+    }
+
+    memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    while (olibc_addr_iterator_get_next(addr_iterator_hdl, &addr_info,
+           &if_index, &event_type) == OLIBC_RETVAL_SUCCESS) {
+
+        printf("\n If index %d", if_index);
+            
+        if_linux_info = an_if_linux_get_info(if_index); 
+        if (event_type == ADDR_EVENT_NEW) {
+
+            if (!if_linux_info) {
+                retval = olibc_malloc((void **)&if_linux_info,
+                        sizeof(an_if_linux_info_t), "AN linux info");
+                if_linux_info->if_index = if_index;
+                retval = olibc_list_insert_node(an_if_linux_list_hdl, NULL,
+                                                if_linux_info); 
+                if (retval != OLIBC_RETVAL_SUCCESS) {
+                    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                    "\n%s AN interface insert failed address event", 
+                    an_nd_event);
+                    return FALSE;
+                }
+                new_interface = TRUE;
+            }
+            if (!if_linux_info->if_addr_list_hdl) {
+                retval = olibc_list_create(&if_linux_info->if_addr_list_hdl,
+                        "AN IF addr list");
+                if (retval != OLIBC_RETVAL_SUCCESS) {
+                    continue;
+                }
+            }
+
+            exists = FALSE;
+
+            retval =
+                olibc_list_iterator_create(if_linux_info->if_addr_list_hdl,
+                                           &if_list_iter);
+
+            while (olibc_list_iterator_get_next(if_list_iter,
+                        (void **)&addr_info_ptr) == OLIBC_RETVAL_SUCCESS) {
+
+                if (!memcmp(addr_info_ptr, &addr_info,
+                            sizeof(olibc_addr_info_t))) {
+                    exists = TRUE;    
+                    break;
+                }
+            }
+            olibc_list_iterator_destroy(&if_list_iter);
+            
+
+            if (!exists && (addr_info.addr_family == AF_INET6) &&
+                (addr_info.scope == OLIBC_ADDR_SCOPE_LINK)) {
+                retval = olibc_malloc((void **)&addr_info_ptr,
+                        sizeof(olibc_addr_info_t),
+                        "AN IF addr info");
+                if (retval != OLIBC_RETVAL_SUCCESS) {
+                    continue;
+                }
+                memcpy(addr_info_ptr, &addr_info, sizeof(olibc_addr_info_t));
+                retval =
+                    olibc_list_insert_node(if_linux_info->if_addr_list_hdl,
+                            NULL, addr_info_ptr);
+            }
+
+            if (new_interface) {
+                an_if_info_db_search(if_linux_info->if_index, TRUE);
+                an_if_enable_nd_on_intf(if_linux_info);
+            }
+        }
+        if (event_type == ADDR_EVENT_DEL && if_linux_info
+                && if_linux_info->if_addr_list_hdl) {
+            olibc_list_remove_node(if_linux_info->if_addr_list_hdl, NULL,
+                    &addr_info, an_addr_node_compare_cbk,
+                    (void **)&addr_info_ptr);
+        }
+        memset(&addr_info, 0, sizeof(olibc_addr_info_t));
+    }
+    return TRUE;
+}
 
 static boolean
 an_interface_event_cbk (olibc_if_event_hdl if_event)
@@ -705,6 +831,32 @@ an_if_event_linux_init (void)
 }
 
 
+void
+an_addr_event_linux_init (void)
+{
+    olibc_retval_t retval;
+    olibc_addr_event_listener_info_t addr_event_listener_info;
+
+    memset(&addr_event_listener_info, 0, 
+            sizeof(olibc_addr_event_listener_info_t));
+    printf("\n an_addr_event_linux_init");
+
+    addr_event_listener_info.addr_event_listener_cbk =
+    an_addr_event_cbk;
+    addr_event_listener_info.pthread_hdl = an_pthread_hdl;
+    addr_event_listener_info.args = "Address event listener args";
+    addr_event_listener_info.flags = OLIBC_FLAG_IPV6;
+
+
+    retval = olibc_addr_event_listener_create(&addr_event_listener_info,
+                                              &an_addr_event_listener_hdl);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                "\n%s AN addr event creation failed", an_nd_event);
+        return;
+    }
+}
 
 void an_if_db_linux_init (void)
 {
@@ -714,6 +866,7 @@ void an_if_db_linux_init (void)
     an_if_list_linux_init();
     an_if_list_addr_linux_init();
     an_if_event_linux_init();
+    an_addr_event_linux_init();
 }
 void
 an_if_services_init (void)
