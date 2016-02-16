@@ -838,15 +838,16 @@ an_nbr_update_params (an_msg_package *message,
         }
         if (message->device_id && an_strlen(message->device_id)) {
             nbr->device_id = (uint8_t *)an_malloc_guard(
-                           an_strlen(message->device_id), "AN MSG device id");
+                           an_strlen(message->device_id)+1, "AN MSG device id");
             if (!nbr->device_id) {
                 return (FALSE);
             }
-            an_memcpy_guard_s(nbr->device_id, an_strlen(message->device_id), 
-                            message->device_id, an_strlen(message->device_id));
+            an_memcpy_guard_s(nbr->device_id, an_strlen(message->device_id)+1,
+                            message->device_id,
+                           an_strlen(message->device_id)+1);
         }
     }
-    an_memcmp_s(message->domain_id, AN_STR_MAX_LEN, 
+    an_memcmp_s(message->domain_id, AN_STR_MAX_LEN,
                 nbr->domain_id, an_strlen(nbr->domain_id), &indicator2);
 
     if (message->domain_id && 
@@ -861,12 +862,13 @@ an_nbr_update_params (an_msg_package *message,
         }
         if (message->domain_id && an_strlen(message->domain_id)) {
             nbr->domain_id = (uint8_t *)an_malloc_guard(
-                             an_strlen(message->domain_id), "AN MSG domain id");
+                             an_strlen(message->domain_id)+1,
+                             "AN MSG domain id");
             if (!nbr->domain_id) {
                 return (FALSE);
             }
-            an_memcpy_guard_s(nbr->domain_id, an_strlen(message->domain_id), 
-                        message->domain_id, an_strlen(message->domain_id));
+            an_memcpy_guard_s(nbr->domain_id, an_strlen(message->domain_id)+1,
+                        message->domain_id, an_strlen(message->domain_id)+1);
         }
     }
 

@@ -36,7 +36,6 @@ create_debug_file (void)
 
     fd = fopen(ipsec_debug_file, "w+");
     if (fd == NULL) {
-        perror("Error");
         return;
     }
 
@@ -67,14 +66,12 @@ an_ipsec_profile_init (void)
     FILE *fd, *fd_ipsec, *fd_debug, *fd_secret = NULL;
 
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
-        perror("getcwd() error");
         return;
     }
     create_debug_file();
     fd = fopen(ipsec_file, "w+");
     
     if (fd == NULL) {
-        perror("Error");
         return;
     }
 
@@ -99,7 +96,6 @@ an_ipsec_profile_init (void)
     fd_ipsec = fopen("/etc/ipsec.conf", "a+");
     
     if (fd_ipsec == NULL) {
-        perror("Error");
         return;
     }
 
@@ -109,7 +105,6 @@ an_ipsec_profile_init (void)
     fd_debug = fopen("/etc/strongswan.conf", "a+");
     
     if (fd_debug == NULL) {
-        perror("Error");
         return;
     }
 
@@ -119,7 +114,6 @@ an_ipsec_profile_init (void)
     fd_secret = fopen("/etc/ipsec.secrets", "a+");
     
     if (fd_secret == NULL) {
-        perror("Error");
         return;
     }
 
@@ -156,7 +150,6 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
 
     fd = fopen(ipsec_file, "r+");
     if (fd == NULL) {
-        perror("Error");
         return (FALSE);
     }
 
@@ -186,7 +179,6 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
 
     fd = fopen(ipsec_file, "a+");
     if (fd == NULL) {
-        perror("Error");
         return (FALSE);
     }
 
