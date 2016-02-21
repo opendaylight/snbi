@@ -222,7 +222,7 @@ void print_system_if_db ()
     while (olibc_list_iterator_get_next(if_list_iter,
                                         (void **)&if_linux_info) ==
             OLIBC_RETVAL_SUCCESS) {
-	printf("\n %s(%d) |", if_linux_info->if_name, if_linux_info->if_index);
+	printf("\n %-15s(%d) |", if_linux_info->if_name, if_linux_info->if_index);
     }
     olibc_list_iterator_destroy(&if_list_iter);
     return;

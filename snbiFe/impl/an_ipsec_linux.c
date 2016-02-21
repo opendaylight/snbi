@@ -133,7 +133,7 @@ an_ipsec_profile_uninit (void)
  
     if (status == 0 ) {
        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
-                         "\n%s:%s file deleted successfully.\n",
+                         "\n%s:%s file deleted successfully.\n", an_bs_event,
                          ipsec_file);
     }
 }
