@@ -1195,7 +1195,8 @@ an_msg_mgr_deliver_incoming_message (an_msg_package *msg_package,
      */
     if (ifhndl) {
         an_if_info = an_if_info_db_search(ifhndl, FALSE);  
-        if (!an_if_is_cfg_autonomic_enabled(an_if_info)) {
+        if (!an_if_is_cfg_autonomic_enabled(an_if_info)
+            && !an_external_anra_is_configured()) {
            DEBUG_AN_LOG(log, AN_DEBUG_MODERATE, NULL, "\n%sAutonomic disabled "
                      "on the interface %s hence do not handle the Incoming " 
                      "Message %s", an_get_log_str(log), an_if_get_name(ifhndl), 

@@ -365,6 +365,7 @@ an_config_global_cleanup_cmd_handler (void)
 {
     char an_if_name[100];
     char str_snbi[4] ="snbi";
+    char *str_snbi_ra = "snbi-ra";
     olibc_if_event_type_t event_type;
     olibc_if_info_t if_info;
     olibc_if_iterator_filter_t filter;
@@ -380,7 +381,8 @@ an_config_global_cleanup_cmd_handler (void)
     memset(&if_info, 0, sizeof(if_info));
     while (olibc_if_iterator_get_next(if_iter_hdl, &if_info, &event_type) ==
             OLIBC_RETVAL_SUCCESS) {
-         if(!strncmp(if_info.if_name,str_snbi,4)){
+         if(!strncmp(if_info.if_name,str_snbi,4) && strncmp(if_info.if_name,
+                     str_snbi_ra, 7)) {
             snprintf(an_if_name, 100, "%s %s",
                     "sudo ip link del", if_info.if_name);
             system (an_if_name);
