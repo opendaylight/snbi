@@ -9,6 +9,17 @@
 #include "an_external_anra.h"
 #include <time.h>
 #include <pthread.h>
+#include "../al/an_misc.h"
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <ifaddrs.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <linux/if_link.h>
+#include "../al/an_ipsec.h"
+#include "../al/an_cert.h"
 
 extern olibc_pthread_hdl an_pthread_hdl;
 extern an_udi_t an_udi_platform_linux;
@@ -340,4 +351,44 @@ an_system_init_linux ()
         return FALSE;
     }
     return TRUE;
+}
+
+boolean
+an_config_global_quit_cmd_handler (void)
+{
+    INThandler(0);
+    return(TRUE);
+}
+
+boolean
+an_config_global_cleanup_cmd_handler (void)
+{
+    char an_if_name[100];
+    char str_snbi[4] ="snbi";
+    olibc_if_event_type_t event_type;
+    olibc_if_info_t if_info;
+    olibc_if_iterator_filter_t filter;
+    olibc_if_iterator_hdl if_iter_hdl;
+    olibc_retval_t retval;
+
+    retval = olibc_if_iterator_create(&filter, &if_iter_hdl);
+
+    if (retval != OLIBC_RETVAL_SUCCESS) {
+        return FALSE;
+    }
+
+    memset(&if_info, 0, sizeof(if_info));
+    while (olibc_if_iterator_get_next(if_iter_hdl, &if_info, &event_type) ==
+            OLIBC_RETVAL_SUCCESS) {
+         if(!strncmp(if_info.if_name,str_snbi,4)){
+            snprintf(an_if_name, 100, "%s %s",
+                    "sudo ip link del", if_info.if_name);
+            system (an_if_name);
+         }
+
+        memset(&if_info, 0, sizeof(if_info));
+    }
+    an_ipsec_profile_uninit();
+    an_cert_cleanup();
+    return(TRUE);
 }

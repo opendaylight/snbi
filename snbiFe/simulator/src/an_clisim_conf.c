@@ -80,7 +80,11 @@ cparser_cmd_test_quit (cparser_context_t *context)
 cparser_result_t
 cparser_cmd_quit (cparser_context_t *context)
 {
-    return cparser_quit(context->parser);
+    if (!an_config_global_quit_cmd_handler()) {
+        return CPARSER_NOT_OK;
+    }
+
+    return cparser_quit(CPARSER_OK);
 }
 
 static cparser_result_t

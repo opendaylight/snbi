@@ -29,6 +29,7 @@
 #define AN_SPI 265
 #define an_debug_acp 1
 #define MAX_PID_LEN  18
+#define WAIT_TIME_SECONDS       60
 
 pthread_mutex_t     quit_sig_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t      quit_sig_con = PTHREAD_COND_INITIALIZER;
@@ -255,12 +256,23 @@ an_config_tftp_reset_source_idb (void)
 void  INThandler(int sig)
 {
     int rValue;
+    struct timespec ts;
+    struct timeval    tp;
 
+    if (sig) {
+        printf("SNBI Process is exiting due to Ctrl-C hit\n");
+    }
+
+    gettimeofday(&tp, NULL);
+    ts.tv_sec  = tp.tv_sec;
+    ts.tv_nsec = tp.tv_usec * 1000;
+    ts.tv_sec += WAIT_TIME_SECONDS;
     printf("SNBI Process is exiting due to Ctrl-C hit\n");
     rValue = pthread_mutex_lock(&quit_sig_mutex);
     an_disable_cmd_handler();
-    pthread_cond_wait(&quit_sig_con, &quit_sig_mutex);
+    pthread_cond_timedwait(&quit_sig_con, &quit_sig_mutex,&ts);
     rValue = pthread_mutex_unlock(&quit_sig_mutex);
+    an_config_global_cleanup_cmd_handler();
     exit(0);
 }
 void an_register_for_sig_quit (void)
