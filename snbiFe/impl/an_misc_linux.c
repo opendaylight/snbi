@@ -267,7 +267,6 @@ void  INThandler(int sig)
     ts.tv_sec  = tp.tv_sec;
     ts.tv_nsec = tp.tv_usec * 1000;
     ts.tv_sec += WAIT_TIME_SECONDS;
-    printf("SNBI Process is exiting due to Ctrl-C hit\n");
     rValue = pthread_mutex_lock(&quit_sig_mutex);
     an_disable_cmd_handler();
     pthread_cond_timedwait(&quit_sig_con, &quit_sig_mutex,&ts);
