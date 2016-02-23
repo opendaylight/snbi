@@ -140,4 +140,5 @@ boolean an_get_device_base_mac_addr(an_mac_addr chassis_mac[AN_IEEEBYTES]);
 an_platform_types an_get_platform_type(void);
 boolean an_platform_is_media_type_supported(void);
 void an_register_for_sig_quit(void);
+void INThandler(int sig);
 #endif
