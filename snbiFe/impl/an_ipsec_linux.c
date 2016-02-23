@@ -29,10 +29,15 @@ an_ipsec_define_profile_name (void)
         return;
 }
 
-void 
-create_debug_file (void) 
+void
+create_debug_file (void)
 {
-    FILE* fd = NULL;
+    FILE* fd = NULL, *fd_debug = NULL;
+    char cwd[256];
+
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        return;
+    }
 
     fd = fopen(ipsec_debug_file, "w+");
     if (fd == NULL) {
@@ -45,7 +50,8 @@ create_debug_file (void)
     fprintf(fd, "%s", "            # add a timestamp prefix\n");
     fprintf(fd, "%s", "            time_format = %b %e %T\n");
     fprintf(fd, "%s", "            append = no\n");
-    fprintf(fd, "%s", "            default = 4\n");
+    fprintf(fd, "%s", "            default = -1\n");
+//    fprintf(fd, "%s", "            default = 4\n");
     fprintf(fd, "%s", "            ike = 4\n");
     fprintf(fd, "%s", "            flush_line = yes\n");
     fprintf(fd, "%s", "        }\n");
@@ -56,28 +62,46 @@ create_debug_file (void)
     fprintf(fd, "%s", "        }\n");
     fprintf(fd, "%s", "        }\n");
     fprintf(fd, "%s", "}\n");
+
     fclose(fd);
+
+    fd_debug = fopen("/etc/strongswan.conf", "a+");
+
+    if (fd_debug == NULL) {
+        return;
+    }
+
+    fprintf(fd_debug, "%s %s%s%s%s","include", cwd, "/",ipsec_debug_file,"\n");
+    fclose(fd_debug);
 }
-void 
+
+
+void
+an_ipsec_linux_start (void)
+{
+    create_debug_file();
+    system("ipsec start > /dev/null 2>&1 &");
+}
+
+void
 an_ipsec_profile_init (void)
 {
     char cwd[256];
 
-    FILE *fd, *fd_ipsec, *fd_debug, *fd_secret = NULL;
+    FILE *fd, *fd_ipsec, *fd_secret = NULL;
 
     if (getcwd(cwd, sizeof(cwd)) == NULL) {
         return;
     }
-    create_debug_file();
     fd = fopen(ipsec_file, "w+");
-    
+
     if (fd == NULL) {
         return;
     }
 
     fprintf(fd, "%s","ca strongswan\n");
     fprintf(fd, "%s%s%s%s%s","        cacert=",cwd,"/",CA_CERT_LOCATION,"\n");
-    fprintf(fd, "%s","        auto=add\n");
+    fprintf(fd, "%s","        auto=start\n");
     fprintf(fd, "%s","conn snbi_default\n");
     fprintf(fd, "%s","        ikelifetime=1440m\n");
     fprintf(fd, "%s","        keylife=60m\n");
@@ -94,7 +118,7 @@ an_ipsec_profile_init (void)
     fclose(fd);
 
     fd_ipsec = fopen("/etc/ipsec.conf", "a+");
-    
+
     if (fd_ipsec == NULL) {
         return;
     }
@@ -102,17 +126,8 @@ an_ipsec_profile_init (void)
     fprintf(fd_ipsec, "%s %s%s%s%s","include", cwd, "/", ipsec_file, "\n");
     fclose(fd_ipsec);
 
-    fd_debug = fopen("/etc/strongswan.conf", "a+");
-    
-    if (fd_debug == NULL) {
-        return;
-    }
-
-    fprintf(fd_debug, "%s %s%s%s%s","include", cwd, "/",ipsec_debug_file,"\n");
-    fclose(fd_debug);
-
     fd_secret = fopen("/etc/ipsec.secrets", "a+");
-    
+
     if (fd_secret == NULL) {
         return;
     }
@@ -120,17 +135,18 @@ an_ipsec_profile_init (void)
     fprintf(fd_secret, "%s %s%s%s%s"," : RSA", cwd, "/",PRIVATE_KEY_LOCATION,"\n");
     fclose(fd_secret);
 
-    system ("ipsec restart > /dev/null 2>&1");
+    system("ipsec rereadall > /dev/null 2>&1 &");
+    system("ipsec update > /dev/null 2>&1 &");
     return;
 }
 
-void 
+void
 an_ipsec_profile_uninit (void)
 {
     int status;
- 
+
     status = remove(ipsec_file);
- 
+
     if (status == 0 ) {
        DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
                          "\n%s:%s file deleted successfully.\n", an_bs_event,
@@ -138,14 +154,14 @@ an_ipsec_profile_uninit (void)
     }
 }
 
-boolean 
-an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip, 
+boolean
+an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
                             an_addr_t dst_ip, an_if_t local_ifhndl)
 {
     FILE* fd = NULL;
     ssize_t nbytes;
     size_t bufsize = 0;
-    char *buffer, cmd1[100];
+    char *buffer = NULL;
     int position_in_file = 0;
 
     fd = fopen(ipsec_file, "r+");
@@ -158,24 +174,24 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
            fseek(fd,position_in_file,SEEK_SET);
            fprintf(fd, "%s%s%s","conn ", an_if_get_name(tunn_ifhndl),"\n");
            fprintf(fd, "%s%s%s%s%s","        left=", an_addr_get_string(&src_ip)                                ,"%", an_if_get_name(local_ifhndl),"\n");
-           fprintf(fd, "%s%s%s","        leftid=\"CN=*, OU=", 
+           fprintf(fd, "%s%s%s","        leftid=\"CN=*, OU=",
                       an_get_domain_id(),", serialNumber=*\"\n");
            fprintf(fd, "%s%s%s%s%s","        right=",an_addr_get_string(&dst_ip)                        ,"%", an_if_get_name(local_ifhndl),"\n");
-           fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=", 
+           fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=",
                       an_get_domain_id(),", serialNumber=*\"\n");
            fprintf(fd, "%s","        also=snbi_default\n");
-           fprintf(fd, "%s","        auto=add\n");
+           fprintf(fd, "%s","        auto=start\n");
+
            fclose(fd);
-           system ("ipsec restart > /dev/null 2>&1");
-           an_sprintf(cmd1, "%s %s %s","ipsec up ", an_if_get_name(tunn_ifhndl),
-                   "> /dev/null 2>&1");
-           system (cmd1);
+           system("ipsec update > /dev/null 2>&1 &");
+           free(buffer);
            return (TRUE);
         }
         position_in_file = ftell(fd);
     }
     position_in_file = ftell(fd);
     fclose(fd);
+    free(buffer);
 
     fd = fopen(ipsec_file, "a+");
     if (fd == NULL) {
@@ -183,35 +199,58 @@ an_ipsec_apply_on_tunnel (an_if_t tunn_ifhndl, an_addr_t src_ip,
     }
 
     fprintf(fd, "%s%s%s","conn ", an_if_get_name(tunn_ifhndl),"\n");
-    fprintf(fd, "%s%s%s%s%s","        left=", an_addr_get_string(&src_ip), 
+    fprintf(fd, "%s%s%s%s%s","        left=", an_addr_get_string(&src_ip),
                            "%", an_if_get_name(local_ifhndl),"\n");
     fprintf(fd, "%s%s%s","        leftid=\"CN=*,OU=", an_get_domain_id(),
                         ", serialNumber=*\"\n");
-    fprintf(fd, "%s%s%s%s%s","        right=", an_addr_get_string(&dst_ip), "%", 
+    fprintf(fd, "%s%s%s%s%s","        right=", an_addr_get_string(&dst_ip), "%",
                             an_if_get_name(local_ifhndl),"\n");
-    fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=", 
+    fprintf(fd, "%s%s%s","        rightid=\"N=*, CN=*, OU=",
                       an_get_domain_id(),", serialNumber=*\"\n");
     fprintf(fd, "%s","        also=snbi_default\n");
-    fprintf(fd, "%s","        auto=add\n");
+    fprintf(fd, "%s","        auto=start\n");
     fflush(fd);
     fclose(fd);
-    system ("ipsec update > /dev/null 2>&1");
-    an_sprintf(cmd1, "%s %s %s","ipsec up ", an_if_get_name(tunn_ifhndl), 
-            "> /dev/null 2>&1");
-    system (cmd1);
+    system("ipsec update > /dev/null 2>&1 &");
     return (TRUE);
 }
 
 void
 an_ipsec_remove_on_tunnel (an_if_t tunn_ifhndl)
 {
-    char cmd1[100];
+    FILE* fd = NULL;
+    ssize_t nbytes;
+    size_t bufsize = 0;
+    char *buffer = NULL, cmd1[100];
+    int position_in_file = 0;
+    boolean intfound = FALSE;
 
     if (!tunn_ifhndl) {
         return;
     }
 
-    an_sprintf(cmd1, "%s %s %s","ipsec down ", an_if_get_name(tunn_ifhndl), 
-            "> /dev/null 2>&1");
-    system (cmd1);
+    an_sprintf(cmd1, "%s %s %s","ipsec down ",
+            an_if_get_name(tunn_ifhndl), "> /dev/null 2>&1 &");
+    system(cmd1);
+
+    fd = fopen(ipsec_file, "r+");
+    if (fd == NULL) {
+        return;
+    }
+
+    while ((nbytes = getline(&buffer, &bufsize, fd))!= -1) {
+        if (strstr(buffer, an_if_get_name(tunn_ifhndl)) != NULL) {
+            intfound = TRUE;
+        }
+
+        if (intfound && strstr(buffer,"auto")) {
+           fseek(fd, position_in_file,SEEK_SET);
+           fprintf(fd, "%s","        auto=ignore\n");
+           break;
+        }
+        position_in_file = ftell(fd);
+    }
+    fclose(fd);
+    free(buffer);
+    system("ipsec update > /dev/null 2>&1 &");
 }
