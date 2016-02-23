@@ -87,6 +87,13 @@ cparser_cmd_quit (cparser_context_t *context)
     return cparser_quit(CPARSER_OK);
 }
 
+cparser_result_t 
+cparser_cmd_exit (cparser_context_t *context)
+{
+    exit(0);
+}
+
+
 static cparser_result_t
 cparser_cmd_enter_privileged_mode (cparser_t *parser, char *buf, int buf_size)
 {
