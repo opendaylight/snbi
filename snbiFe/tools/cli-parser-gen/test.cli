@@ -12,6 +12,6 @@
 
 #include "test-snbi.cli"
 
-quit("Exit test submode")
+quit("Quit test submode")
 
 #endsubmode

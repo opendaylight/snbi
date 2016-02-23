@@ -16,8 +16,10 @@
 #include <cparser.h>
 #include <cparser_tree.h>
 #include "../impl/an_conf_linux.h"
+#include <stdlib.h>
 
 extern int an_debug_map[];
+extern void an_ipsec_linux_start(void);
 
 int
 main (int argc, char *argv[])
@@ -93,6 +95,7 @@ main (int argc, char *argv[])
     }
 
     if (interactive) {
+        an_ipsec_linux_start();
         if (config_file) {
             (void)cparser_load_cmd(&parser, config_file);
         }

@@ -19,7 +19,7 @@
 #include <an_event_mgr.h>
 #include <an_conf_linux.h>
 
-cparser_result_t 
+cparser_result_t
 cparser_cmd_clear_screen (cparser_context_t *context)
 {
     system("clear");
@@ -51,7 +51,7 @@ cparser_cmd_configure (cparser_context_t *context)
 {
     char prompt[CPARSER_MAX_PROMPT];
     snprintf(prompt, CPARSER_MAX_PROMPT, "snbi.d (config) > ");
-    return (cparser_submode_enter(context->parser, NULL, prompt)); 
+    return (cparser_submode_enter(context->parser, NULL, prompt));
 }
 
 cparser_result_t
@@ -87,6 +87,13 @@ cparser_cmd_quit (cparser_context_t *context)
     return cparser_quit(CPARSER_OK);
 }
 
+cparser_result_t
+cparser_cmd_exit (cparser_context_t *context)
+{
+    exit(0);
+}
+
+
 static cparser_result_t
 cparser_cmd_enter_privileged_mode (cparser_t *parser, char *buf, int buf_size)
 {
@@ -112,9 +119,9 @@ cparser_cmd_enable_privileged_mode (cparser_context_t *context)
     }
 
     /* Request privileged mode password */
-    rc = cparser_user_input(context->parser, 
+    rc = cparser_user_input(context->parser,
                             "Enter password (Enter: 'snbi'): ", 0,
-                            passwd, sizeof(passwd), 
+                            passwd, sizeof(passwd),
                             cparser_cmd_enter_privileged_mode);
     return CPARSER_OK;
 }

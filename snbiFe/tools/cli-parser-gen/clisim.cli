@@ -2,7 +2,8 @@ clear("Clear functions") screen("screen")
 
 #include "show.cli"
 
-quit("Quit the simulator")
+quit("Quit gracefully")
+exit("Exit focefully")
 
 configure("SNBI Configuration mode")
 

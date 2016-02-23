@@ -1,6 +1,7 @@
 #submode "configure"
 
-quit("Exit from SNBI Config mode")
+quit("Quit from SNBI Config mode")
+
 
 enable("Enable SNBI protocol")
 

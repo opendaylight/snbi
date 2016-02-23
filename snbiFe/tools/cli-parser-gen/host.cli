@@ -2,6 +2,6 @@
 
 <STRING:cmd>("Host command")
 
-quit("Exit host submode")
+quit("Quit host submode")
 
 #endsubmode

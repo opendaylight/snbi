@@ -49,6 +49,7 @@ an_udi_get_from_platform (an_udi_t *udi)
 {
     uint8_t *udi_buf = NULL;
     uint32_t rand_sn = 0;
+    an_udi_t tmp_udi_cpy;
 
     udi->data = NULL;
     udi->len = 0;
@@ -87,8 +88,17 @@ an_udi_get_from_platform (an_udi_t *udi)
             udi_buf - an_udi_platform_linux.data + AN_UDI_STR_TERMINATOR_LEN;
     }
 
-    udi->data = an_udi_platform_linux.data;
-    udi->len = an_udi_platform_linux.len;
+    memset(&tmp_udi_cpy, 0, sizeof(an_udi_t));
+    tmp_udi_cpy.data =
+        an_malloc(an_udi_platform_linux.len, "Temp UDI copy string");
+
+    memset(tmp_udi_cpy.data, 0, an_udi_platform_linux.len);
+    strncpy(tmp_udi_cpy.data, an_udi_platform_linux.data,
+            an_udi_platform_linux.len);
+    tmp_udi_cpy.len = an_udi_platform_linux.len;
+
+    udi->data = tmp_udi_cpy.data;
+    udi->len = tmp_udi_cpy.len;
     return TRUE;
 }
 

@@ -80,6 +80,13 @@ cparser_glue_quit (cparser_t *parser)
 }
 
 cparser_result_t
+cparser_glue_exit (cparser_t *parser)
+{
+    cparser_cmd_exit(&parser->context);
+    return CPARSER_OK;
+}
+
+cparser_result_t
 cparser_glue_configure (cparser_t *parser)
 {
     cparser_cmd_configure(&parser->context);
@@ -764,7 +771,7 @@ cparser_node_t cparser_node_host_root_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    "Exit host submode",
+    "Quit host submode",
     NULL,
     &cparser_node_host_root_quit_eol
 };
@@ -827,7 +834,7 @@ cparser_node_t cparser_node_test_root_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    "Exit test submode",
+    "Quit test submode",
     NULL,
     &cparser_node_test_root_quit_eol
 };
@@ -2379,7 +2386,7 @@ cparser_node_t cparser_node_configure_root_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    "Exit from SNBI Config mode",
+    "Quit from SNBI Config mode",
     &cparser_node_configure_root_enable,
     &cparser_node_configure_root_quit_eol
 };
@@ -2411,6 +2418,24 @@ cparser_node_t cparser_node_configure = {
     &cparser_node_configure_eol
 };
 
+cparser_node_t cparser_node_exit_eol = {
+    CPARSER_NODE_END,
+    0,
+    cparser_glue_exit,
+    NULL,
+    NULL,
+    NULL
+};
+
+cparser_node_t cparser_node_exit = {
+    CPARSER_NODE_KEYWORD,
+    0,
+    "exit",
+    "Exit focefully",
+    &cparser_node_configure,
+    &cparser_node_exit_eol
+};
+
 cparser_node_t cparser_node_quit_eol = {
     CPARSER_NODE_END,
     0,
@@ -2424,8 +2449,8 @@ cparser_node_t cparser_node_quit = {
     CPARSER_NODE_KEYWORD,
     0,
     "quit",
-    "Quit the simulator",
-    &cparser_node_configure,
+    "Quit gracefully",
+    &cparser_node_exit,
     &cparser_node_quit_eol
 };
 
