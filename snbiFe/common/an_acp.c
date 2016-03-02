@@ -198,7 +198,7 @@ an_acp_client_db_walk (an_avl_walk_f walk_func, void *args)
 }
 
 an_avl_walk_e
-an_acp_client_db_init_cb (an_avl_node_t *node, void *args)
+an_acp_client_db_uninit_cb (an_avl_node_t *node, void *args)
 {
     an_acp_client_t *client = (an_acp_client_t *)node;
 
@@ -206,7 +206,6 @@ an_acp_client_db_init_cb (an_avl_node_t *node, void *args)
         return (AN_AVL_WALK_FAIL);
     }
 
-    an_acp_client_db_remove(client);
     an_acp_client_free(client);
 
     return (AN_AVL_WALK_SUCCESS);
@@ -217,7 +216,7 @@ an_acp_client_db_init (void)
 {
     DEBUG_AN_LOG(AN_LOG_BS_EVENT, AN_DEBUG_MODERATE, NULL,
                  "\n%sInitializing ACP Client DB", an_bs_event);
-    an_acp_client_db_walk(an_acp_client_db_init_cb, NULL);
+    an_avl_init(&an_acp_client_tree, an_acp_client_compare);
 }
 
 /***************** ACP Client Interaction *******************/
@@ -1554,7 +1553,7 @@ an_acp_uninit (void)
     /*NMS */
     an_acp_uninit_connection();
    
-    an_avl_uninit(&an_acp_client_tree);
+    an_avl_uninit(&an_acp_client_tree, an_acp_client_db_uninit_cb);
     an_acp_cnp_uninit();
     an_acp_initialized = FALSE;
     

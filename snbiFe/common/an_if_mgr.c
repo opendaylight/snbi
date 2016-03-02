@@ -199,7 +199,7 @@ an_if_info_db_walk (an_avl_walk_f walk_func, void *args)
 }
 
 an_avl_walk_e
-an_if_info_db_init_cb (an_avl_node_t *node, void *args)
+an_if_info_db_cleanup_cb (an_avl_node_t *node, void *args)
 {
     an_if_info_t *an_if_info = (an_if_info_t *)node;
 
@@ -207,7 +207,6 @@ an_if_info_db_init_cb (an_avl_node_t *node, void *args)
         return (AN_AVL_WALK_FAIL);
     }
 
-    an_if_info_db_remove(an_if_info);
     an_if_info_free(an_if_info);
 
     return (AN_AVL_WALK_SUCCESS);
@@ -218,7 +217,7 @@ an_if_info_db_init (void)
 {
     DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
                  "\n%sInit IF Info DB", an_nd_db);
-    an_if_info_db_walk(an_if_info_db_init_cb, NULL);
+    an_avl_init(&an_if_info_tree, an_if_info_compare);
 }
 
 boolean
@@ -358,9 +357,8 @@ an_if_uninit (void)
     }
 
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL, 
-                 "\n%sStop timer to bring up all interfaces", an_nd_event);
-
-    an_avl_uninit(&an_if_info_tree);
+                 "\n%sIF AVL uninit", an_nd_event);
+    an_avl_uninit(&an_if_info_tree, an_if_info_db_cleanup_cb);
     an_if_initialized = FALSE;
 }
 

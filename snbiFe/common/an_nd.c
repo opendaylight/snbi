@@ -41,6 +41,7 @@ an_nd_oper_e an_nd_global_oper = AN_ND_OPER_DOWN;
 an_nd_config_state_e an_nd_global_state = AN_ND_CFG_DEFAULT;
 
 extern an_avl_tree an_nbr_tree;
+extern an_avl_walk_e an_nbr_db_uninit_cb(an_avl_node_t *node, void *args);
 
 an_msg_package *
 an_nd_get_keep_alive_msg_package (an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data);
@@ -492,7 +493,7 @@ an_nd_uninit ()
     }
 
     an_nd_stop_on_interfaces();
-    an_avl_uninit(&an_nbr_tree);
+    an_avl_uninit(&an_nbr_tree, an_nbr_db_uninit_cb);
 
     an_sudi_get_keypair_label(&sudi_keypair_label);
     if (!sudi_keypair_label) {

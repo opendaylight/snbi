@@ -81,6 +81,6 @@ an_avl_init (an_avl_tree *tree, an_avl_compare_f compare_func) {
 }
 
 an_cerrno 
-an_avl_uninit (an_avl_tree *tree) {
-    return olibc_avl_tree_uninit(tree); 
+an_avl_uninit (an_avl_tree *tree, an_avl_walk_f walk) {
+    return olibc_avl_tree_uninit(tree, (olibc_avl_walk_cb_f)walk);
 }

@@ -791,7 +791,7 @@ an_mem_elem_db_walk (an_avl_walk_f walk_func, void *args)
 }
 
 an_avl_walk_e
-an_mem_elem_db_init_cb (an_avl_node_t *node, void *args)
+an_mem_elem_db_uninit_cb (an_avl_node_t *node, void *args)
 {
     an_mem_elem_t *mem_elem = (an_mem_elem_t *)node;
 
@@ -808,7 +808,7 @@ void
 an_mem_elem_db_init (void)
 {
     an_log(AN_LOG_MEM, "\nInitializeing MEM ELEM DB");
-    an_mem_elem_db_walk(an_mem_elem_db_init_cb, NULL);
+    an_avl_init(&an_mem_elem_tree, an_mem_elem_compare);
 }
 
 an_avl_walk_e

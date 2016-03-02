@@ -159,14 +159,19 @@ an_memcpy_guard_s (void *target, uint32_t dest_len,
 an_errno 
 an_memcpy_s(void *dest, an_rsize dmax, const void *src, an_rsize smax)
 {
-    memcpy(dest, src, dmax);
-    return EOK;
+    if (dest && src) {
+        memcpy(dest, src, dmax);
+        return EOK;
+    }
+    return EFAIL;
 }
 
 an_errno 
 an_memset_s(void *dest, uint8_t value, an_rsize len) 
 {
-
+    if (!dest) {
+        return EFAIL;
+    }
     memset(dest, value, len);
     return EOK;
 }
@@ -176,6 +181,15 @@ an_memcmp_s(const void *dest, an_rsize dmax, const void *src,
                 an_rsize smax, int *diff)
 {
     int len;
+
+    if (!dest && src) {
+        *diff = 1;
+        return 0;
+    }
+    if (dest && !src) {
+        *diff = -1;
+        return 0;
+    }
 
     *diff = -1;
     if (dest == src) {

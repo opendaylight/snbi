@@ -79,7 +79,7 @@ an_if_linux_get_ipv6_ll (an_if_t ifhndl)
 
     an_linux_if_info = an_if_linux_get_info(ifhndl);
 
-    if (!an_linux_if_info) {
+    if (!an_linux_if_info || !an_linux_if_info->if_addr_list_hdl) {
         return AN_V6ADDR_ZERO;
     }
 
@@ -739,14 +739,14 @@ an_if_services_uninit (void)
         retval = olibc_list_destroy(&an_if_linux_list_hdl,
                                     an_if_linux_free_func);
     }
+    if (an_if_event_listener_hdl) {
+        retval = olibc_if_event_listener_destroy(&an_if_event_listener_hdl);
+    }
     return;
 }
 
 boolean
 an_if_is_acp_interface (an_if_t an_ifhndl)
 {
-printf("\n[SINO_DBG] %s():%d - START ....",__FUNCTION__,__LINE__);
     return (FALSE);
 }
-
-

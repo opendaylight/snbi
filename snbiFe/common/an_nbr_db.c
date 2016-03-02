@@ -20,6 +20,7 @@
 #include "an_acp.h"
 
 an_avl_tree an_nbr_tree;
+extern an_avl_walk_e an_nbr_db_uninit_cb(an_avl_node_t *node, void *args);
 an_nbr_t* an_nbr_database = NULL;
 static an_mem_chunkpool_t *an_nbr_pool = NULL;
 static const uint16_t AN_NBR_POOL_SIZE = 64;
@@ -267,7 +268,7 @@ an_nbr_db_walk (an_avl_walk_f walk_func, void *args)
 }
 
 an_avl_walk_e
-an_nbr_db_init_cb (an_avl_node_t *node, void *args)
+an_nbr_db_uninit_cb (an_avl_node_t *node, void *args)
 {
     an_nbr_t *nbr = (an_nbr_t *)node;
 
@@ -285,7 +286,7 @@ an_nbr_db_init (void)
 {
     DEBUG_AN_LOG(AN_LOG_ND_DB, AN_DEBUG_MODERATE, NULL, 
                  "\n%sInitializing the Nbr DB", an_nd_db);
-    an_nbr_db_walk(an_nbr_db_init_cb, NULL);
+    an_avl_init(&an_nbr_tree, NULL);
 }
 
 void 

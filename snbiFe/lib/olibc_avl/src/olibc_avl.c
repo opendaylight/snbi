@@ -335,12 +335,45 @@ int olibc_avl_remove (olibc_avl_tree *tree, void *del_node)
     return(0);
 }
 
-int olibc_avl_tree_uninit (olibc_avl_tree *tree) {
-    if (!tree || tree->root) {
+int do_uninit (olibc_avl *node, olibc_avl_walk_cb_f walk_cb, void *args)
+{
+    if (node == NULL) {
+        return 0;
+    }
+
+    if (node->right) {
+        if (!do_uninit(node->right, walk_cb, args)) {
+            return 0;
+        }
+        node->right = NULL;
+    }
+
+    if (node->left) {
+        if (!do_uninit(node->left, walk_cb, args)) {
+            return 0;
+        }
+        node->left = NULL;
+    }
+
+    if (!walk_cb(node, args)) {
+        return 0;
+    }
+    node->height = 0;
+
+    return 1;
+}
+
+int olibc_avl_tree_uninit (olibc_avl_tree *tree, olibc_avl_walk_cb_f walk_fn) {
+    if (!tree || !tree->root) {
         //The tree is not empty.
         return (-1);
     }
 
+    if (walk_fn) {
+        do_uninit(tree->root, walk_fn, NULL);
+    }
+
+    tree->root = NULL;
     tree->compare_fun = NULL;
     return 0;
 }

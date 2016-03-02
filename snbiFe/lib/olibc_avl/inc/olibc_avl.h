@@ -44,7 +44,7 @@ void olibc_avl_print_tree(olibc_avl_tree *);
 
 int olibc_avl_remove(olibc_avl_tree *tree, void *del_node);
 
-int olibc_avl_tree_uninit(olibc_avl_tree *tree);
+int olibc_avl_tree_uninit(olibc_avl_tree *tree, olibc_avl_walk_cb_f walk_fn);
 
 /* function 'olibc_avl_tree_walk_all_nodes'
  * returning 0 for failure and 1 for success, unlike all other functions

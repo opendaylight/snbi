@@ -34,6 +34,6 @@ boolean an_avl_walk_all_nodes(an_avl_top_p *top_node, an_avl_walk_f walk_func,
                       an_avl_compare_f compare_func, void *args, 
                       an_avl_tree *tree);
 an_cerrno an_avl_init(an_avl_tree *tree, an_avl_compare_f compare_func);
-an_cerrno an_avl_uninit(an_avl_tree *tree);
+an_cerrno an_avl_uninit(an_avl_tree *tree, an_avl_walk_f walk_func);
 
 #endif

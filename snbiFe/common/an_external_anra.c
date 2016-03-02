@@ -9,7 +9,7 @@
 #include <an_event_mgr_db.h>
 #include <an_addr.h>
 
-#define AN_EXTERNAL_ANRA_BS_THYSELF_RETRY_INTERVAL 60*1000
+#define AN_EXTERNAL_ANRA_BS_THYSELF_RETRY_INTERVAL 30*1000
 
 an_v6addr_t registrar_ip_addr = {{{0}}};
 an_timer an_external_anra_bs_thyself_retry_timer = {0};
@@ -90,18 +90,22 @@ an_external_anra_register_for_events ()
             AN_EVENT_TIMER_EXTERNAL_ANR_BS_RETRY_EXPIRED,
             an_external_anra_bs_thyself_timer_event_handler);
 }
-void
-an_system_extern_ra_init (void)
-{
-    an_external_anra_configured = TRUE;
-    return;
-}
 
 an_v6addr_t
 an_external_anra_get_ip ()
 {
     return registrar_ip_addr;
 }
+
+void
+an_external_ra_init (void)
+{
+    if (an_external_anra_configured) {
+        an_timer_stop(&an_external_anra_bs_thyself_retry_timer);
+        an_trigger_external_ra_connect_msg();
+    }
+}
+
 void an_external_anra_set_ip (an_v6addr_t reg_ip)
 {   
     if (an_external_anra_configured) {

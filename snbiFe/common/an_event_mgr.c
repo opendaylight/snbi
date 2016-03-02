@@ -50,6 +50,7 @@ extern void an_detach_from_environment(void);
 extern void an_attach_to_environment(void);
 extern void an_parser_init(void);
 extern an_avl_tree an_mem_elem_tree;
+extern an_avl_walk_e an_mem_elem_db_uninit_cb(an_avl_node_t *node, void *args);
 
 extern an_timer an_generictimer;
 extern an_timer an_revoke_check_timer;
@@ -148,7 +149,7 @@ void
 an_event_autonomics_uninit (void)
 {
     DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
-                 "\n%sAutonomic uninit", an_nd_event);
+                   "\n%sAutonomic uninit", an_nd_event);
     //Disable AN modules
     an_sudi_uninit();
     //topo_disc_uninit(); 
@@ -182,7 +183,7 @@ an_event_autonomics_uninit (void)
     an_acp_client_db_init();          
     
     an_platform_specific_uninit();
-    an_avl_uninit(&an_mem_elem_tree);
+    an_avl_uninit(&an_mem_elem_tree, an_mem_elem_db_uninit_cb);
 
     /*Stop all timers on device*/
     an_timer_stop(&an_anra_bs_thyself_retry_timer);
@@ -248,6 +249,7 @@ an_event_autonomics_init (void)
     }
     an_intent_init();
     an_cd_start_punt(an_multicast,AN_CD_IEEE_ETHERTYPE,0);
+    an_external_ra_init();
 }
 
 void
