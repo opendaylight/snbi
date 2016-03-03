@@ -395,6 +395,7 @@ an_nd_stop_on_interface (an_if_t ifhndl)
 boolean
 an_nd_stop_on_interface_cb (an_if_t ifhndl, void *data)
 {
+    an_event_interface_deactivated(ifhndl);
     an_nd_stop_on_interface(ifhndl);
     return (TRUE);
 }
@@ -1467,6 +1468,92 @@ an_nd_check_if_nbr_on_valid_link (an_if_t my_ifhndl,  an_addr_t remote_ipaddr)
     return (TRUE);
 }
 
+void
+an_event_nbr_link_lost (an_nbr_t *nbr, an_nbr_link_spec_t *nbr_link_data)
+{
+
+    if (!nbr_link_data || !nbr)
+    {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_SEVERE, NULL,
+                     "\n%sNull Input Nbr Link data", an_nd_event);
+        return;
+    }
+
+    DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                 "\n%sNbr[%s] Link [%s] Lost", an_nd_event, nbr->udi.data,
+                 an_if_get_name(nbr_link_data->local_ifhndl));
+
+    if (an_acp_is_up_on_nbr_link(nbr_link_data)) {
+        DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                     "\n%sRemoving AN Control Plane on the Nbr[%s] link [%s]",
+                     an_nd_event, nbr->udi.data,
+                     an_if_get_name(nbr_link_data->local_ifhndl));
+        an_acp_remove_per_nbr_link(nbr, nbr_link_data);
+    }
+
+    //Remove the link and stop the timers
+    an_nbr_remove_nbr_link(nbr, nbr_link_data);
+}
+
+void
+an_event_remove_and_free_nbr (an_nbr_t *nbr)
+{
+     if (!nbr) {
+         return;
+     }
+     if (an_nbr_link_db_is_empty(nbr))
+     {
+         //If all the interfaces to this nbr are down- expire the nbr entry
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_INFO, NULL,
+                      "\n%sNbr [%s] Link DB is empty, triggering "
+                      "nbr delete", an_nd_event, nbr->udi.data);
+         an_nbr_remove_and_free_nbr(nbr);
+     }
+}
+
+static an_avl_walk_e
+an_nd_remove_nbrs_on_if_cb (an_avl_node_t *node, void *args)
+{
+    an_nbr_t *nbr = (an_nbr_t *)node;
+    an_if_t *tun_src_ifhndl = (an_if_t *)args;
+    an_nbr_link_spec_t *nbr_link_data = NULL;
+    an_list_element_t *elem = NULL;
+
+    if (!nbr || !tun_src_ifhndl) {
+        return (AN_AVL_WALK_FAIL);
+    }
+
+    AN_FOR_ALL_DATA_IN_LIST(nbr->an_nbr_link_list, elem, nbr_link_data) {
+        an_process_may_suspend();
+        if (nbr_link_data != NULL &&
+                (nbr_link_data->local_ifhndl == *tun_src_ifhndl)) {
+            break;
+        }
+    }
+    if (!nbr_link_data) {
+         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_MODERATE, NULL,
+                      "\n%sNbr Link info not found for interface %s",
+                      an_nd_event, an_if_get_name(*tun_src_ifhndl));
+        return (AN_AVL_WALK_SUCCESS);
+    }
+    an_event_nbr_link_lost(nbr, nbr_link_data);
+    an_event_remove_and_free_nbr(nbr);
+    return (AN_AVL_WALK_SUCCESS);
+}
+
+void
+an_nd_remove_nbr_link (an_if_t an_ifhndl)
+{
+    an_if_info_t *an_if_info = NULL;
+
+    an_if_info = an_if_info_db_search(an_ifhndl, FALSE);
+    if (!an_if_info) {
+        return;
+    }
+
+    an_nbr_db_walk(an_nd_remove_nbrs_on_if_cb, &an_ifhndl);
+}
+
 /*-------------------------AN ND event handlers -------------------------*/
 void
 an_nd_interface_down_event_handler (void *if_info_ptr)
@@ -1556,6 +1643,7 @@ an_nd_interface_deactivate_event_handler (void *if_info_ptr)
     }
     ifhndl_info = (an_if_t *)if_info_ptr;
     ifhndl = *ifhndl_info;
+    an_nd_remove_nbr_link(ifhndl);
     an_nd_stop_on_interface(ifhndl);
 }
 
@@ -1592,19 +1680,6 @@ void an_nd_nbr_add_event_handler (void *nbr_info_ptr)
 }
 
 void
-an_nd_remove_and_free_nbr (an_nbr_t *nbr)
-{
-     if (an_nbr_link_db_is_empty(nbr))
-     {
-         //If all the interfaces to this nbr are down- expire the nbr entry
-         DEBUG_AN_LOG(AN_LOG_ND_EVENT, AN_DEBUG_INFO, NULL,
-                      "\n%sNbr [%s] Link DB is empty, triggering "
-                      "nbr delete", an_nd_event, nbr->udi.data);
-         an_nbr_remove_and_free_nbr(nbr);
-     }
-}
-
-void
 an_nd_nbr_link_cleanup_event_handler (void *link_info_ptr)
 {
     an_nbr_t *nbr = NULL;
@@ -1636,9 +1711,8 @@ an_nd_nbr_link_cleanup_event_handler (void *link_info_ptr)
         return;
     }
 
-    an_nbr_remove_nbr_link(nbr, nbr_link_data);
-
-    an_nd_remove_and_free_nbr(nbr); 
+    an_event_nbr_link_lost(nbr_link_ctx->nbr, nbr_link_ctx->nbr_link_data);
+    an_event_remove_and_free_nbr(nbr);
 }
 
 void
