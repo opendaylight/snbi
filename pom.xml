@@ -12,13 +12,13 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>odlparent</artifactId>
-        <version>1.5.4-Lithium-SR4</version>
+        <version>1.5.5-SNAPSHOT</version>
         <relativePath></relativePath>
     </parent>
 
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
-    <version>1.1.4-Lithium-SR4</version>
+    <version>1.1.5-SNAPSHOT</version>
     <name>snbi</name> <!-- Used by Sonar to set project name -->
     <packaging>pom</packaging>
     <prerequisites>
@@ -26,7 +26,7 @@
     </prerequisites>
 
     <properties>
-         <sal-binding-api.version>1.2.4-Lithium-SR4</sal-binding-api.version>
+         <sal-binding-api.version>1.2.5-SNAPSHOT</sal-binding-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <nexusproxy>http://nexus.opendaylight.org/content</nexusproxy>
 
@@ -34,22 +34,22 @@
         <lifecycle.mapping.version>1.0.0</lifecycle.mapping.version> 
         <jmxGeneratorPath>src/main/yang-gen-config</jmxGeneratorPath>
         <salGeneratorPath>src/main/yang-gen-sal</salGeneratorPath>
-        <config.version>0.3.4-Lithium-SR4</config.version>
-        <yang-jmx-generator.version>1.2.4-Lithium-SR4</yang-jmx-generator.version>
-        <yangtools.version>0.7.4-Lithium-SR4</yangtools.version>
-        <mdsal.version>1.2.4-Lithium-SR4</mdsal.version>
-        <snbi.shell.version>1.1.4-Lithium-SR4</snbi.shell.version>
+        <config.version>0.3.5-SNAPSHOT</config.version>
+        <yang-jmx-generator.version>1.2.5-SNAPSHOT</yang-jmx-generator.version>
+        <yangtools.version>0.7.5-SNAPSHOT</yangtools.version>
+        <mdsal.version>1.2.5-SNAPSHOT</mdsal.version>
+        <snbi.shell.version>1.1.5-SNAPSHOT</snbi.shell.version>
         <karaf.shell.version>3.0.0</karaf.shell.version>
-        <nsf.version>0.5.4-Lithium-SR4</nsf.version>
-        <yangtools.version>0.7.4-Lithium-SR4</yangtools.version>
-        <commons.opendaylight.version>1.5.4-Lithium-SR4</commons.opendaylight.version>
-        <devices.web.version>0.5.4-Lithium-SR4</devices.web.version>
-        <flows.web.version>0.5.4-Lithium-SR4</flows.web.version>
-        <topology.web.version>0.5.4-Lithium-SR4</topology.web.version>
-        <troubleshoot.web.version>0.5.4-Lithium-SR4</troubleshoot.web.version>
-        <osgi-brandfragment.web.version>0.1.4-Lithium-SR4</osgi-brandfragment.web.version>
-        <web.version>0.5.4-Lithium-SR4</web.version>
-        <commons.opendaylight.version>1.5.4-Lithium-SR4</commons.opendaylight.version>
+        <nsf.version>0.5.5-SNAPSHOT</nsf.version>
+        <yangtools.version>0.7.5-SNAPSHOT</yangtools.version>
+        <commons.opendaylight.version>1.5.5-SNAPSHOT</commons.opendaylight.version>
+        <devices.web.version>0.5.5-SNAPSHOT</devices.web.version>
+        <flows.web.version>0.5.5-SNAPSHOT</flows.web.version>
+        <topology.web.version>0.5.5-SNAPSHOT</topology.web.version>
+        <troubleshoot.web.version>0.5.5-SNAPSHOT</troubleshoot.web.version>
+        <osgi-brandfragment.web.version>0.1.5-SNAPSHOT</osgi-brandfragment.web.version>
+        <web.version>0.5.5-SNAPSHOT</web.version>
+        <commons.opendaylight.version>1.5.5-SNAPSHOT</commons.opendaylight.version>
     </properties>
 
     <scm>
