@@ -8,7 +8,7 @@
 
 package org.opendaylight.snbi.southplugin.dependencies.mgrs;
 
-import org.opendaylight.yangtools.binding.data.codec.api.BindingNormalizedNodeSerializer;
+import org.opendaylight.mdsal.binding.dom.codec.api.BindingNormalizedNodeSerializer;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
