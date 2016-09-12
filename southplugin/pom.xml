@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.opendaylight.snbi</groupId>
     <artifactId>snbi</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.0-Boron</version>
     <relativePath>../</relativePath>
   </parent>
 

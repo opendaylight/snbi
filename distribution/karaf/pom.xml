@@ -4,12 +4,12 @@
   <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>karaf-parent</artifactId>
-        <version>1.7.0-SNAPSHOT</version>
+        <version>1.7.0-Boron</version>
   </parent>
 
   <artifactId>distribution-karaf</artifactId>
   <groupId>org.opendaylight.snbi</groupId>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.3.0-Boron</version>
   <packaging>pom</packaging>
 
   <prerequisites>
