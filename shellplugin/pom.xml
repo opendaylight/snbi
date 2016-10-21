@@ -4,13 +4,13 @@
   <parent>
     <groupId>org.opendaylight.snbi</groupId>
     <artifactId>snbi</artifactId>
-    <version>1.2.4-SNAPSHOT</version>
+    <version>1.2.4-Beryllium-SR4</version>
     <relativePath>../</relativePath>
   </parent>
 
   <groupId>org.opendaylight.snbi</groupId>
   <artifactId>shellplugin</artifactId>
-  <version>1.2.4-SNAPSHOT</version>
+  <version>1.2.4-Beryllium-SR4</version>
   <name>SNBI Shell Plugin </name>
   <packaging>bundle</packaging>
 
@@ -19,7 +19,7 @@
     <dependency>
       <groupId>org.opendaylight.snbi</groupId>
       <artifactId>southplugin</artifactId>
-      <version>1.2.4-SNAPSHOT</version>
+      <version>1.2.4-Beryllium-SR4</version>
     </dependency>
 
     <dependency>
