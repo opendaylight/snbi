@@ -4,7 +4,7 @@
   <parent>
         <artifactId>snbi</artifactId>
         <groupId>org.opendaylight.snbi</groupId>
-        <version>1.2.4-SNAPSHOT</version>
+        <version>1.2.5-SNAPSHOT</version>
         <relativePath>../../</relativePath>
   </parent>
 
@@ -17,8 +17,8 @@
   </prerequisites>
 
   <properties>
-        <branding.version>1.2.4-SNAPSHOT</branding.version>
-        <karaf.resources.version>1.6.4-SNAPSHOT</karaf.resources.version>
+        <branding.version>1.2.5-SNAPSHOT</branding.version>
+        <karaf.resources.version>1.6.5-SNAPSHOT</karaf.resources.version>
   </properties>
 
   <dependencies>
@@ -87,7 +87,7 @@
       <dependency>
         <groupId>org.opendaylight.openflowplugin</groupId>
         <artifactId>features-openflowplugin</artifactId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.2.5-SNAPSHOT</version>
         <classifier>features</classifier>
         <type>xml</type>
         <scope>runtime</scope>
