@@ -29,6 +29,7 @@
       <restconf.version>1.5.0-SNAPSHOT</restconf.version>
       <surefire.version>2.16</surefire.version>
       <yangtools.version>1.1.0-SNAPSHOT</yangtools.version>
+       <dluxapps.version>0.5.0-SNAPSHOT</dluxapps.version>
    </properties>
 
     <dependencyManagement>
@@ -78,9 +79,9 @@
         <type>xml</type>
       </dependency>
        <dependency>
-        <groupId>org.opendaylight.dlux</groupId>
-        <artifactId>features-dlux</artifactId>
-        <version>0.5.0-SNAPSHOT</version>
+        <groupId>org.opendaylight.dluxapps</groupId>
+        <artifactId>features-dluxapps</artifactId>
+        <version>${dluxapps.version}</version>
         <classifier>features</classifier>
         <type>xml</type>
       </dependency>
