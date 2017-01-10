@@ -16,12 +16,12 @@
     <repository>mvn:org.opendaylight.controller/features-mdsal/{{VERSION}}/xml/features</repository>
     <repository>mvn:org.opendaylight.netconf/features-restconf/{{VERSION}}/xml/features</repository>
     <repository>mvn:org.opendaylight.netconf/features-netconf-connector/{{VERSION}}/xml/features</repository>
-    <repository>mvn:org.opendaylight.dlux/features-dlux/{{VERSION}}/xml/features</repository>
+    <repository>mvn:org.opendaylight.dluxapps/features-dluxapps/{{VERSION}}/xml/features</repository>
 
     <feature name='odl-snbi-all' version='${project.version}' description='OpenDaylight :: snbi :: All'>
         <feature version='${project.version}'>odl-snbi-southplugin</feature>
         <feature version='${project.version}'>odl-snbi-shellplugin</feature>
-        <feature version='${project.version}'>odl-snbi-dlux</feature> 
+        <feature version='${project.version}'>odl-snbi-dlux</feature>
     </feature>
 
     <feature name='odl-snbi-southplugin' description='OpenDaylight :: SNBI :: SouthPlugin' version='${project.version}'>
@@ -36,10 +36,10 @@
         <feature version='${project.version}'>odl-snbi-southplugin</feature>
         <bundle>mvn:org.opendaylight.snbi/shellplugin/{{VERSION}}</bundle>
     </feature>
-    <feature name='odl-snbi-dlux' description='OpenDaylight :: SNBI :: Dlux' version='${project.version}'>	
+    <feature name='odl-snbi-dlux' description='OpenDaylight :: SNBI :: Dlux' version='${project.version}'>
         <feature version='${restconf.version}'>odl-restconf</feature>
         <feature version='${restconf.version}'>odl-mdsal-apidocs</feature>
-        <feature version='0.5.0-SNAPSHOT'>odl-dlux-core</feature>
+        <feature version='${dluxapps.version}'>odl-dluxapps-topology</feature>
 	</feature>
 
 </features>
