@@ -22,6 +22,7 @@
     <packaging>jar</packaging>
 
    <properties>
+      <dluxapps.version>0.5.0-SNAPSHOT</dluxapps.version>
       <feature.test.version>1.8.0-SNAPSHOT</feature.test.version>
       <karaf.empty.version>1.8.0-SNAPSHOT</karaf.empty.version>
       <mdsal.version>1.5.0-SNAPSHOT</mdsal.version>
@@ -78,9 +79,9 @@
         <type>xml</type>
       </dependency>
        <dependency>
-        <groupId>org.opendaylight.dlux</groupId>
-        <artifactId>features-dlux</artifactId>
-        <version>0.5.0-SNAPSHOT</version>
+        <groupId>org.opendaylight.dluxapps</groupId>
+        <artifactId>features-dluxapps</artifactId>
+        <version>${dluxapps.version}</version>
         <classifier>features</classifier>
         <type>xml</type>
       </dependency>
