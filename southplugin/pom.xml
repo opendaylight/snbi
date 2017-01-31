@@ -87,7 +87,6 @@
           <instructions>
             <Bundle-Activator>org.opendaylight.snbi.southplugin.Activator</Bundle-Activator>
           </instructions>
-          <manifestLocation>${project.basedir}/META-INF</manifestLocation>
         </configuration>
       </plugin>
       <plugin>
