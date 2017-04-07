@@ -12,13 +12,13 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>odlparent</artifactId>
-        <version>1.7.3-SNAPSHOT</version>
+        <version>1.7.4-SNAPSHOT</version>
         <relativePath></relativePath>
     </parent>
 
     <artifactId>snbi</artifactId>
     <groupId>org.opendaylight.snbi</groupId>
-    <version>1.3.3-SNAPSHOT</version>
+    <version>1.3.4-SNAPSHOT</version>
     <name>snbi</name> <!-- Used by Sonar to set project name -->
     <packaging>pom</packaging>
     <prerequisites>
@@ -26,23 +26,23 @@
     </prerequisites>
 
     <properties>
-         <sal-binding-api.version>1.4.3-SNAPSHOT</sal-binding-api.version>
+         <sal-binding-api.version>1.4.4-SNAPSHOT</sal-binding-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Supporting Libraries -->
         <lifecycle.mapping.version>1.0.0</lifecycle.mapping.version>
         <jmxGeneratorPath>src/main/yang-gen-config</jmxGeneratorPath>
         <salGeneratorPath>src/main/yang-gen-sal</salGeneratorPath>
-        <config.version>0.5.3-SNAPSHOT</config.version>
-        <yang-jmx-generator.version>1.4.3-SNAPSHOT</yang-jmx-generator.version>
-        <yangtools.version>1.0.3-SNAPSHOT</yangtools.version>
-        <mdsal.version>1.4.3-SNAPSHOT</mdsal.version>
-        <mdsal.model.version>0.9.3-SNAPSHOT</mdsal.model.version>
-        <restconf.version>1.4.3-SNAPSHOT</restconf.version>
-        <snbi.shell.version>1.3.3-SNAPSHOT</snbi.shell.version>
+        <config.version>0.5.4-SNAPSHOT</config.version>
+        <yang-jmx-generator.version>1.4.4-SNAPSHOT</yang-jmx-generator.version>
+        <yangtools.version>1.0.4-SNAPSHOT</yangtools.version>
+        <mdsal.version>1.4.4-SNAPSHOT</mdsal.version>
+        <mdsal.model.version>0.9.4-SNAPSHOT</mdsal.model.version>
+        <restconf.version>1.4.4-SNAPSHOT</restconf.version>
+        <snbi.shell.version>1.3.4-SNAPSHOT</snbi.shell.version>
         <karaf.shell.version>3.0.0</karaf.shell.version>
-        <commons.opendaylight.version>1.7.3-SNAPSHOT</commons.opendaylight.version>
-        <commons.opendaylight.version>1.7.3-SNAPSHOT</commons.opendaylight.version>
+        <commons.opendaylight.version>1.7.4-SNAPSHOT</commons.opendaylight.version>
+        <commons.opendaylight.version>1.7.4-SNAPSHOT</commons.opendaylight.version>
     </properties>
 
     <scm>
@@ -70,14 +70,14 @@
             <dependency>
               <groupId>org.opendaylight.mdsal</groupId>
               <artifactId>mdsal-artifacts</artifactId>
-              <version>2.1.3-SNAPSHOT</version>
+              <version>2.1.4-SNAPSHOT</version>
               <type>pom</type>
               <scope>import</scope>
             </dependency>
             <dependency>
               <groupId>org.opendaylight.mdsal.model</groupId>
               <artifactId>mdsal-model-artifacts</artifactId>
-              <version>0.9.3-SNAPSHOT</version>
+              <version>0.9.4-SNAPSHOT</version>
               <type>pom</type>
               <scope>import</scope>
             </dependency>
