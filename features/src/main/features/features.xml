@@ -39,7 +39,7 @@
     <feature name='odl-snbi-dlux' description='OpenDaylight :: SNBI :: Dlux' version='${project.version}'>	
         <feature version='${restconf.version}'>odl-restconf</feature>
         <feature version='${restconf.version}'>odl-mdsal-apidocs</feature>
-        <feature version='0.4.4-SNAPSHOT'>odl-dlux-core</feature>
+        <feature version='0.4.5-SNAPSHOT'>odl-dlux-core</feature>
 	</feature>
 
 </features>
