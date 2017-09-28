@@ -35,7 +35,7 @@
         <salGeneratorPath>src/main/yang-gen-sal</salGeneratorPath>
         <config.version>0.6.0-SNAPSHOT</config.version>
         <yang-jmx-generator.version>1.5.0-SNAPSHOT</yang-jmx-generator.version>
-        <yangtools.version>1.1.0-SNAPSHOT</yangtools.version>
+        <yangtools.version>1.2.0</yangtools.version>
         <mdsal.version>1.5.0-SNAPSHOT</mdsal.version>
         <mdsal.model.version>0.10.0-SNAPSHOT</mdsal.model.version>
         <restconf.version>1.5.0-SNAPSHOT</restconf.version>

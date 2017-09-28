@@ -31,7 +31,7 @@
       <netconf.version>1.2.0-SNAPSHOT</netconf.version>
       <restconf.version>1.5.0-SNAPSHOT</restconf.version>
       <surefire.version>2.16</surefire.version>
-      <yangtools.version>1.1.0-SNAPSHOT</yangtools.version>
+      <yangtools.version>1.2.0</yangtools.version>
        <dluxapps.version>0.5.0-SNAPSHOT</dluxapps.version>
    </properties>
 
