@@ -1,7 +1,4 @@
-# UUID                                  	Group Name
+# UUID                                                         	Group Name
 #
-406c94e1e75c8faeae36377d08bc0306894d87a6	Non-Interactive snbi users
-c9025ab9ddc1e3171919e085449f22c54f8f7b54	GitHub Replication
-global:Anonymous-Users                  	Anonymous Users
-global:Registered-Users                 	Registered Users
+c9025ab9ddc1e3171919e085449f22c54f8f7b54                       	GitHub Replication
 ldap:cn=gerrit-snbi-committers,ou=Groups,dc=opendaylight,dc=org	ldap/gerrit-snbi-committers
